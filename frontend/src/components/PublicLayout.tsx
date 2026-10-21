@@ -1,16 +1,39 @@
-import { useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 import { PAGE_MAX } from '../lib/layout';
-import { Phone, MapPin, Clock, Mail, ExternalLink, Menu, X, LogIn, LogOut, User } from 'lucide-react';
+import { Phone, MapPin, Clock, Mail, ExternalLink, Menu, X, LogIn, LogOut, User, ChevronDown, Home, BookOpen, GraduationCap, Trophy, Award, type LucideIcon } from 'lucide-react';
 
-const NAV = [
-  { to: '/', label: 'Trang chủ' },
-  { to: '/#khoa-hoc', label: 'Khóa học' },
-  { to: '/#giao-vien', label: 'Đội ngũ' },
-  { to: '/#hoc-sinh', label: 'Học sinh tiêu biểu' },
+// Các mục của trang chủ — gom vào 1 nút "Trang chủ" thả xuống
+const HOME_MENU: { to: string; label: string; sub: string; icon: LucideIcon }[] = [
+  { to: '/', label: 'Trang chủ', sub: 'Về đầu trang giới thiệu', icon: Home },
+  { to: '/#khoa-hoc', label: 'Khóa học', sub: 'Các khóa học đang mở', icon: BookOpen },
+  { to: '/#giao-vien', label: 'Đội ngũ', sub: 'Giáo viên & trợ giảng', icon: GraduationCap },
+  { to: '/#hoc-sinh', label: 'Học sinh tiêu biểu', sub: 'Gương mặt xuất sắc', icon: Trophy },
+  { to: '/#kinh-nghiem', label: 'Kinh nghiệm & Thành tích', sub: 'Hành trình phát triển', icon: Award },
+  { to: '#contact', label: 'Liên hệ', sub: 'Địa chỉ, điện thoại, giờ học', icon: Phone },
 ];
+
+// Mục trong danh sách thả xuống: "#contact" cuộn trong trang hiện tại, còn lại điều hướng về trang chủ
+function MenuLink({ item, onPick, style }: { item: (typeof HOME_MENU)[number]; onPick: () => void; style?: React.CSSProperties }) {
+  const Icon = item.icon;
+  const inner = (
+    <>
+      <span style={{ width: 32, height: 32, borderRadius: 9, background: '#E6F0F2', color: '#1F5C68', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Icon size={16} />
+      </span>
+      <span style={{ minWidth: 0 }}>
+        <span style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', color: '#1D1D1F' }}>{item.label}</span>
+        <span style={{ display: 'block', fontSize: '0.78rem', color: '#86868B' }}>{item.sub}</span>
+      </span>
+    </>
+  );
+  const css: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 11, padding: '8px 10px', borderRadius: 10, textDecoration: 'none', ...style };
+  return item.to.startsWith('#')
+    ? <a href={item.to} className="menu-item" style={css} onClick={onPick}>{inner}</a>
+    : <Link to={item.to} className="menu-item" style={css} onClick={onPick}>{inner}</Link>;
+}
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
@@ -18,6 +41,18 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
   const [navOpen, setNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [settings, setSettings] = useState<any>({});
+  const [homeOpen, setHomeOpen] = useState(false);
+  const homeRef = useRef<HTMLDivElement>(null);
+
+  // Đóng danh sách thả xuống khi bấm ra ngoài hoặc nhấn Esc
+  useEffect(() => {
+    if (!homeOpen) return;
+    const onDown = (e: MouseEvent) => { if (homeRef.current && !homeRef.current.contains(e.target as Node)) setHomeOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setHomeOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [homeOpen]);
 
   useEffect(() => {
     api.get('/public/settings').then((r) => setSettings(r.data)).catch(() => {});
@@ -53,23 +88,29 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
 
           {/* Desktop nav */}
           <div className="desktop-nav">
-            {NAV.map((n) => {
-              const active = n.to === pathname;
-              return (
-                <Link key={n.to} to={n.to} style={{
-                  color: active ? '#1D1D1F' : solid ? '#6E6E73' : 'rgba(255,255,255,0.85)',
-                  textDecoration: 'none', fontWeight: active ? 600 : 500, fontSize: '0.86rem',
-                  padding: '6px 12px', borderRadius: 8, transition: 'all 0.15s',
-                }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = solid ? '#F2F2F4' : 'rgba(255,255,255,0.1)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                >{n.label}</Link>
-              );
-            })}
-            <a href="#contact" style={{ color: solid ? '#6E6E73' : 'rgba(255,255,255,0.85)', textDecoration: 'none', fontWeight: 500, fontSize: '0.86rem', padding: '6px 12px', borderRadius: 8 }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = solid ? '#F2F2F4' : 'rgba(255,255,255,0.1)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-            >Liên hệ</a>
+            <div ref={homeRef} style={{ position: 'relative' }}
+              onMouseEnter={() => setHomeOpen(true)} onMouseLeave={() => setHomeOpen(false)}>
+              <button type="button" onClick={() => setHomeOpen((v) => !v)} aria-haspopup="menu" aria-expanded={homeOpen}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 4, background: homeOpen ? '#F2F2F4' : 'transparent', border: 'none', cursor: 'pointer',
+                  color: '#1D1D1F', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.88rem', padding: '7px 12px', borderRadius: 99,
+                }}>
+                Trang chủ <ChevronDown size={15} style={{ transition: 'transform 0.2s', transform: homeOpen ? 'rotate(180deg)' : 'none' }} />
+              </button>
+              {homeOpen && (
+                // paddingTop tạo "cầu nối" để rê chuột từ nút xuống danh sách không bị đóng
+                <div style={{ position: 'absolute', right: 0, top: '100%', paddingTop: 8, zIndex: 130 }}>
+                  <div className="menu-panel" role="menu" style={{ position: 'static', width: 290 }}>
+                    {HOME_MENU.map((it, i) => (
+                      <div key={it.to}>
+                        {i === 1 && <div className="menu-sep" />}
+                        <MenuLink item={it} onPick={() => setHomeOpen(false)} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {user ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8 }}>
@@ -94,10 +135,11 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         {/* Mobile menu */}
         {navOpen && (
           <div style={{ background: 'white', borderTop: '1px solid #E8E8ED', padding: '1rem 2rem' }}>
-            {NAV.map((n) => (
-              <Link key={n.to} to={n.to} onClick={() => setNavOpen(false)} style={{ display: 'block', padding: '0.6rem 0', color: n.to === pathname ? '#1F5C68' : '#2C2C2E', textDecoration: 'none', fontWeight: 600 }}>{n.label}</Link>
+            <div style={{ fontSize: '0.74rem', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0.2rem 0 0.4rem' }}>Trang chủ</div>
+            {HOME_MENU.map((it, i) => (
+              <MenuLink key={it.to} item={it} onPick={() => setNavOpen(false)} style={{ marginLeft: i === 0 ? 0 : 14 }} />
             ))}
-            <a href="#contact" onClick={() => setNavOpen(false)} style={{ display: 'block', padding: '0.6rem 0', color: '#2C2C2E', textDecoration: 'none', fontWeight: 500 }}>Liên hệ</a>
+            <div style={{ height: 1, background: '#E8E8ED', margin: '0.6rem 0' }} />
             {user ? (
               <>
                 <Link to={dashLink} onClick={() => setNavOpen(false)} style={{ display: 'block', padding: '0.6rem 0', color: '#1F5C68', fontWeight: 600 }}>Vào hệ thống</Link>
