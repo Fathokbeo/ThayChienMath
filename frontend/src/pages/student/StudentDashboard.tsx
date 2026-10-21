@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { ChevronRight, Star, ClipboardCheck, CheckCircle2, School, Timer, Trophy, PartyPopper, BookOpen } from 'lucide-react';
+import { ChevronRight, Star, ClipboardCheck, CheckCircle2, School, Timer, Trophy, PartyPopper, BookOpen, Play } from 'lucide-react';
 import { formatDeadlineRemaining } from '../../lib/homeworkParts';
 import { PageHeader, SectionHeader, greeting, givenName, todayLabel, urgencyColor, scoreTone, EmptyState } from '../../components/ui';
 import useIsMobile from '../../lib/useIsMobile';
@@ -123,7 +123,7 @@ export default function StudentDashboard() {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 12 }}>
             {classes.map((c) => (
-              <Link key={c.id} to={`/student/classes/${c.id}`} className="card" style={{ textDecoration: 'none', color: 'inherit', padding: '1.15rem 1.25rem', display: 'block' }}>
+              <div key={c.id} className="card" style={{ padding: '1.15rem 1.25rem', display: 'flex', flexDirection: 'column' }}>
                 {c.course_title && <div style={{ fontSize: '0.78rem', color: '#86868B', fontWeight: 500 }}>{c.course_title}</div>}
                 <div style={{ fontWeight: 700, fontSize: '1.15rem', letterSpacing: '-0.02em', margin: '2px 0 12px' }}>{c.title}</div>
                 <div style={{ display: 'flex', gap: 18 }}>
@@ -138,7 +138,10 @@ export default function StudentDashboard() {
                     </div>
                   </div>
                 </div>
-              </Link>
+                <Link to={`/student/classes/${c.id}`} className="btn btn-primary" style={{ marginTop: 16, width: '100%' }}>
+                  <Play size={15} /> Vào học
+                </Link>
+              </div>
             ))}
           </div>
         )}
