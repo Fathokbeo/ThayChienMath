@@ -106,11 +106,17 @@ router.get('/all-assistants', (req, res) => {
   res.json(db.prepare(q + ' ORDER BY a.full_name').all(...p));
 });
 
-// ── Tổng quan "thông minh" cho giáo viên: bài cần chấm tay (chưa có điểm, kể cả AI chấm lỗi), số bài AI
-// đang chấm, hạn nộp sắp tới kèm tỉ lệ đã nộp, danh sách lớp kèm số liệu. Admin thấy toàn bộ lớp.
+// ── Tổng quan "thông minh" cho giáo viên: bài đến hạn HÔM NAY (đã hết hạn trong ngày + sắp hết hạn), số bài AI
+// đang chấm, hạn nộp từ ngày mai trở đi kèm tỉ lệ đã nộp, danh sách lớp kèm số liệu. Admin thấy toàn bộ lớp.
+// ?from=&to= (ISO): đầu & cuối "hôm nay" theo giờ máy người dùng; không gửi → theo giờ máy chủ.
 router.get('/overview', (req, res) => {
   const db = getDb();
   const now = new Date().toISOString();
+  const iso = (v) => { const d = new Date(String(v || '')); return isNaN(d.getTime()) ? null : d.toISOString(); };
+  const d0 = new Date(); d0.setHours(0, 0, 0, 0);
+  const d1 = new Date(); d1.setHours(23, 59, 59, 999);
+  const dayFrom = iso(req.query.from) || d0.toISOString();
+  const dayTo = iso(req.query.to) || d1.toISOString();
   const own = req.user.role === 'teacher' ? ' AND cl.teacher_id=?' : '';
   const p = req.user.role === 'teacher' ? [req.user.id] : [];
   const toGrade = db.prepare(`
@@ -124,14 +130,22 @@ router.get('/overview', (req, res) => {
     SELECT COUNT(*) c FROM submissions s JOIN homework h ON s.homework_id=h.id JOIN classes cl ON h.class_id=cl.id
     WHERE cl.active=1 AND s.grading_status IN ('pending','grading')${own}
   `).get(...p).c;
-  const upcoming = db.prepare(`
-    SELECT h.id, h.title, h.due_date, cl.id class_id, cl.title class_title,
+  const hwCols = `h.id, h.title, h.due_date, cl.id class_id, cl.title class_title,
       (SELECT COUNT(*) FROM class_students cs JOIN users u ON u.id=cs.student_id WHERE cs.class_id=cl.id AND u.active=1) total,
-      (SELECT COUNT(*) FROM submissions s WHERE s.homework_id=h.id) submitted
-    FROM homework h JOIN classes cl ON h.class_id=cl.id
-    WHERE cl.active=1 AND h.due_date IS NOT NULL AND h.due_date>=?${own}
+      (SELECT COUNT(*) FROM submissions s WHERE s.homework_id=h.id) submitted,
+      (SELECT COUNT(*) FROM submissions s WHERE s.homework_id=h.id AND s.score IS NULL AND (s.grading_status IS NULL OR s.grading_status='failed')) to_grade`;
+  // Hôm nay: hạn nộp nằm trong ngày (kể cả đã qua giờ hạn)
+  const today = db.prepare(`
+    SELECT ${hwCols} FROM homework h JOIN classes cl ON h.class_id=cl.id
+    WHERE cl.active=1 AND h.due_date IS NOT NULL AND h.due_date>=? AND h.due_date<=?${own}
+    ORDER BY h.due_date
+  `).all(dayFrom, dayTo, ...p);
+  // Sắp đến hạn: từ sau hôm nay trở đi
+  const upcoming = db.prepare(`
+    SELECT ${hwCols} FROM homework h JOIN classes cl ON h.class_id=cl.id
+    WHERE cl.active=1 AND h.due_date IS NOT NULL AND h.due_date>?${own}
     ORDER BY h.due_date LIMIT 8
-  `).all(now, ...p);
+  `).all(dayTo, ...p);
   // Lớp học: sĩ số, số bài tập, bài chờ chấm tay, hạn nộp gần nhất, điểm TB cả lớp tháng này (thang 10)
   const classes = db.prepare(`
     SELECT cl.id, cl.title, co.title course_title,
@@ -147,7 +161,7 @@ router.get('/overview', (req, res) => {
     const avgs = [...classAverages(db, c.id).values()].map((v) => v.avg).filter((v) => v !== null);
     return { ...c, class_avg: avgs.length ? Math.round((avgs.reduce((a, b) => a + b, 0) / avgs.length) * 10) / 10 : null };
   });
-  res.json({ to_grade: toGrade, ai_pending: aiPending, upcoming, classes });
+  res.json({ today, to_grade: toGrade, ai_pending: aiPending, upcoming, classes, day: { from: dayFrom, to: dayTo } });
 });
 
 // ── Courses (teacher can create & manage own courses) ──────────────────

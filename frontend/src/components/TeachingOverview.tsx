@@ -1,33 +1,32 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Bot, PenLine, CalendarClock, School } from 'lucide-react';
+import { ChevronRight, Bot, CalendarCheck, CalendarClock, School } from 'lucide-react';
 import api from '../lib/api';
 import { formatDeadlineRemaining } from '../lib/homeworkParts';
 import { SectionHeader, urgencyColor, EmptyState } from './ui';
 import useIsMobile from '../lib/useIsMobile';
 
-// Tổng quan "thông minh" cho giáo viên (và admin): việc cần xử lý trước — bài cần chấm tay, hạn nộp sắp tới
-// kèm tỉ lệ đã nộp, danh sách lớp học kèm số liệu. Mỗi dòng bấm thẳng vào trang chấm / bài tập / lớp.
+// Tổng quan "thông minh" cho giáo viên (và admin): bài đến hạn HÔM NAY, hạn nộp từ ngày mai kèm tỉ lệ đã nộp,
+// danh sách lớp học kèm số liệu. Mỗi dòng bấm thẳng vào trang bài tập / lớp.
 export default function TeachingOverview() {
   const isMobile = useIsMobile();
   const [ov, setOv] = useState<any>(null);
   const now = Date.now();
 
-  useEffect(() => { api.get('/teacher/overview').then((r) => setOv(r.data)).catch(() => setOv({ to_grade: [], upcoming: [], classes: [], ai_pending: 0 })); }, []);
+  useEffect(() => {
+    // "Hôm nay" theo giờ máy người dùng
+    const from = new Date(); from.setHours(0, 0, 0, 0);
+    const to = new Date(); to.setHours(23, 59, 59, 999);
+    api.get('/teacher/overview', { params: { from: from.toISOString(), to: to.toISOString() } })
+      .then((r) => setOv(r.data))
+      .catch(() => setOv({ today: [], upcoming: [], classes: [], ai_pending: 0 }));
+  }, []);
   if (!ov) return null;
 
-  const toGrade: any[] = ov.to_grade || [];
+  const today: any[] = ov.today || [];
   const upcoming: any[] = ov.upcoming || [];
   const classes: any[] = ov.classes || [];
-  // Gom bài cần chấm theo bài tập để danh sách gọn
-  const byHw = new Map<number, { homework_id: number; homework_title: string; class_title: string; count: number; failed: number; oldest: string }>();
-  toGrade.forEach((s) => {
-    const g = byHw.get(s.homework_id) || { homework_id: s.homework_id, homework_title: s.homework_title, class_title: s.class_title, count: 0, failed: 0, oldest: s.submitted_at };
-    g.count++; if (s.grading_status === 'failed') g.failed++;
-    if (s.submitted_at < g.oldest) g.oldest = s.submitted_at;
-    byHw.set(s.homework_id, g);
-  });
-  const groups = [...byHw.values()];
+  const hm = (iso: string) => new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
   return (
     <div style={{ marginBottom: '2.25rem' }}>
@@ -39,25 +38,41 @@ export default function TeachingOverview() {
 
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : 'minmax(0, 1fr) minmax(0, 1fr)', gap: 28, alignItems: 'start' }}>
         <section>
-          <SectionHeader title="Cần chấm" count={toGrade.length} />
-          {groups.length === 0 ? (
-            <EmptyState icon={<PenLine size={30} />} title="Không có bài nào chờ chấm tay" text="Bài có đáp án sẽ được chấm tự động." />
+          <SectionHeader title="Hôm nay" count={today.length}
+            action={<span style={{ fontSize: '0.85rem', color: '#86868B' }}>{new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'numeric' })}</span>} />
+          {today.length === 0 ? (
+            <EmptyState icon={<CalendarCheck size={30} />} title="Hôm nay không có bài nào đến hạn" text="Bài có hạn nộp trong ngày sẽ hiện ở đây." />
           ) : (
             <div className="list">
-              {groups.map((g) => (
-                <Link key={g.homework_id} to={`/teacher/homework/${g.homework_id}`} className="list-row">
-                  <span style={{ minWidth: 34, height: 34, borderRadius: 10, background: '#FCF0E8', color: '#B8673E', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 6px' }}>{g.count}</span>
-                  <div className="list-row-main">
-                    <div className="list-row-title">{g.homework_title}</div>
-                    <div className="list-row-sub">
-                      {g.class_title} · nộp sớm nhất {new Date(g.oldest).toLocaleDateString('vi-VN')}
-                      {g.failed > 0 && <span style={{ color: '#B04A2A' }}> · {g.failed} bài AI chấm lỗi</span>}
+              {today.map((h) => {
+                const left = new Date(h.due_date).getTime() - now;
+                const passed = left <= 0;
+                const pct = h.total > 0 ? Math.round((h.submitted / h.total) * 100) : 0;
+                return (
+                  <Link key={h.id} to={`/teacher/homework/${h.id}`} className="list-row">
+                    <span style={{ width: 52, flexShrink: 0, textAlign: 'center' }}>
+                      <span style={{ display: 'block', fontWeight: 700, fontSize: '1rem', color: passed ? '#86868B' : urgencyColor(left) }}>{hm(h.due_date)}</span>
+                      <span style={{ display: 'block', fontSize: '0.7rem', color: '#86868B' }}>hạn nộp</span>
+                    </span>
+                    <div className="list-row-main">
+                      <div className="list-row-title">{h.title}</div>
+                      <div className="list-row-sub">
+                        {h.class_title} · {passed
+                          ? <span style={{ color: '#86868B' }}>đã hết hạn</span>
+                          : <span style={{ color: urgencyColor(left), fontWeight: 600 }}>còn {formatDeadlineRemaining(left)}</span>}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                        <div style={{ flex: 1, height: 6, borderRadius: 99, background: '#EDEDF0', overflow: 'hidden' }}>
+                          <div style={{ width: `${pct}%`, height: '100%', background: passed ? '#86868B' : '#1F5C68', borderRadius: 99 }} />
+                        </div>
+                        <span style={{ fontSize: '0.78rem', color: '#6E6E73', whiteSpace: 'nowrap' }}>{h.submitted}/{h.total} đã nộp</span>
+                      </div>
                     </div>
-                  </div>
-                  <span className="link" style={{ fontSize: '0.86rem' }}>Chấm</span>
-                  <ChevronRight size={18} color="#C7C7CC" />
-                </Link>
-              ))}
+                    {h.to_grade > 0 && <span className="badge badge-orange" style={{ whiteSpace: 'nowrap' }}>{h.to_grade} chờ chấm</span>}
+                    <ChevronRight size={18} color="#C7C7CC" />
+                  </Link>
+                );
+              })}
             </div>
           )}
         </section>
@@ -65,7 +80,7 @@ export default function TeachingOverview() {
         <section>
           <SectionHeader title="Sắp đến hạn" count={upcoming.length} />
           {upcoming.length === 0 ? (
-            <EmptyState icon={<CalendarClock size={30} />} title="Không có bài nào sắp đến hạn" />
+            <EmptyState icon={<CalendarClock size={30} />} title="Không có bài nào sắp đến hạn" text="Các bài có hạn từ ngày mai trở đi." />
           ) : (
             <div className="list">
               {upcoming.map((h) => {

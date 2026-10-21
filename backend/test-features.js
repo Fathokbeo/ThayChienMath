@@ -146,8 +146,19 @@ const login = async (u, p) => (await req('POST', '/auth/login', { json: { userna
   ok('GV thấy bài cần chấm tay', r.status === 200 && r.data.to_grade.some((x) => x.homework_id === hwNew), JSON.stringify(r.data.to_grade.map((x) => x.homework_title)));
   const up = r.data.upcoming.find((x) => x.id === hwNew);
   ok('Hạn sắp tới kèm số đã nộp / sĩ số', up && up.submitted === 1 && up.total === 2, JSON.stringify(up));
+  // "Hôm nay": bài hạn trong ngày (đã qua giờ + sắp tới); bài từ ngày mai không lẫn vào
+  const t0 = Date.now();
+  const dayQ = `?from=${new Date(t0 - 3 * 3600e3).toISOString()}&to=${new Date(t0 + 3 * 3600e3).toISOString()}`;
+  const hwSoon = (await req('POST', `/classes/${cls}/homework`, { token: tt, form: fd({ title: 'Hạn trong 1 giờ', max_score: '10', due_date: new Date(t0 + 3600e3).toISOString() }) })).data.id;
+  const hwPassed = (await req('POST', `/classes/${cls}/homework`, { token: tt, form: fd({ title: 'Vừa hết hạn sáng nay', max_score: '10', due_date: new Date(t0 - 3600e3).toISOString() }) })).data.id;
+  const rd = await req('GET', '/teacher/overview' + dayQ, { token: tt });
+  ok('Hôm nay có bài sắp đến hạn trong ngày', rd.data.today.some((x) => x.id === hwSoon), JSON.stringify(rd.data.today.map((x) => x.title)));
+  ok('Hôm nay có bài đã hết hạn trong ngày', rd.data.today.some((x) => x.id === hwPassed));
+  ok('Bài hạn ngày mai không nằm trong Hôm nay', !rd.data.today.some((x) => x.id === hwNew));
+  ok('Sắp đến hạn chỉ còn bài sau hôm nay', rd.data.upcoming.some((x) => x.id === hwNew) && !rd.data.upcoming.some((x) => x.id === hwSoon));
   const cRow = r.data.classes.find((x) => x.id === cls);
   ok('Danh sách lớp kèm sĩ số / số bài / bài chờ chấm', cRow && cRow.student_count === 2 && cRow.homework_count >= 4 && cRow.to_grade === 1, JSON.stringify(cRow));
+  void hwPassed;
   ok('Có điểm TB lớp tháng này', cRow && typeof cRow.class_avg === 'number', `class_avg=${cRow?.class_avg}`);
   r = await req('GET', '/teacher/overview', { token: out });
   ok('Học sinh không gọi được tổng quan giáo viên (403)', r.status === 403);
