@@ -1,24 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Bot, PenLine, CalendarClock, Inbox } from 'lucide-react';
+import { ChevronRight, Bot, PenLine, CalendarClock, School } from 'lucide-react';
 import api from '../lib/api';
 import { formatDeadlineRemaining } from '../lib/homeworkParts';
-import { SectionHeader, urgencyColor, scoreTone, EmptyState } from './ui';
+import { SectionHeader, urgencyColor, EmptyState } from './ui';
 import useIsMobile from '../lib/useIsMobile';
 
 // Tổng quan "thông minh" cho giáo viên (và admin): việc cần xử lý trước — bài cần chấm tay, hạn nộp sắp tới
-// kèm tỉ lệ đã nộp, bài vừa nộp. Mỗi dòng bấm thẳng vào trang chấm / chi tiết bài tập.
+// kèm tỉ lệ đã nộp, danh sách lớp học kèm số liệu. Mỗi dòng bấm thẳng vào trang chấm / bài tập / lớp.
 export default function TeachingOverview() {
   const isMobile = useIsMobile();
   const [ov, setOv] = useState<any>(null);
   const now = Date.now();
 
-  useEffect(() => { api.get('/teacher/overview').then((r) => setOv(r.data)).catch(() => setOv({ to_grade: [], upcoming: [], recent: [], ai_pending: 0 })); }, []);
+  useEffect(() => { api.get('/teacher/overview').then((r) => setOv(r.data)).catch(() => setOv({ to_grade: [], upcoming: [], classes: [], ai_pending: 0 })); }, []);
   if (!ov) return null;
 
   const toGrade: any[] = ov.to_grade || [];
   const upcoming: any[] = ov.upcoming || [];
-  const recent: any[] = ov.recent || [];
+  const classes: any[] = ov.classes || [];
   // Gom bài cần chấm theo bài tập để danh sách gọn
   const byHw = new Map<number, { homework_id: number; homework_title: string; class_title: string; count: number; failed: number; oldest: string }>();
   toGrade.forEach((s) => {
@@ -92,32 +92,36 @@ export default function TeachingOverview() {
         </section>
       </div>
 
-      {recent.length > 0 && (
-        <section style={{ marginTop: '2.25rem' }}>
-          <SectionHeader title="Mới nộp" />
+      {/* Lớp học đang dạy: bấm để vào lớp */}
+      <section style={{ marginTop: '2.25rem' }}>
+        <SectionHeader title="Lớp học" count={classes.length} />
+        {classes.length === 0 ? (
+          <EmptyState icon={<School size={30} />} title="Chưa có lớp nào" text="Vào một khóa học để tạo lớp." />
+        ) : (
           <div className="list">
-            {recent.map((s) => {
-              const tone = s.score !== null ? scoreTone(s.score, s.max_score) : null;
+            {classes.map((c) => {
+              const left = c.next_due ? new Date(c.next_due).getTime() - now : null;
               return (
-                <Link key={s.submission_id} to={`/teacher/homework/${s.homework_id}`} className="list-row">
-                  <span className="avatar" style={{ background: '#E8F3EC', color: '#3A7D5C' }}>{s.full_name?.[0]}</span>
+                <Link key={c.id} to={`/teacher/classes/${c.id}`} className="list-row">
+                  <span style={{ width: 44, height: 44, borderRadius: 12, background: '#E6F0F2', color: '#1F5C68', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontWeight: 700, fontSize: '0.85rem' }}>
+                    {c.title?.slice(0, 4)}
+                  </span>
                   <div className="list-row-main">
-                    <div className="list-row-title">{s.full_name}</div>
-                    <div className="list-row-sub">{s.homework_title} · {s.class_title} · {new Date(s.submitted_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</div>
+                    <div className="list-row-title">{c.title}{c.course_title && <span style={{ color: '#86868B', fontWeight: 500 }}> · {c.course_title}</span>}</div>
+                    <div className="list-row-sub">
+                      {c.student_count} học sinh · {c.homework_count} bài tập
+                      {c.class_avg !== null && <> · TB tháng <strong style={{ color: '#B8673E' }}>{c.class_avg}</strong></>}
+                      {left !== null && <> · hạn gần nhất <span style={{ color: urgencyColor(left), fontWeight: 600 }}>còn {formatDeadlineRemaining(left)}</span></>}
+                    </div>
                   </div>
-                  {tone ? (
-                    <span style={{ background: tone.bg, color: tone.color, fontWeight: 700, fontSize: '0.85rem', padding: '4px 10px', borderRadius: 99, whiteSpace: 'nowrap' }}>{s.score}/{s.max_score}</span>
-                  ) : s.grading_status === 'pending' || s.grading_status === 'grading' ? (
-                    <span className="badge badge-blue"><Bot size={12} style={{ marginRight: 4 }} />Đang chấm</span>
-                  ) : (
-                    <span className="badge badge-orange"><Inbox size={12} style={{ marginRight: 4 }} />Chờ chấm</span>
-                  )}
+                  {c.to_grade > 0 && <span className="badge badge-orange" style={{ whiteSpace: 'nowrap' }}>{c.to_grade} chờ chấm</span>}
+                  <ChevronRight size={18} color="#C7C7CC" />
                 </Link>
               );
             })}
           </div>
-        </section>
-      )}
+        )}
+      </section>
     </div>
   );
 }

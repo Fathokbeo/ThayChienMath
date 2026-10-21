@@ -146,7 +146,9 @@ const login = async (u, p) => (await req('POST', '/auth/login', { json: { userna
   ok('GV thấy bài cần chấm tay', r.status === 200 && r.data.to_grade.some((x) => x.homework_id === hwNew), JSON.stringify(r.data.to_grade.map((x) => x.homework_title)));
   const up = r.data.upcoming.find((x) => x.id === hwNew);
   ok('Hạn sắp tới kèm số đã nộp / sĩ số', up && up.submitted === 1 && up.total === 2, JSON.stringify(up));
-  ok('Bài mới nộp hiện trong "Mới nộp"', r.data.recent[0] && r.data.recent[0].homework_id === hwNew);
+  const cRow = r.data.classes.find((x) => x.id === cls);
+  ok('Danh sách lớp kèm sĩ số / số bài / bài chờ chấm', cRow && cRow.student_count === 2 && cRow.homework_count >= 4 && cRow.to_grade === 1, JSON.stringify(cRow));
+  ok('Có điểm TB lớp tháng này', cRow && typeof cRow.class_avg === 'number', `class_avg=${cRow?.class_avg}`);
   r = await req('GET', '/teacher/overview', { token: out });
   ok('Học sinh không gọi được tổng quan giáo viên (403)', r.status === 403);
 
