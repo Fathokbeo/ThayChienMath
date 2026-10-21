@@ -80,7 +80,7 @@ export default function AdminCourseDetail() {
   };
 
   if (!course) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: '#949A9E' }}>Đang tải...</div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: '#86868B' }}>Đang tải...</div>
   );
 
   const classes: any[] = course.classes || [];
@@ -100,9 +100,9 @@ export default function AdminCourseDetail() {
           </div>
         )}
         <div style={{ padding: '1.25rem' }}>
-          <h1 style={{ margin: '0 0 6px', fontSize: '1.3rem', fontWeight: 800, color: '#1D2A30' }}>{course.title}</h1>
-          {course.description && <p style={{ margin: '0 0 12px', color: '#5E676C', fontSize: '0.9rem' }}>{course.description}</p>}
-          <div style={{ display: 'flex', gap: 16, fontSize: '0.83rem', color: '#7A8287' }}>
+          <h1 style={{ margin: '0 0 6px', fontSize: '1.3rem', fontWeight: 800, color: '#1D1D1F' }}>{course.title}</h1>
+          {course.description && <p style={{ margin: '0 0 12px', color: '#6E6E73', fontSize: '0.9rem' }}>{course.description}</p>}
+          <div style={{ display: 'flex', gap: 16, fontSize: '0.83rem', color: '#6E6E73' }}>
             <span><School size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />{classes.length} lớp học</span>
             <span><Users size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />Tạo bởi: {course.creator_name}</span>
           </div>
@@ -110,14 +110,14 @@ export default function AdminCourseDetail() {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1D2A30' }}>Các lớp học trong khóa</h2>
+        <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1D1D1F' }}>Các lớp học trong khóa</h2>
         <button className="btn btn-primary btn-sm" onClick={openCreate}>
           <Plus size={14} /> Thêm lớp
         </button>
       </div>
 
       {classes.length === 0 ? (
-        <div style={{ background: 'white', borderRadius: 12, padding: '3rem', textAlign: 'center', color: '#949A9E' }}>
+        <div style={{ background: 'white', borderRadius: 12, padding: '3rem', textAlign: 'center', color: '#86868B' }}>
           <School size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
           <div style={{ marginBottom: 12 }}>Chưa có lớp học nào</div>
           <button className="btn btn-outline btn-sm" onClick={openCreate}>Thêm lớp học</button>
@@ -131,9 +131,9 @@ export default function AdminCourseDetail() {
                   <School size={18} color="#1F5C68" />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <h3 style={{ margin: '0 0 4px', fontSize: '0.93rem', fontWeight: 700, color: '#1D2A30' }}>{cls.title}</h3>
-                  {cls.teacher_name && <div style={{ fontSize: '0.78rem', color: '#7A8287', marginBottom: 4 }}>GV: {cls.teacher_name}</div>}
-                  <div style={{ display: 'flex', gap: 10, fontSize: '0.76rem', color: '#A6ABAE' }}>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '0.93rem', fontWeight: 700, color: '#1D1D1F' }}>{cls.title}</h3>
+                  {cls.teacher_name && <div style={{ fontSize: '0.78rem', color: '#6E6E73', marginBottom: 4 }}>GV: {cls.teacher_name}</div>}
+                  <div style={{ display: 'flex', gap: 10, fontSize: '0.76rem', color: '#A1A1A6' }}>
                     <span><Users size={11} style={{ verticalAlign: 'middle' }} /> {cls.student_count} học sinh</span>
                     <span><BookOpen size={11} style={{ verticalAlign: 'middle' }} /> {cls.lesson_count} bài</span>
                   </div>
@@ -180,7 +180,7 @@ export default function AdminCourseDetail() {
           <textarea className="input" placeholder="Mô tả..." value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} />
         </div>
-        <div style={{ fontSize: '0.78rem', color: '#7A8287' }}>
+        <div style={{ fontSize: '0.78rem', color: '#6E6E73' }}>
           Lớp học sẽ do <strong>{course.creator_name}</strong> — giáo viên phụ trách khóa học này — quản lý.
         </div>
       </Modal>

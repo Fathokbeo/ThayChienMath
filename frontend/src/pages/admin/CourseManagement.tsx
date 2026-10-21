@@ -113,8 +113,8 @@ export default function CourseManagement() {
             )}
             <div style={{ padding: '1rem' }}>
               <h3 style={{ margin: '0 0 6px', fontSize: '1rem', fontWeight: 700 }}>{c.title}</h3>
-              {c.description && <p style={{ margin: '0 0 10px', fontSize: '0.83rem', color: '#7A8287', lineHeight: 1.5 }}>{c.description}</p>}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: '0.78rem', color: '#949A9E', marginBottom: 10 }}>
+              {c.description && <p style={{ margin: '0 0 10px', fontSize: '0.83rem', color: '#6E6E73', lineHeight: 1.5 }}>{c.description}</p>}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: '0.78rem', color: '#86868B', marginBottom: 10 }}>
                 <span><School size={12} style={{ verticalAlign: 'middle' }} /> {c.class_count} lớp</span>
                 <span><Users size={12} style={{ verticalAlign: 'middle' }} /> {c.creator_name}</span>
               </div>
@@ -135,7 +135,7 @@ export default function CourseManagement() {
           </div>
         ))}
         {courses.length === 0 && (
-          <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#949A9E', padding: '3rem', background: 'white', borderRadius: 12 }}>
+          <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#86868B', padding: '3rem', background: 'white', borderRadius: 12 }}>
             <BookOpen size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
             <div>Chưa có khóa học nào</div>
           </div>
@@ -171,7 +171,7 @@ export default function CourseManagement() {
               <option key={t.id} value={t.id}>{t.full_name} ({t.username})</option>
             ))}
           </select>
-          <div style={{ fontSize: '0.75rem', color: '#7A8287', marginTop: 4 }}>
+          <div style={{ fontSize: '0.75rem', color: '#6E6E73', marginTop: 4 }}>
             Khóa học sẽ hiện trong "Khóa học của tôi" của giáo viên được chọn để họ tự quản lý.
           </div>
         </div>

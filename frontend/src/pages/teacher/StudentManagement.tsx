@@ -86,7 +86,7 @@ export default function StudentManagement() {
       </div>
 
       <div style={{ position: 'relative', marginBottom: '1rem', maxWidth: 360 }}>
-        <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#949A9E' }} />
+        <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#86868B' }} />
         <input className="input" style={{ paddingLeft: 32 }} placeholder="Tìm học sinh..." value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
@@ -96,9 +96,9 @@ export default function StudentManagement() {
           <tbody>
             {filtered.map((s, i) => (
               <tr key={s.id}>
-                <td style={{ color: '#949A9E' }}>{i + 1}</td>
+                <td style={{ color: '#86868B' }}>{i + 1}</td>
                 <td><strong>{s.full_name}</strong></td>
-                <td style={{ color: '#7A8287', fontFamily: 'monospace' }}>{s.username}</td>
+                <td style={{ color: '#6E6E73', fontFamily: 'monospace' }}>{s.username}</td>
                 <td>
                   {s.classes && s.classes.length > 0 ? (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
@@ -112,7 +112,7 @@ export default function StudentManagement() {
                     <span className="badge badge-gray" style={{ fontSize: '0.72rem' }}>Chưa có lớp</span>
                   )}
                 </td>
-                <td style={{ color: '#7A8287' }}>{s.parent_phone || '—'}</td>
+                <td style={{ color: '#6E6E73' }}>{s.parent_phone || '—'}</td>
                 <td>
                   {s.classes && s.classes.length > 0 ? (
                     <button className="btn btn-ghost btn-sm" onClick={() => openClassModal(s)} title="Đổi lớp">
@@ -126,7 +126,7 @@ export default function StudentManagement() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && <tr><td colSpan={6} style={{ textAlign: 'center', color: '#949A9E', padding: '2rem' }}>Không có học sinh</td></tr>}
+            {filtered.length === 0 && <tr><td colSpan={6} style={{ textAlign: 'center', color: '#86868B', padding: '2rem' }}>Không có học sinh</td></tr>}
           </tbody>
         </table>
       </div>

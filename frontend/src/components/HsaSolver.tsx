@@ -19,7 +19,7 @@ export default function HsaSolver({ cfg, value, onChange, readOnly = false }: Pr
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {cfg.questions.map((q, i) => (
-        <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 3, padding: '5px 0', borderBottom: '1px solid #F0EDE7' }}>
+        <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 3, padding: '5px 0', borderBottom: '1px solid #EFEFF2' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
             <span style={qLabel}>Câu {i + 1}</span>
             {q.kind === 'multiple_choice' ? (
@@ -30,7 +30,7 @@ export default function HsaSolver({ cfg, value, onChange, readOnly = false }: Pr
                     <button key={opt} type="button" disabled={readOnly}
                       onClick={() => setAnswer(i, active ? '' : opt)} style={mcOption(readOnly)}>
                       {radio(active)}
-                      <span style={{ fontWeight: 700, fontSize: '0.9rem', color: active ? '#2F6F82' : '#40494E' }}>{opt}</span>
+                      <span style={{ fontWeight: 700, fontSize: '0.9rem', color: active ? '#2F6F82' : '#424245' }}>{opt}</span>
                     </button>
                   );
                 })}
@@ -47,7 +47,7 @@ export default function HsaSolver({ cfg, value, onChange, readOnly = false }: Pr
   );
 }
 
-const qLabel: React.CSSProperties = { fontSize: '0.85rem', fontWeight: 700, color: '#1D2A30', minWidth: 52 };
+const qLabel: React.CSSProperties = { fontSize: '0.85rem', fontWeight: 700, color: '#1D1D1F', minWidth: 52 };
 
 function mcOption(readOnly: boolean): React.CSSProperties {
   return { display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', padding: '2px 4px', cursor: readOnly ? 'default' : 'pointer' };
@@ -56,7 +56,7 @@ function mcOption(readOnly: boolean): React.CSSProperties {
 function radio(active: boolean): React.ReactNode {
   return (
     <span style={{
-      width: 20, height: 20, borderRadius: '50%', border: `2px solid ${active ? '#2F6F82' : '#B6BBBE'}`,
+      width: 20, height: 20, borderRadius: '50%', border: `2px solid ${active ? '#2F6F82' : '#AEAEB2'}`,
       background: active ? '#2F6F82' : 'white', display: 'inline-flex', flexShrink: 0,
       boxShadow: active ? 'inset 0 0 0 3px white' : 'none',
     }} />

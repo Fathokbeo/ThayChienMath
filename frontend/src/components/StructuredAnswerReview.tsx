@@ -23,7 +23,7 @@ export default function StructuredAnswerReview({ partsConfig, structuredAnswers 
 
   return (
     <div style={{ marginTop: 12 }}>
-      <strong style={{ fontSize: '0.83rem', color: '#1D2A30' }}>Bài làm có cấu trúc của học sinh:</strong>
+      <strong style={{ fontSize: '0.83rem', color: '#1D1D1F' }}>Bài làm có cấu trúc của học sinh:</strong>
 
       {enabled('multiple_choice') && Array.isArray(ans.multiple_choice) && (
         <div style={{ marginTop: 8 }}>
@@ -54,7 +54,7 @@ export default function StructuredAnswerReview({ partsConfig, structuredAnswers 
                     const ok = got && String(got).toUpperCase()[0] === String(keyRow[j]).toUpperCase()[0];
                     return <span key={sub} style={cell(!!ok)}>{sub}) {conv(got)}{ok ? '' : ` (${conv(keyRow[j])})`}</span>;
                   })}
-                  {unset && <span style={{ fontSize: '0.72rem', color: '#7A8287' }}>(AI chấm)</span>}
+                  {unset && <span style={{ fontSize: '0.72rem', color: '#6E6E73' }}>(AI chấm)</span>}
                 </div>
               );
             })}
@@ -73,7 +73,7 @@ export default function StructuredAnswerReview({ partsConfig, structuredAnswers 
                   <strong>Câu {i + 1}:</strong> HS trả lời "<span style={{ color: '#2F6F82' }}>{got}</span>"
                   {keyIsSet('short_answer', key)
                     ? <> — đáp án: "<span style={{ color: '#3A7D5C' }}>{key}</span>"</>
-                    : <span style={{ color: '#7A8287' }}> — (AI chấm theo file đáp án)</span>}
+                    : <span style={{ color: '#6E6E73' }}> — (AI chấm theo file đáp án)</span>}
                 </div>
               );
             })}

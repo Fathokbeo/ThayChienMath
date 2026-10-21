@@ -172,7 +172,7 @@ export default function UserManagement() {
       {/* Filters */}
       <div style={{ display: 'flex', gap: 12, marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
-          <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#949A9E' }} />
+          <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#86868B' }} />
           <input className="input" style={{ paddingLeft: 32 }} placeholder="Tìm kiếm..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <select className="input" style={{ width: 'auto', minWidth: 140 }} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
@@ -250,8 +250,8 @@ export default function UserManagement() {
                     </>
                   ) : <strong>{u.full_name}</strong>}
                 </td>
-                <td style={{ color: '#7A8287', fontFamily: 'monospace' }}>{u.username}</td>
-                <td style={{ fontFamily: 'monospace', color: '#525A5F' }}>
+                <td style={{ color: '#6E6E73', fontFamily: 'monospace' }}>{u.username}</td>
+                <td style={{ fontFamily: 'monospace', color: '#515154' }}>
                   {u.plain_password ? (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                       <span>{isRevealed ? u.plain_password : '••••••'}</span>
@@ -261,9 +261,9 @@ export default function UserManagement() {
                         </button>
                       )}
                     </span>
-                  ) : <span style={{ color: '#B6BBBE' }}>—</span>}
+                  ) : <span style={{ color: '#AEAEB2' }}>—</span>}
                 </td>
-                <td style={{ color: '#7A8287' }}>{u.parent_phone || '—'}</td>
+                <td style={{ color: '#6E6E73' }}>{u.parent_phone || '—'}</td>
                 <td><span className={`badge ${roleBadge[u.role]}`}>{roleLabels[u.role]}</span></td>
                 <td>
                   <span className={`badge ${u.active ? 'badge-green' : 'badge-gray'}`}>
@@ -282,7 +282,7 @@ export default function UserManagement() {
               </tr>
             )})}
             {filtered.length === 0 && (
-              <tr><td colSpan={8} style={{ textAlign: 'center', color: '#949A9E', padding: '2rem' }}>Không có tài khoản nào</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', color: '#86868B', padding: '2rem' }}>Không có tài khoản nào</td></tr>
             )}
           </tbody>
         </table>

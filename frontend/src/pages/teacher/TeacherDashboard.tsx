@@ -4,6 +4,8 @@ import api from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { BookOpen, Users, School, Plus, Edit, Trash2, ChevronRight } from 'lucide-react';
 import Modal from '../../components/Modal';
+import TeachingOverview from '../../components/TeachingOverview';
+import { PageHeader, SectionHeader, EmptyState, greeting, todayLabel } from '../../components/ui';
 import { toast } from '../../components/Toast';
 
 export default function TeacherDashboard() {
@@ -80,77 +82,48 @@ export default function TeacherDashboard() {
   const totalStudents = courses.reduce((s, c) => s + (c.student_count || 0), 0);
 
   return (
-    <div className="fade-in">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-        <div>
-          <h1 className="page-title" style={{ margin: 0 }}>Xin chào, {user?.full_name}</h1>
-          <p style={{ color: '#7A8287', margin: '4px 0 0', fontSize: '0.88rem' }}>Quản lý khóa học và lớp học của bạn</p>
-        </div>
-        <button className="btn btn-primary" onClick={openCreate}>
-          <Plus size={16} /> Tạo khóa học
-        </button>
-      </div>
+    <div>
+      <PageHeader
+        eyebrow={todayLabel()}
+        title={`${greeting()}, ${user?.full_name}`}
+        subtitle={`${courses.length} khóa học · ${totalClasses} lớp · ${totalStudents} học sinh`}
+        actions={<button className="btn btn-primary" onClick={openCreate}><Plus size={16} /> Tạo khóa học</button>}
+      />
 
-      {/* Stats */}
-      <div className="stat-grid" style={{ marginBottom: '2rem' }}>
-        {[
-          { label: 'Khóa học', value: courses.length, icon: BookOpen, color: '#1F5C68', bg: '#E4EFF1' },
-          { label: 'Lớp học', value: totalClasses, icon: School, color: '#2F6F82', bg: '#E6F0F3' },
-          { label: 'Tổng học sinh', value: totalStudents, icon: Users, color: '#3A7D5C', bg: '#E5F1EA' },
-        ].map(({ label, value, icon: Icon, color, bg }) => (
-          <div key={label} className="stat-card">
-            <div className="stat-icon" style={{ background: bg }}>
-              <Icon size={20} style={{ color }} />
-            </div>
-            <div>
-              <div className="stat-value" style={{ color }}>{value}</div>
-              <div className="stat-label">{label}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Việc cần xử lý: bài cần chấm, hạn nộp sắp tới, bài mới nộp */}
+      <TeachingOverview />
 
-      {/* Courses */}
-      <h2 className="section-title">Khóa học của tôi</h2>
+      {/* Khóa học */}
+      <SectionHeader title="Khóa học của tôi" count={courses.length} />
       {courses.length === 0 ? (
-        <div style={{ background: 'white', borderRadius: 12, padding: '3rem', textAlign: 'center', color: '#949A9E' }}>
-          <BookOpen size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
-          <div>Chưa có khóa học nào. <button className="btn btn-outline btn-sm" onClick={openCreate} style={{ marginLeft: 8 }}>Tạo ngay</button></div>
-        </div>
+        <EmptyState icon={<BookOpen size={34} />} title="Chưa có khóa học nào" text="Tạo khóa học, sau đó thêm lớp và học sinh vào khóa."
+          action={<button className="btn btn-primary btn-sm" onClick={openCreate}><Plus size={14} /> Tạo khóa học</button>} />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 14 }}>
           {courses.map((c) => (
-            <div key={c.id} style={{ background: 'white', borderRadius: 14, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', transition: 'all 0.2s', cursor: 'pointer' }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.11)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.07)'; }}
-            >
-              {c.thumbnail ? (
-                <img src={`/uploads/courses/${c.thumbnail}`} alt={c.title} style={{ width: '100%', height: 130, objectFit: 'cover' }} />
-              ) : (
-                <div style={{ height: 100, background: 'linear-gradient(135deg, #1F5C68 0%, #2F6F82 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <BookOpen size={30} color="rgba(255,255,255,0.8)" />
+            <div key={c.id} className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <Link to={`/teacher/courses/${c.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                {c.thumbnail ? (
+                  <img src={`/uploads/courses/${c.thumbnail}`} alt={c.title} style={{ width: '100%', height: 140, objectFit: 'cover', display: 'block' }} />
+                ) : (
+                  <div style={{ height: 110, background: '#E6F0F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <BookOpen size={30} color="#1F5C68" />
+                  </div>
+                )}
+                <div style={{ padding: '1rem 1.15rem 0.4rem' }}>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '1.08rem', fontWeight: 700 }}>{c.title}</h3>
+                  {c.description && <p style={{ margin: 0, fontSize: '0.86rem', color: '#6E6E73', lineHeight: 1.45 }}>{c.description}</p>}
+                  <div style={{ display: 'flex', gap: 14, fontSize: '0.82rem', color: '#86868B', marginTop: 10 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><School size={13} />{c.class_count || 0} lớp</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Users size={13} />{c.student_count || 0} học sinh</span>
+                  </div>
                 </div>
-              )}
-              <div style={{ padding: '1rem' }}>
-                <h3 style={{ margin: '0 0 6px', fontSize: '0.95rem', fontWeight: 700, color: '#1D2A30' }}>{c.title}</h3>
-                {c.description && <p style={{ margin: '0 0 10px', fontSize: '0.82rem', color: '#7A8287', lineHeight: 1.4 }}>{c.description}</p>}
-                <div style={{ display: 'flex', gap: 12, fontSize: '0.78rem', color: '#949A9E', borderTop: '1px solid #F1EFEA', paddingTop: 10, marginTop: 10, marginBottom: 10 }}>
-                  <span><School size={12} style={{ verticalAlign: 'middle', marginRight: 3 }} />{c.class_count || 0} lớp</span>
-                  <span><Users size={12} style={{ verticalAlign: 'middle', marginRight: 3 }} />{c.student_count || 0} học sinh</span>
-                </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <Link to={`/teacher/courses/${c.id}`} style={{ textDecoration: 'none', flex: 1 }}>
-                    <button className="btn btn-outline btn-sm" style={{ width: '100%', justifyContent: 'center' }}>
-                      Vào khóa học <ChevronRight size={13} />
-                    </button>
-                  </Link>
-                  <button className="btn btn-ghost btn-sm btn-icon" onClick={(e) => openEdit(c, e)} title="Sửa">
-                    <Edit size={14} />
-                  </button>
-                  <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} onClick={(e) => deleteCourse(c, e)} title="Xóa">
-                    <Trash2 size={14} />
-                  </button>
-                </div>
+              </Link>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0.6rem 1.15rem 1rem', marginTop: 'auto' }}>
+                <Link to={`/teacher/courses/${c.id}`} className="link" style={{ fontSize: '0.9rem' }}>Vào khóa học <ChevronRight size={15} /></Link>
+                <span style={{ flex: 1 }} />
+                <button className="btn btn-ghost btn-sm btn-icon" onClick={(e) => openEdit(c, e)} title="Sửa"><Edit size={14} /></button>
+                <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} onClick={(e) => deleteCourse(c, e)} title="Xóa"><Trash2 size={14} /></button>
               </div>
             </div>
           ))}

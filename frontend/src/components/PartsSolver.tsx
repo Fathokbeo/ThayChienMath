@@ -38,7 +38,7 @@ export default function PartsSolver({ cfg, value, onChange, readOnly = false }: 
           <div style={sectionTitle}>Phần I — Trắc nghiệm</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {Array.from({ length: cfg.multiple_choice.count }).map((_, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', padding: '4px 0', borderBottom: '1px solid #F0EDE7' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', padding: '4px 0', borderBottom: '1px solid #EFEFF2' }}>
                 <span style={qLabel}>Câu {i + 1}</span>
                 <div style={{ display: 'flex', gap: 18 }}>
                   {MC_OPTIONS.map((opt) => {
@@ -47,7 +47,7 @@ export default function PartsSolver({ cfg, value, onChange, readOnly = false }: 
                       <button key={opt} type="button" disabled={readOnly} onClick={() => setMC(i, active ? '' : opt)}
                         style={mcOption(readOnly)}>
                         {radio(active, '#2F6F82')}
-                        <span style={{ fontWeight: 700, fontSize: '0.9rem', color: active ? '#2F6F82' : '#40494E' }}>{opt}</span>
+                        <span style={{ fontWeight: 700, fontSize: '0.9rem', color: active ? '#2F6F82' : '#424245' }}>{opt}</span>
                       </button>
                     );
                   })}
@@ -110,7 +110,7 @@ export default function PartsSolver({ cfg, value, onChange, readOnly = false }: 
 }
 
 const sectionTitle: React.CSSProperties = { fontWeight: 800, fontSize: '0.9rem', color: '#1F5C68', marginBottom: 8 };
-const qLabel: React.CSSProperties = { fontSize: '0.85rem', fontWeight: 700, color: '#1D2A30', minWidth: 52 };
+const qLabel: React.CSSProperties = { fontSize: '0.85rem', fontWeight: 700, color: '#1D1D1F', minWidth: 52 };
 
 function mcOption(readOnly: boolean): React.CSSProperties {
   return {
@@ -120,11 +120,11 @@ function mcOption(readOnly: boolean): React.CSSProperties {
 }
 
 // Thẻ 1 câu Đúng/Sai (kiểu THPT)
-const tfCard: React.CSSProperties = { border: '1px solid #E2DDD4', borderRadius: 8, padding: '8px 12px', background: '#FAF9F6', minWidth: 150 };
-const tfCardHead: React.CSSProperties = { fontSize: '0.82rem', fontWeight: 800, color: '#1D2A30', textAlign: 'center', marginBottom: 6 };
+const tfCard: React.CSSProperties = { border: '1px solid #DCDCE1', borderRadius: 8, padding: '8px 12px', background: '#FAFAFC', minWidth: 150 };
+const tfCardHead: React.CSSProperties = { fontSize: '0.82rem', fontWeight: 800, color: '#1D1D1F', textAlign: 'center', marginBottom: 6 };
 const tfGridHead: React.CSSProperties = { display: 'grid', gridTemplateColumns: '26px 1fr 1fr', alignItems: 'center', marginBottom: 2 };
 const tfGridRow: React.CSSProperties = { display: 'grid', gridTemplateColumns: '26px 1fr 1fr', alignItems: 'center', padding: '3px 0' };
-const tfSub: React.CSSProperties = { fontSize: '0.82rem', fontWeight: 700, color: '#525A5F' };
+const tfSub: React.CSSProperties = { fontSize: '0.82rem', fontWeight: 700, color: '#515154' };
 function tfCell(readOnly: boolean): React.CSSProperties {
   return { display: 'flex', justifyContent: 'center', cursor: readOnly ? 'default' : 'pointer' };
 }
@@ -136,7 +136,7 @@ function tfColHead(color: string): React.CSSProperties {
 function radio(active: boolean, color: string, disabled = false): React.ReactNode {
   return (
     <span style={{
-      width: 20, height: 20, borderRadius: '50%', border: `2px solid ${active ? color : '#B6BBBE'}`,
+      width: 20, height: 20, borderRadius: '50%', border: `2px solid ${active ? color : '#AEAEB2'}`,
       background: active ? color : 'white', display: 'inline-flex', flexShrink: 0,
       boxShadow: active ? 'inset 0 0 0 3px white' : 'none', opacity: disabled ? 0.55 : 1,
     }} />

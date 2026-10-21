@@ -48,17 +48,17 @@ export default function ClassManagement() {
               <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/teacher/classes/${c.id}`)}>
                 <td>
                   <div style={{ fontWeight: 600 }}>{c.title}</div>
-                  {c.description && <div style={{ fontSize: '0.8rem', color: '#7A8287' }}>{c.description}</div>}
+                  {c.description && <div style={{ fontSize: '0.8rem', color: '#6E6E73' }}>{c.description}</div>}
                 </td>
-                <td>{c.course_title ? <span className="badge badge-blue">{c.course_title}</span> : <span style={{ color: '#C8C3BA' }}>—</span>}</td>
+                <td>{c.course_title ? <span className="badge badge-blue">{c.course_title}</span> : <span style={{ color: '#C7C7CC' }}>—</span>}</td>
                 <td>{c.teacher_name}</td>
                 <td>
                   <span className="badge badge-green"><Users size={11} style={{ marginRight: 4 }} />{c.student_count}</span>
                 </td>
-                <td style={{ color: '#7A8287', fontSize: '0.82rem' }}>{new Date(c.created_at).toLocaleDateString('vi-VN')}</td>
+                <td style={{ color: '#6E6E73', fontSize: '0.82rem' }}>{new Date(c.created_at).toLocaleDateString('vi-VN')}</td>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
-                    <ChevronRight size={15} color="#C8C3BA" />
+                    <ChevronRight size={15} color="#C7C7CC" />
                     <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} title="Xóa lớp" onClick={(e) => deleteClass(e, c)}>
                       <Trash2 size={14} />
                     </button>
@@ -67,7 +67,7 @@ export default function ClassManagement() {
               </tr>
             ))}
             {classes.length === 0 && (
-              <tr><td colSpan={6} style={{ textAlign: 'center', color: '#949A9E', padding: '2rem' }}>Chưa có lớp học nào</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: '#86868B', padding: '2rem' }}>Chưa có lớp học nào</td></tr>
             )}
           </tbody>
         </table>

@@ -21,7 +21,7 @@ export default function GradingDetails({ details }: { details: string | Detail[]
   return (
     <div style={{ marginTop: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-        <strong style={{ fontSize: '0.83rem', color: '#1D2A30' }}>Chi tiết từng câu:</strong>
+        <strong style={{ fontSize: '0.83rem', color: '#1D1D1F' }}>Chi tiết từng câu:</strong>
         {counts.correct > 0 && <span style={{ fontSize: '0.74rem', color: '#3A7D5C', fontWeight: 600 }}>✓ {counts.correct} đúng</span>}
         {counts.partial > 0 && <span style={{ fontSize: '0.74rem', color: '#B8673E', fontWeight: 600 }}>~ {counts.partial} một phần</span>}
         {counts.wrong > 0 && <span style={{ fontSize: '0.74rem', color: '#B04A2A', fontWeight: 600 }}>✗ {counts.wrong} sai</span>}
@@ -35,10 +35,10 @@ export default function GradingDetails({ details }: { details: string | Detail[]
               <Icon size={16} color={st.color} style={{ flexShrink: 0, marginTop: 1 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontWeight: 700, fontSize: '0.82rem', color: '#1D2A30' }}>{d.question || `Câu ${i + 1}`}</span>
+                  <span style={{ fontWeight: 700, fontSize: '0.82rem', color: '#1D1D1F' }}>{d.question || `Câu ${i + 1}`}</span>
                   <span style={{ fontSize: '0.68rem', fontWeight: 700, color: st.color, background: 'white', padding: '1px 7px', borderRadius: 99 }}>{st.label}</span>
                 </div>
-                {d.comment && <div style={{ fontSize: '0.8rem', color: '#525A5F', lineHeight: 1.5, marginTop: 2 }}>{d.comment}</div>}
+                {d.comment && <div style={{ fontSize: '0.8rem', color: '#515154', lineHeight: 1.5, marginTop: 2 }}>{d.comment}</div>}
               </div>
             </div>
           );

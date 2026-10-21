@@ -106,6 +106,42 @@ router.get('/all-assistants', (req, res) => {
   res.json(db.prepare(q + ' ORDER BY a.full_name').all(...p));
 });
 
+// ── Tổng quan "thông minh" cho giáo viên: bài cần chấm tay (chưa có điểm, kể cả AI chấm lỗi), số bài AI
+// đang chấm, hạn nộp sắp tới kèm tỉ lệ đã nộp, bài nộp mới nhất. Admin thấy toàn bộ lớp.
+router.get('/overview', (req, res) => {
+  const db = getDb();
+  const now = new Date().toISOString();
+  const own = req.user.role === 'teacher' ? ' AND cl.teacher_id=?' : '';
+  const p = req.user.role === 'teacher' ? [req.user.id] : [];
+  const toGrade = db.prepare(`
+    SELECT s.id submission_id, s.submitted_at, s.grading_status, u.full_name,
+           h.id homework_id, h.title homework_title, cl.id class_id, cl.title class_title
+    FROM submissions s JOIN homework h ON s.homework_id=h.id JOIN classes cl ON h.class_id=cl.id JOIN users u ON s.student_id=u.id
+    WHERE cl.active=1 AND s.score IS NULL AND (s.grading_status IS NULL OR s.grading_status='failed')${own}
+    ORDER BY s.submitted_at LIMIT 30
+  `).all(...p);
+  const aiPending = db.prepare(`
+    SELECT COUNT(*) c FROM submissions s JOIN homework h ON s.homework_id=h.id JOIN classes cl ON h.class_id=cl.id
+    WHERE cl.active=1 AND s.grading_status IN ('pending','grading')${own}
+  `).get(...p).c;
+  const upcoming = db.prepare(`
+    SELECT h.id, h.title, h.due_date, cl.id class_id, cl.title class_title,
+      (SELECT COUNT(*) FROM class_students cs JOIN users u ON u.id=cs.student_id WHERE cs.class_id=cl.id AND u.active=1) total,
+      (SELECT COUNT(*) FROM submissions s WHERE s.homework_id=h.id) submitted
+    FROM homework h JOIN classes cl ON h.class_id=cl.id
+    WHERE cl.active=1 AND h.due_date IS NOT NULL AND h.due_date>=?${own}
+    ORDER BY h.due_date LIMIT 8
+  `).all(now, ...p);
+  const recent = db.prepare(`
+    SELECT s.id submission_id, s.submitted_at, s.score, s.grading_status, u.full_name,
+           h.id homework_id, h.title homework_title, h.max_score, cl.title class_title
+    FROM submissions s JOIN homework h ON s.homework_id=h.id JOIN classes cl ON h.class_id=cl.id JOIN users u ON s.student_id=u.id
+    WHERE cl.active=1${own}
+    ORDER BY s.submitted_at DESC LIMIT 8
+  `).all(...p);
+  res.json({ to_grade: toGrade, ai_pending: aiPending, upcoming, recent });
+});
+
 // ── Courses (teacher can create & manage own courses) ──────────────────
 router.get('/my-courses', (req, res) => {
   const db = getDb();

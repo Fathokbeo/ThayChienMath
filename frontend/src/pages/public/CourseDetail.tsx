@@ -40,7 +40,7 @@ export default function CourseDetail() {
 
   if (loading) return (
     <PublicLayout>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, color: '#949A9E' }}>Đang tải...</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300, color: '#86868B' }}>Đang tải...</div>
     </PublicLayout>
   );
 
@@ -50,7 +50,7 @@ export default function CourseDetail() {
 
   return (
     <PublicLayout>
-      <div style={{ background: 'linear-gradient(135deg, #1D2A30, #1F5C68)', padding: '3rem 2rem', textAlign: 'center', color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #1D1D1F, #1F5C68)', padding: '3rem 2rem', textAlign: 'center', color: 'white' }}>
         <BookOpen size={40} style={{ marginBottom: 12 }} />
         <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>{course.title}</h1>
         {course.description && <p style={{ margin: '8px 0 0', color: 'rgba(255,255,255,0.85)' }}>{course.description}</p>}
@@ -70,13 +70,13 @@ export default function CourseDetail() {
         )}
 
         {classes.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#949A9E', padding: '3rem', background: 'white', borderRadius: 12 }}>Chưa có lớp học nào cho khóa này</div>
+          <div style={{ textAlign: 'center', color: '#86868B', padding: '3rem', background: 'white', borderRadius: 12 }}>Chưa có lớp học nào cho khóa này</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {classes.map((cls) => (
               <div key={cls.id} style={{ background: 'white', borderRadius: 14, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', padding: '1.25rem 1.5rem' }}>
-                <h3 style={{ margin: '0 0 10px', fontSize: '1.05rem', fontWeight: 800, color: '#1D2A30' }}>{cls.title}</h3>
-                <div style={{ display: 'flex', gap: 20, fontSize: '0.85rem', color: '#5E676C', marginBottom: 14 }}>
+                <h3 style={{ margin: '0 0 10px', fontSize: '1.05rem', fontWeight: 800, color: '#1D1D1F' }}>{cls.title}</h3>
+                <div style={{ display: 'flex', gap: 20, fontSize: '0.85rem', color: '#6E6E73', marginBottom: 14 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <GraduationCap size={15} color="#2F6F82" /> GV phụ trách: <strong>{cls.teacher_name || 'Chưa cập nhật'}</strong>
                   </span>
@@ -84,15 +84,15 @@ export default function CourseDetail() {
                     <Users size={15} color="#3A7D5C" /> {cls.student_count} học sinh
                   </span>
                 </div>
-                <div style={{ borderTop: '1px solid #EEEBE5', paddingTop: 12 }}>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#7A8287', marginBottom: 8 }}>Nội dung học</div>
+                <div style={{ borderTop: '1px solid #EDEDF0', paddingTop: 12 }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#6E6E73', marginBottom: 8 }}>Nội dung học</div>
                   {cls.chapters.length === 0 ? (
-                    <div style={{ fontSize: '0.85rem', color: '#B6BBBE' }}>Chưa cập nhật nội dung</div>
+                    <div style={{ fontSize: '0.85rem', color: '#AEAEB2' }}>Chưa cập nhật nội dung</div>
                   ) : (
                     <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {cls.chapters.map((ch: any) => (
-                        <li key={ch.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.88rem', color: '#40494E' }}>
-                          <Lock size={12} color="#C8C3BA" /> {ch.title}
+                        <li key={ch.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.88rem', color: '#424245' }}>
+                          <Lock size={12} color="#C7C7CC" /> {ch.title}
                         </li>
                       ))}
                     </ul>

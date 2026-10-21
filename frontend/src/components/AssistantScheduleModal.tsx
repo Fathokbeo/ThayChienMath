@@ -69,7 +69,7 @@ export default function AssistantScheduleModal({ open, onClose, assistant, edita
         <button className="btn btn-ghost" onClick={onClose}>Đóng</button>
       )}
     >
-      <div style={{ fontSize: '0.78rem', color: '#7A8287', marginBottom: 10 }}>
+      <div style={{ fontSize: '0.78rem', color: '#6E6E73', marginBottom: 10 }}>
         {editing ? 'Nhập nội dung cho từng ca (để trống nếu trợ giảng không làm việc ca đó).' : 'Ô trống nghĩa là trợ giảng không làm việc ca đó.'}
       </div>
       {editing && (assistant?.class_count || 0) > 1 && (
@@ -89,13 +89,13 @@ export default function AssistantScheduleModal({ open, onClose, assistant, edita
             {PERIOD_ORDER.map((period) => (
               <Fragment key={period}>
                 <tr>
-                  <td colSpan={8} style={{ background: '#F8F7F3', fontWeight: 700, fontSize: '0.78rem', color: '#5E676C', padding: '0.4rem 1rem' }}>
+                  <td colSpan={8} style={{ background: '#F7F7F9', fontWeight: 700, fontSize: '0.78rem', color: '#6E6E73', padding: '0.4rem 1rem' }}>
                     {PERIOD_LABELS[period]}
                   </td>
                 </tr>
                 {SHIFTS.filter((s) => s.period === period).map((s) => (
                   <tr key={s.key}>
-                    <td style={{ fontSize: '0.78rem', color: '#7A8287', whiteSpace: 'nowrap' }}>{s.label}</td>
+                    <td style={{ fontSize: '0.78rem', color: '#6E6E73', whiteSpace: 'nowrap' }}>{s.label}</td>
                     {DAYS.map((d) => (
                       <td key={d.key} style={{ textAlign: editing ? undefined : 'center' }}>
                         {editing ? (
@@ -107,7 +107,7 @@ export default function AssistantScheduleModal({ open, onClose, assistant, edita
                             placeholder="—"
                           />
                         ) : (
-                          <span style={{ fontSize: '0.82rem', color: draft[d.key][s.key] ? '#1D2A30' : '#C8C3BA' }}>
+                          <span style={{ fontSize: '0.82rem', color: draft[d.key][s.key] ? '#1D1D1F' : '#C7C7CC' }}>
                             {draft[d.key][s.key] || '—'}
                           </span>
                         )}

@@ -2,10 +2,10 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Lock, User, Eye, EyeOff, ArrowRight, Sparkles, BookOpenCheck, LineChart } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { toast } from '../components/Toast';
-import useIsMobile from '../lib/useIsMobile';
 
+// Đăng nhập: một cột ở giữa, nền trắng, ô nhập lớn, nút tròn — gọn và rõ ràng.
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -15,7 +15,6 @@ export default function Login() {
   const [passwordError, setPasswordError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
-  const isMobile = useIsMobile(900);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -40,108 +39,62 @@ export default function Login() {
     }
   };
 
-  const fieldStyle = (err: string): React.CSSProperties => ({
-    paddingLeft: 42, minHeight: 50, fontSize: '1rem', borderColor: err ? '#B04A2A' : undefined,
+  const field = (err: string): React.CSSProperties => ({
+    minHeight: 54, fontSize: '1.02rem', padding: '0.85rem 1rem', borderRadius: 14,
+    borderColor: err ? '#B04A2A' : undefined,
   });
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: isMobile ? 'column' : 'row', background: '#F6F4EF' }}>
-      {/* Dải thương hiệu */}
-      <div style={{
-        flex: isMobile ? '0 0 auto' : '1 1 50%',
-        background: '#1F5C68',
-        color: 'white', position: 'relative', overflow: 'hidden',
-        padding: isMobile ? '2.25rem 1.5rem 3.5rem' : '3.5rem 4rem',
-        display: 'flex', flexDirection: 'column', justifyContent: isMobile ? 'flex-start' : 'space-between',
-      }}>
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', color: 'white', position: 'relative' }}>
-          <img src="/logo.svg" alt="Thầy Chiến Math" style={{ width: 46, height: 46, borderRadius: 12 }} />
-          <div>
-            <div className="display" style={{ fontWeight: 700, fontSize: '1.25rem', lineHeight: 1.1 }}>Thầy Chiến</div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#9CC7D2' }}>Math</div>
-          </div>
-        </Link>
-
-        <div style={{ position: 'relative', marginTop: isMobile ? '1.75rem' : 0 }}>
-          <div style={{ fontSize: '0.74rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, color: '#E9A57E', marginBottom: 12 }}>
-            Học Toán · Luyện đề · Theo dõi tiến bộ
-          </div>
-          <h1 style={{ margin: 0, fontSize: isMobile ? '2rem' : '3rem', fontWeight: 700, lineHeight: 1.08, color: 'white' }}>
-            Học Toán vững vàng,<br />tự tin mỗi kỳ thi.
-          </h1>
-          {!isMobile && (
-            <p style={{ margin: '1.1rem 0 0', color: 'rgba(255,255,255,0.72)', fontSize: '1.02rem', maxWidth: 440, lineHeight: 1.6 }}>
-              Xem bài giảng, làm bài tập và nhận kết quả chấm ngay trên một ứng dụng — đơn giản như mở điện thoại.
-            </p>
-          )}
+    <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
+      <header style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', height: 52, padding: '0 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', color: '#1D1D1F', fontWeight: 700, letterSpacing: '-0.02em' }}>
+            <img src="/logo.svg" alt="" style={{ width: 26, height: 26, borderRadius: 7 }} /> Thầy Chiến Math
+          </Link>
+          <Link to="/" style={{ color: '#6E6E73', fontSize: '0.88rem', textDecoration: 'none' }}>Trang chủ</Link>
         </div>
+      </header>
 
-        {!isMobile && (
-          <div style={{ display: 'flex', gap: 22, position: 'relative', flexWrap: 'wrap' }}>
-            {[
-              { icon: BookOpenCheck, text: 'Bài giảng & bài tập' },
-              { icon: Sparkles, text: 'Chấm bài tự động' },
-              { icon: LineChart, text: 'Bảng xếp hạng' },
-            ].map(({ icon: Icon, text }) => (
-              <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.82)', fontSize: '0.88rem', fontWeight: 500 }}>
-                <span style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={16} /></span>
-                {text}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <main className="fade-in" style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '9vh 20px 3rem' }}>
+        <div style={{ width: '100%', maxWidth: 400, textAlign: 'center' }}>
+          <img src="/logo.svg" alt="Thầy Chiến Math" style={{ width: 72, height: 72, borderRadius: 18, margin: '0 auto' }} />
+          <h1 style={{ margin: '22px 0 8px', fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#1D1D1F' }}>Đăng nhập</h1>
+          <p style={{ margin: '0 0 30px', color: '#6E6E73', fontSize: '1.02rem' }}>Học Toán cùng Thầy Chiến — mọi bài giảng, bài tập và điểm số ở một nơi.</p>
 
-      {/* Ô đăng nhập */}
-      <div style={{ flex: '1 1 50%', display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'center', padding: isMobile ? '0 1rem 2rem' : '2rem' }}>
-        <div className="fade-in" style={{
-          width: '100%', maxWidth: 420, background: 'white', borderRadius: 18,
-          border: '1px solid rgba(29,42,48,0.09)', boxShadow: '0 1px 2px rgba(23,50,58,0.05)',
-          padding: isMobile ? '1.75rem 1.35rem' : '2.5rem 2.25rem', marginTop: isMobile ? -28 : 0, position: 'relative',
-        }}>
-          <h2 className="display" style={{ margin: '0 0 6px', fontSize: '1.7rem', fontWeight: 700, color: '#1D2A30' }}>Đăng nhập</h2>
-          <p style={{ margin: '0 0 1.5rem', color: '#7A8287', fontSize: '0.92rem' }}>Dùng tài khoản thầy/cô đã cấp cho bạn.</p>
-
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} style={{ textAlign: 'left' }}>
             <div className="form-group">
-              <label className="label">Tên đăng nhập</label>
-              <div style={{ position: 'relative' }}>
-                <User size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#949A9E' }} />
-                <input className="input" style={fieldStyle(usernameError)} placeholder="Nhập tên đăng nhập"
-                  value={username} autoComplete="username" autoCapitalize="none" autoCorrect="off"
-                  onChange={(e) => { setUsername(e.target.value); if (usernameError) setUsernameError(''); }} />
-              </div>
-              {usernameError && <p style={{ color: '#B04A2A', fontSize: '0.8rem', margin: '6px 0 0' }}>{usernameError}</p>}
+              <input className="input" style={field(usernameError)} placeholder="Tên đăng nhập" aria-label="Tên đăng nhập"
+                value={username} autoComplete="username" autoCapitalize="none" autoCorrect="off" autoFocus
+                onChange={(e) => { setUsername(e.target.value); if (usernameError) setUsernameError(''); }} />
+              {usernameError && <p style={{ color: '#B04A2A', fontSize: '0.84rem', margin: '6px 4px 0' }}>{usernameError}</p>}
             </div>
-
             <div className="form-group">
-              <label className="label">Mật khẩu</label>
               <div style={{ position: 'relative' }}>
-                <Lock size={18} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#949A9E' }} />
-                <input className="input" type={showPw ? 'text' : 'password'} style={{ ...fieldStyle(passwordError), paddingRight: 46 }}
-                  placeholder="Nhập mật khẩu" value={password} autoComplete="current-password"
+                <input className="input" type={showPw ? 'text' : 'password'} style={{ ...field(passwordError), paddingRight: 52 }}
+                  placeholder="Mật khẩu" aria-label="Mật khẩu" value={password} autoComplete="current-password"
                   onChange={(e) => { setPassword(e.target.value); if (passwordError) setPasswordError(''); }} />
-                <button type="button" onClick={() => setShowPw(!showPw)} title={showPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-                  style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#7A8287', width: 38, height: 38, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <button type="button" onClick={() => setShowPw(!showPw)} title={showPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'} className="icon-btn"
+                  style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }}>
                   {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              {passwordError && <p style={{ color: '#B04A2A', fontSize: '0.8rem', margin: '6px 0 0' }}>{passwordError}</p>}
+              {passwordError && <p style={{ color: '#B04A2A', fontSize: '0.84rem', margin: '6px 4px 0' }}>{passwordError}</p>}
             </div>
 
-            <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%', marginTop: 10 }}>
-              {loading ? 'Đang đăng nhập...' : <>Đăng nhập <ArrowRight size={18} /></>}
+            <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%', marginTop: 8, minHeight: 52 }}>
+              {loading ? 'Đang đăng nhập…' : <>Đăng nhập <ArrowRight size={18} /></>}
             </button>
           </form>
 
-          <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
-            <Link to="/" style={{ color: '#1F5C68', fontSize: '0.88rem', fontWeight: 600, textDecoration: 'none' }}>← Về trang chủ</Link>
-          </div>
-          <p style={{ textAlign: 'center', color: '#B6BBBE', fontSize: '0.75rem', margin: '1rem 0 0' }}>
-            © {new Date().getFullYear()} Thầy Chiến Math
+          <p style={{ color: '#86868B', fontSize: '0.86rem', marginTop: 22, lineHeight: 1.5 }}>
+            Chưa có tài khoản? Tài khoản do thầy cô cấp — hãy liên hệ để được tạo.
           </p>
         </div>
-      </div>
+      </main>
+
+      <footer style={{ textAlign: 'center', color: '#AEAEB2', fontSize: '0.78rem', padding: '1.25rem' }}>
+        © {new Date().getFullYear()} Thầy Chiến Math
+      </footer>
     </div>
   );
 }

@@ -17,8 +17,8 @@ export default function FileViewer({ files, onClose }: { files: string[]; onClos
     <div className="modal-overlay" onClick={onClose}>
       <div style={{ background: 'white', borderRadius: 12, width: '90vw', height: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
         onClick={(e) => e.stopPropagation()}>
-        <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #ECE8E1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontWeight: 600 }}>Xem tài liệu {multi && <span style={{ color: '#7A8287', fontWeight: 400 }}>({i + 1}/{files.length})</span>}</span>
+        <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #E8E8ED', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontWeight: 600 }}>Xem tài liệu {multi && <span style={{ color: '#6E6E73', fontWeight: 400 }}>({i + 1}/{files.length})</span>}</span>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <a className="btn btn-ghost btn-sm" href={url} target="_blank" rel="noreferrer"><Download size={13} /> Tải về</a>
             <button className="btn btn-ghost btn-sm" onClick={onClose}>Đóng</button>
@@ -39,12 +39,12 @@ export default function FileViewer({ files, onClose }: { files: string[]; onClos
         </div>
 
         {multi && (
-          <div style={{ display: 'flex', gap: 6, padding: 8, overflowX: 'auto', borderTop: '1px solid #ECE8E1', background: '#FAF9F6' }}>
+          <div style={{ display: 'flex', gap: 6, padding: 8, overflowX: 'auto', borderTop: '1px solid #E8E8ED', background: '#FAFAFC' }}>
             {files.map((f, k) => (
               <button key={k} onClick={() => setIdx(k)} title={`Trang ${k + 1}`}
                 style={{
                   width: 56, height: 56, flexShrink: 0, borderRadius: 8, overflow: 'hidden', cursor: 'pointer', padding: 0,
-                  border: k === i ? '2px solid #1F5C68' : '2px solid transparent', background: '#ECE8E1',
+                  border: k === i ? '2px solid #1F5C68' : '2px solid transparent', background: '#E8E8ED',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                 {isPdf(f)

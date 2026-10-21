@@ -88,15 +88,15 @@ export default function PartsEditor({ value, onChange, gradingNote, onGradingNot
   const countPointRow = (pk: PartKey) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '4px 0 12px', flexWrap: 'wrap' }}>
       <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontSize: '0.8rem', color: '#5E676C' }}>Số câu:</span>
+        <span style={{ fontSize: '0.8rem', color: '#6E6E73' }}>Số câu:</span>
         <input className="input" type="number" min={1} max={50} style={{ width: 78, padding: '4px 8px' }}
           value={(value as any)[pk].count} onChange={(e) => setCount(pk, e.target.value)} />
       </label>
       <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontSize: '0.8rem', color: '#5E676C' }}>Điểm mỗi câu:</span>
+        <span style={{ fontSize: '0.8rem', color: '#6E6E73' }}>Điểm mỗi câu:</span>
         <input className="input" type="number" min={0} step={0.05} style={{ width: 78, padding: '4px 8px', textAlign: 'right' }}
           value={pointPerOf(pk, (value as any)[pk].points)} onChange={(e) => setPointPer(pk, e.target.value)} />
-        <span style={{ fontSize: '0.78rem', color: '#7A8287' }}>đ</span>
+        <span style={{ fontSize: '0.78rem', color: '#6E6E73' }}>đ</span>
       </label>
     </div>
   );
@@ -212,22 +212,22 @@ export default function PartsEditor({ value, onChange, gradingNote, onGradingNot
         {value.essay.enabled && (
           <div style={{ marginTop: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: '0.82rem', color: '#40494E', fontWeight: 600 }}>Điểm phần tự luận:</span>
+              <span style={{ fontSize: '0.82rem', color: '#424245', fontWeight: 600 }}>Điểm phần tự luận:</span>
               <input className="input" type="number" min={0} step={0.5} style={{ width: 90, padding: '4px 8px', textAlign: 'right' }}
                 value={value.essay.points} onChange={(e) => setEssayPoints(e.target.value)} />
-              <span style={{ fontSize: '0.78rem', color: '#7A8287' }}>điểm</span>
+              <span style={{ fontSize: '0.78rem', color: '#6E6E73' }}>điểm</span>
             </div>
-            <div style={{ marginTop: 6, fontSize: '0.78rem', color: '#7A8287' }}>
+            <div style={{ marginTop: 6, fontSize: '0.78rem', color: '#6E6E73' }}>
               Học sinh chụp ảnh bài làm tự luận. AI chấm trên thang điểm này dựa vào <strong>File đáp án (PDF)</strong> ở phần bên dưới.
             </div>
             <div style={{ marginTop: 12 }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#40494E', display: 'block', marginBottom: 6 }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#424245', display: 'block', marginBottom: 6 }}>
                 Ghi chú cho AI chấm (tùy chọn)
               </label>
               <textarea className="input" rows={3}
                 placeholder="vd: Câu 1 (2đ) chấm chặt từng bước lập luận; câu 2 (2đ) chỉ cần đúng kết quả cuối. Trừ 0,5đ nếu thiếu đơn vị."
                 value={gradingNote} onChange={(e) => onGradingNoteChange(e.target.value)} />
-              <div style={{ fontSize: '0.74rem', color: '#7A8287', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ fontSize: '0.74rem', color: '#6E6E73', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                 <Bot size={12} /> AI sẽ đọc và chấm đúng theo hướng dẫn này (chia điểm từng câu, cách chấm...). Học sinh không nhìn thấy ghi chú này.
               </div>
             </div>
@@ -268,7 +268,7 @@ export default function PartsEditor({ value, onChange, gradingNote, onGradingNot
     ];
     return (
       <div style={{ marginTop: 10 }}>
-        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#40494E', marginBottom: 6 }}>Cách chia điểm khi đúng một phần:</div>
+        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#424245', marginBottom: 6 }}>Cách chia điểm khi đúng một phần:</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {opts.map((o) => {
             const active = mode === o.key;
@@ -276,14 +276,14 @@ export default function PartsEditor({ value, onChange, gradingNote, onGradingNot
               <button key={o.key} type="button" onClick={() => setTfMode(o.key)}
                 style={{
                   textAlign: 'left', flex: '1 1 220px', minWidth: 200, cursor: 'pointer',
-                  border: `1.5px solid ${active ? '#1F5C68' : '#DAD5CC'}`, background: active ? '#EEF5F6' : 'white',
+                  border: `1.5px solid ${active ? '#1F5C68' : '#D2D2D7'}`, background: active ? '#EEF5F6' : 'white',
                   borderRadius: 9, padding: '8px 10px',
                 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                   {radio(active, '#1F5C68')}
-                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1D2A30' }}>{o.title}</span>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1D1D1F' }}>{o.title}</span>
                 </div>
-                <div style={{ fontSize: '0.74rem', color: '#6E767B', marginTop: 5 }}>{example(o.key)}</div>
+                <div style={{ fontSize: '0.74rem', color: '#6E6E73', marginTop: 5 }}>{example(o.key)}</div>
               </button>
             );
           })}
@@ -305,16 +305,16 @@ export default function PartsEditor({ value, onChange, gradingNote, onGradingNot
   }
 }
 
-const partBox: React.CSSProperties = { border: '1px solid #EAE6DF', borderRadius: 10, padding: '10px 12px' };
-const qLabel: React.CSSProperties = { fontSize: '0.8rem', fontWeight: 700, color: '#1D2A30', minWidth: 48 };
+const partBox: React.CSSProperties = { border: '1px solid #E5E5EA', borderRadius: 10, padding: '10px 12px' };
+const qLabel: React.CSSProperties = { fontSize: '0.8rem', fontWeight: 700, color: '#1D1D1F', minWidth: 48 };
 const unsetHint: React.CSSProperties = { fontSize: '0.72rem', color: '#9C5F33', fontStyle: 'italic', marginLeft: 4 };
 
 // Thẻ 1 câu Đúng/Sai (kiểu THPT)
-const tfCard: React.CSSProperties = { border: '1px solid #E2DDD4', borderRadius: 8, padding: '8px 10px', background: '#FAF9F6', minWidth: 150 };
-const tfCardHead: React.CSSProperties = { fontSize: '0.8rem', fontWeight: 800, color: '#1D2A30', textAlign: 'center', marginBottom: 6 };
+const tfCard: React.CSSProperties = { border: '1px solid #DCDCE1', borderRadius: 8, padding: '8px 10px', background: '#FAFAFC', minWidth: 150 };
+const tfCardHead: React.CSSProperties = { fontSize: '0.8rem', fontWeight: 800, color: '#1D1D1F', textAlign: 'center', marginBottom: 6 };
 const tfGridHead: React.CSSProperties = { display: 'grid', gridTemplateColumns: '26px 1fr 1fr', alignItems: 'center', marginBottom: 2 };
 const tfGridRow: React.CSSProperties = { display: 'grid', gridTemplateColumns: '26px 1fr 1fr', alignItems: 'center', padding: '2px 0' };
-const tfSub: React.CSSProperties = { fontSize: '0.8rem', fontWeight: 700, color: '#525A5F' };
+const tfSub: React.CSSProperties = { fontSize: '0.8rem', fontWeight: 700, color: '#515154' };
 const tfCell: React.CSSProperties = { display: 'flex', justifyContent: 'center', cursor: 'pointer' };
 function tfColHead(color: string): React.CSSProperties {
   return { fontSize: '0.72rem', fontWeight: 700, color, textAlign: 'center' };
@@ -322,9 +322,9 @@ function tfColHead(color: string): React.CSSProperties {
 
 function chip(active: boolean, activeColor = '#1F5C68'): React.CSSProperties {
   return {
-    border: `1px solid ${active ? activeColor : '#DAD5CC'}`,
+    border: `1px solid ${active ? activeColor : '#D2D2D7'}`,
     background: active ? activeColor : 'white',
-    color: active ? 'white' : '#5E676C',
+    color: active ? 'white' : '#6E6E73',
     borderRadius: 7, padding: '3px 10px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', minWidth: 32,
   };
 }
@@ -333,7 +333,7 @@ function chip(active: boolean, activeColor = '#1F5C68'): React.CSSProperties {
 function radio(active: boolean, color: string, disabled = false): React.ReactNode {
   return (
     <span style={{
-      width: 19, height: 19, borderRadius: '50%', border: `2px solid ${active ? color : '#B6BBBE'}`,
+      width: 19, height: 19, borderRadius: '50%', border: `2px solid ${active ? color : '#AEAEB2'}`,
       background: active ? color : 'white', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       boxShadow: active ? `inset 0 0 0 2px white` : 'none', opacity: disabled ? 0.5 : 1,
     }} />

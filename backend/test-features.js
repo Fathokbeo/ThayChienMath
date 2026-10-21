@@ -129,7 +129,26 @@ const login = async (u, p) => (await req('POST', '/auth/login', { json: { userna
   ok('HS ngoài lớp bị chặn (403)', r.status === 403);
   r = await req('GET', `/teacher/classes/${cls}/ranking`, { token: tt });
   ok('GV vẫn thấy tên đăng nhập', r.status === 200 && r.data.students.every((x) => 'username' in x));
-  void B;
+
+  // ── 4. Tổng quan thông minh (việc cần làm / bài cần chấm) ──
+  console.log('\n── 4. Tổng quan thông minh ──');
+  const hwNew = (await req('POST', `/classes/${cls}/homework`, { token: tt, form: fd({ title: 'Bài mới tuần này', max_score: '10', due_date: future }) })).data.id;
+  r = await req('GET', '/student/overview', { token: B.token });
+  ok('HS chưa nộp thấy bài trong "Việc cần làm"', r.status === 200 && r.data.todo.some((x) => x.id === hwNew), JSON.stringify(r.data.todo.map((x) => x.title)));
+  ok('Việc cần làm sắp theo hạn gần nhất', r.data.todo.every((x, i, a) => i === 0 || a[i - 1].due_date <= x.due_date));
+  ok('Có tình hình từng lớp', r.data.classes.length === 1 && r.data.classes[0].id === cls);
+  r = await req('GET', '/student/overview', { token: st });
+  ok('HS đã nộp hết → không còn bài cũ trong việc cần làm', !r.data.todo.some((x) => x.id === hw || x.id === hwManual));
+  ok('Kết quả mới có điểm bài TN = 10', r.data.recent.some((x) => x.homework_id === hw && x.score === 10));
+  const f2 = new FormData(); f2.append('files', new Blob([Buffer.from('%PDF-1.4 b')], { type: 'application/pdf' }), 'b.pdf');
+  await req('POST', `/homework/${hwNew}/submit`, { token: B.token, form: f2 });
+  r = await req('GET', '/teacher/overview', { token: tt });
+  ok('GV thấy bài cần chấm tay', r.status === 200 && r.data.to_grade.some((x) => x.homework_id === hwNew), JSON.stringify(r.data.to_grade.map((x) => x.homework_title)));
+  const up = r.data.upcoming.find((x) => x.id === hwNew);
+  ok('Hạn sắp tới kèm số đã nộp / sĩ số', up && up.submitted === 1 && up.total === 2, JSON.stringify(up));
+  ok('Bài mới nộp hiện trong "Mới nộp"', r.data.recent[0] && r.data.recent[0].homework_id === hwNew);
+  r = await req('GET', '/teacher/overview', { token: out });
+  ok('Học sinh không gọi được tổng quan giáo viên (403)', r.status === 403);
 
   console.log(`\n═══ ${pass + fail} test | ✅ ${pass} PASS | ❌ ${fail} FAIL ═══\n`);
   process.exit(fail ? 1 : 0);

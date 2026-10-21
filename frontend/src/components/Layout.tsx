@@ -1,44 +1,18 @@
-import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import Topbar from './Topbar';
+import TopNav from './TopNav';
 import TabBar from './TabBar';
-import useIsMobile from '../lib/useIsMobile';
-import useEdgeSwipe from '../lib/useEdgeSwipe';
+import CommandPalette from './CommandPalette';
 
+// Khung app: điều hướng ngang trên cùng + nội dung căn giữa; điện thoại có thêm thanh điều hướng dưới đáy.
 export default function Layout() {
-  const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  // 768px: đúng ngưỡng thanh bên chuyển sang kiểu điện thoại trong index.css
-  const isMobile = useIsMobile(768);
-
-  // Trên điện thoại còn mở/đóng được thanh bên bằng cách vuốt từ mép trái màn hình ra.
-  useEdgeSwipe({
-    enabled: isMobile,
-    isOpen: mobileOpen,
-    onOpen: () => setMobileOpen(true),
-    onClose: () => setMobileOpen(false),
-  });
-
   return (
-    <div style={{ display: 'flex' }}>
-      <Sidebar
-        collapsed={collapsed}
-        onToggle={() => (isMobile ? setMobileOpen(false) : setCollapsed(!collapsed))}
-        mobileOpen={mobileOpen}
-        onMobileClose={() => setMobileOpen(false)}
-      />
-      <div className={`main-content ${collapsed ? 'sidebar-collapsed' : ''}`} style={{ flex: 1, minWidth: 0 }}>
-        <Topbar onMenuClick={() => {
-          if (isMobile) setMobileOpen(!mobileOpen);
-          else setCollapsed(!collapsed);
-        }} />
-        <div className="content-area">
-          <Outlet />
-        </div>
-      </div>
-      {/* Điện thoại: điều hướng nhanh bằng thanh tab dưới đáy */}
-      <TabBar onMore={() => setMobileOpen(!mobileOpen)} moreOpen={mobileOpen} />
+    <div style={{ minHeight: '100vh' }}>
+      <TopNav />
+      <main className="content-area">
+        <Outlet />
+      </main>
+      <TabBar />
+      <CommandPalette />
     </div>
   );
 }

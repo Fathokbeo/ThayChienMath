@@ -131,7 +131,7 @@ export default function HomeworkDetail() {
     toast.success('Đã xuất file Excel');
   };
 
-  if (!hw) return <div style={{ padding: '2rem', color: '#949A9E', textAlign: 'center' }}>Đang tải...</div>;
+  if (!hw) return <div style={{ padding: '2rem', color: '#86868B', textAlign: 'center' }}>Đang tải...</div>;
 
   // Danh sách CẢ LỚP (kèm bài nộp nếu có), thứ tự khớp với danh sách học sinh của lớp (server đã sort)
   // quá hạn mà chưa nộp → "Chưa nộp bài" + 0 điểm
@@ -149,13 +149,13 @@ export default function HomeworkDetail() {
     <div className="fade-in">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: '1.5rem' }}>
-        <Link to={`/teacher/classes/${hw.class_id}`} style={{ color: '#7A8287', textDecoration: 'none', display: 'flex', alignItems: 'center', marginTop: 4 }}>
+        <Link to={`/teacher/classes/${hw.class_id}`} style={{ color: '#6E6E73', textDecoration: 'none', display: 'flex', alignItems: 'center', marginTop: 4 }}>
           <ChevronLeft size={18} />
         </Link>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '0.82rem', color: '#7A8287', marginBottom: 4 }}>{hw.class_title}</div>
+          <div style={{ fontSize: '0.82rem', color: '#6E6E73', marginBottom: 4 }}>{hw.class_title}</div>
           <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>{hw.title}</h1>
-          {hw.description && <p style={{ color: '#7A8287', margin: '4px 0 0', fontSize: '0.88rem' }}>{hw.description}</p>}
+          {hw.description && <p style={{ color: '#6E6E73', margin: '4px 0 0', fontSize: '0.88rem' }}>{hw.description}</p>}
           {hw.grading_note && (
             <div style={{ marginTop: 8, padding: '0.6rem 0.8rem', background: '#EFEBF5', borderRadius: 8, fontSize: '0.8rem', color: '#6E5A94', display: 'flex', gap: 6 }}>
               <Bot size={15} style={{ flexShrink: 0, marginTop: 1 }} />
@@ -223,7 +223,7 @@ export default function HomeworkDetail() {
         <h2 className="section-title" style={{ margin: 0 }}>Danh sách lớp</h2>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Bộ lọc trạng thái nộp */}
-          <div style={{ display: 'flex', gap: 4, background: '#F1EFEA', padding: 4, borderRadius: 10 }}>
+          <div style={{ display: 'flex', gap: 4, background: '#F2F2F4', padding: 4, borderRadius: 10 }}>
             {([
               { key: 'all', label: `Tất cả (${roster.length})` },
               { key: 'submitted', label: `Đã nộp (${submittedCount})` },
@@ -231,7 +231,7 @@ export default function HomeworkDetail() {
               { key: 'review', label: 'Nhận xét' },
             ] as const).map(({ key, label }) => (
               <button key={key} className="btn btn-sm" onClick={() => setFilter(key)}
-                style={{ background: filter === key ? 'white' : 'transparent', boxShadow: filter === key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: filter === key ? '#1F5C68' : '#7A8287', border: 'none' }}>
+                style={{ background: filter === key ? 'white' : 'transparent', boxShadow: filter === key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: filter === key ? '#1F5C68' : '#6E6E73', border: 'none' }}>
                 {label}
               </button>
             ))}
@@ -266,7 +266,7 @@ export default function HomeworkDetail() {
               const fileUrls = submitted ? submissionFileUrls(s) : [];
               return (
                 <tr key={s.student_id}>
-                  <td><strong>{s.full_name}</strong><div style={{ fontSize: '0.78rem', color: '#949A9E' }}>{s.username}</div></td>
+                  <td><strong>{s.full_name}</strong><div style={{ fontSize: '0.78rem', color: '#86868B' }}>{s.username}</div></td>
                   <td>
                     {submitted
                       ? <span className="badge badge-green"><CheckCircle size={10} style={{ marginRight: 4 }} />Đã nộp</span>
@@ -274,7 +274,7 @@ export default function HomeworkDetail() {
                         ? <span className="badge badge-red"><XCircle size={10} style={{ marginRight: 4 }} />Chưa nộp bài</span>
                         : <span className="badge badge-gray">Chưa nộp</span>}
                   </td>
-                  <td style={{ fontSize: '0.82rem', color: '#7A8287' }}>{submitted ? new Date(s.submitted_at).toLocaleString('vi-VN') : '—'}</td>
+                  <td style={{ fontSize: '0.82rem', color: '#6E6E73' }}>{submitted ? new Date(s.submitted_at).toLocaleString('vi-VN') : '—'}</td>
                   <td style={{ fontSize: '0.82rem' }}>
                     {submitted ? `${s.submit_count || 1}${hw.max_attempts ? `/${hw.max_attempts}` : ''}` : '—'}
                   </td>
@@ -299,13 +299,13 @@ export default function HomeworkDetail() {
                         </span>
                       ) : s.grading_status === 'failed' ? (
                         <span style={{ color: '#B04A2A', fontSize: '0.82rem' }}>Chấm lỗi</span>
-                      ) : <span style={{ color: '#C8C3BA' }}>Chưa chấm</span>
+                      ) : <span style={{ color: '#C7C7CC' }}>Chưa chấm</span>
                     ) : isOverdue ? (
                       // Quá hạn không nộp → 0 điểm (khớp cách tính điểm TB & xếp hạng)
                       <span style={{ background: '#F8E6DF', color: '#B04A2A', padding: '3px 10px', borderRadius: 99, fontWeight: 700, fontSize: '0.88rem' }}>
                         0/{hw.max_score}
                       </span>
-                    ) : <span style={{ color: '#C8C3BA' }}>—</span>}
+                    ) : <span style={{ color: '#C7C7CC' }}>—</span>}
                   </td>
                   <td>
                     {submitted
@@ -331,10 +331,10 @@ export default function HomeworkDetail() {
               );
             })}
             {roster.length === 0 && (
-              <tr><td colSpan={8} style={{ textAlign: 'center', color: '#949A9E', padding: '2rem' }}>Lớp chưa có học sinh</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', color: '#86868B', padding: '2rem' }}>Lớp chưa có học sinh</td></tr>
             )}
             {roster.length > 0 && visibleRoster.length === 0 && (
-              <tr><td colSpan={8} style={{ textAlign: 'center', color: '#949A9E', padding: '2rem' }}>Không có học sinh nào trong nhóm lọc này</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', color: '#86868B', padding: '2rem' }}>Không có học sinh nào trong nhóm lọc này</td></tr>
             )}
           </tbody>
         </table>

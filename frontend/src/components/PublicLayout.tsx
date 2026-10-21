@@ -7,6 +7,9 @@ import { Phone, MapPin, Clock, Mail, ExternalLink, Menu, X, LogIn, LogOut, User 
 
 const NAV = [
   { to: '/', label: 'Trang chủ' },
+  { to: '/#khoa-hoc', label: 'Khóa học' },
+  { to: '/#giao-vien', label: 'Đội ngũ' },
+  { to: '/#hoc-sinh', label: 'Học sinh tiêu biểu' },
 ];
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
@@ -34,21 +37,18 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
   const solid = true;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F6F4EF', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: '#F5F5F7', display: 'flex', flexDirection: 'column' }}>
       {/* Navbar */}
       <nav style={{
         position: 'sticky', top: 0, zIndex: 100,
         background: '#FFFFFF',
-        borderBottom: `1px solid ${scrolled ? 'rgba(29,42,48,0.12)' : 'rgba(29,42,48,0.06)'}`,
-        transition: 'border-color 0.2s', padding: '0 2rem',
+        borderBottom: `1px solid ${scrolled ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.06)'}`,
+        transition: 'border-color 0.2s', padding: '0 22px',
       }}>
-        <div style={{ maxWidth: PAGE_MAX, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 70 }}>
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            <img src="/logo.svg" alt="Thầy Chiến Math" style={{ width: 40, height: 40, borderRadius: 10 }} />
-            <div>
-              <div className="display" style={{ color: '#1D2A30', fontWeight: 700, fontSize: '1.12rem', lineHeight: 1.1 }}>Thầy Chiến</div>
-              <div style={{ color: '#1F5C68', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 2 }}>Math</div>
-            </div>
+        <div style={{ maxWidth: PAGE_MAX, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52 }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', color: '#1D1D1F', fontWeight: 700, letterSpacing: '-0.02em' }}>
+            <img src="/logo.svg" alt="Thầy Chiến Math" style={{ width: 28, height: 28, borderRadius: 7 }} />
+            Thầy Chiến Math
           </Link>
 
           {/* Desktop nav */}
@@ -57,17 +57,17 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
               const active = n.to === pathname;
               return (
                 <Link key={n.to} to={n.to} style={{
-                  color: active ? '#1F5C68' : solid ? '#40494E' : 'rgba(255,255,255,0.85)',
-                  textDecoration: 'none', fontWeight: active ? 700 : 500, fontSize: '0.9rem',
+                  color: active ? '#1D1D1F' : solid ? '#6E6E73' : 'rgba(255,255,255,0.85)',
+                  textDecoration: 'none', fontWeight: active ? 600 : 500, fontSize: '0.86rem',
                   padding: '6px 12px', borderRadius: 8, transition: 'all 0.15s',
                 }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = solid ? '#F1EFEA' : 'rgba(255,255,255,0.1)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = solid ? '#F2F2F4' : 'rgba(255,255,255,0.1)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >{n.label}</Link>
               );
             })}
-            <a href="#contact" style={{ color: solid ? '#40494E' : 'rgba(255,255,255,0.85)', textDecoration: 'none', fontWeight: 500, fontSize: '0.9rem', padding: '6px 12px', borderRadius: 8 }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = solid ? '#F1EFEA' : 'rgba(255,255,255,0.1)')}
+            <a href="#contact" style={{ color: solid ? '#6E6E73' : 'rgba(255,255,255,0.85)', textDecoration: 'none', fontWeight: 500, fontSize: '0.86rem', padding: '6px 12px', borderRadius: 8 }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = solid ? '#F2F2F4' : 'rgba(255,255,255,0.1)')}
               onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
             >Liên hệ</a>
 
@@ -76,7 +76,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                 <Link to={dashLink} className="btn btn-primary btn-sm" style={{ gap: 6 }}>
                   <User size={14} />{user.role === 'admin' ? 'Quản trị' : user.role === 'teacher' ? 'Giáo viên' : 'Vào học'}
                 </Link>
-                <button className="btn btn-ghost btn-sm" style={{ color: solid ? '#525A5F' : 'white', borderColor: solid ? '#DAD5CC' : 'rgba(255,255,255,0.3)' }} onClick={handleLogout}>
+                <button className="btn btn-ghost btn-sm" style={{ color: solid ? '#515154' : 'white', borderColor: solid ? '#D2D2D7' : 'rgba(255,255,255,0.3)' }} onClick={handleLogout}>
                   <LogOut size={14} /> Đăng xuất
                 </button>
               </div>
@@ -86,22 +86,22 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
           </div>
 
           {/* Mobile hamburger */}
-          <button onClick={() => setNavOpen(!navOpen)} style={{ color: solid ? '#2E383D' : 'white' }} className="mobile-menu-btn">
+          <button onClick={() => setNavOpen(!navOpen)} style={{ color: solid ? '#2C2C2E' : 'white' }} className="mobile-menu-btn">
             {navOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
         {/* Mobile menu */}
         {navOpen && (
-          <div style={{ background: 'white', borderTop: '1px solid #ECE8E1', padding: '1rem 2rem' }}>
+          <div style={{ background: 'white', borderTop: '1px solid #E8E8ED', padding: '1rem 2rem' }}>
             {NAV.map((n) => (
-              <Link key={n.to} to={n.to} onClick={() => setNavOpen(false)} style={{ display: 'block', padding: '0.6rem 0', color: n.to === pathname ? '#1F5C68' : '#2E383D', textDecoration: 'none', fontWeight: 600 }}>{n.label}</Link>
+              <Link key={n.to} to={n.to} onClick={() => setNavOpen(false)} style={{ display: 'block', padding: '0.6rem 0', color: n.to === pathname ? '#1F5C68' : '#2C2C2E', textDecoration: 'none', fontWeight: 600 }}>{n.label}</Link>
             ))}
-            <a href="#contact" onClick={() => setNavOpen(false)} style={{ display: 'block', padding: '0.6rem 0', color: '#2E383D', textDecoration: 'none', fontWeight: 500 }}>Liên hệ</a>
+            <a href="#contact" onClick={() => setNavOpen(false)} style={{ display: 'block', padding: '0.6rem 0', color: '#2C2C2E', textDecoration: 'none', fontWeight: 500 }}>Liên hệ</a>
             {user ? (
               <>
                 <Link to={dashLink} onClick={() => setNavOpen(false)} style={{ display: 'block', padding: '0.6rem 0', color: '#1F5C68', fontWeight: 600 }}>Vào hệ thống</Link>
-                <button onClick={handleLogout} style={{ background: 'none', border: 'none', padding: '0.6rem 0', color: '#5E676C', fontWeight: 500, cursor: 'pointer', width: '100%', textAlign: 'left' }}>Đăng xuất</button>
+                <button onClick={handleLogout} style={{ background: 'none', border: 'none', padding: '0.6rem 0', color: '#6E6E73', fontWeight: 500, cursor: 'pointer', width: '100%', textAlign: 'left' }}>Đăng xuất</button>
               </>
             ) : (
               <Link to="/login" onClick={() => setNavOpen(false)} style={{ display: 'block', padding: '0.6rem 0', color: '#1F5C68', fontWeight: 600 }}>Đăng nhập</Link>
@@ -114,9 +114,9 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
       <div style={{ flex: 1 }}>{children}</div>
 
       {/* Contact */}
-      <section id="contact" style={{ background: '#EFEDE8', padding: '2.5rem 2rem' }}>
+      <section id="contact" style={{ background: '#EEEEF1', padding: '2.5rem 2rem' }}>
         <div style={{ maxWidth: PAGE_MAX, margin: '0 auto' }}>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.25rem', color: '#1D2A30' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.25rem', color: '#1D1D1F' }}>
             <Phone size={20} style={{ verticalAlign: 'middle', marginRight: 8, color: '#1F5C68' }} />
             Liên hệ
           </h2>
@@ -132,8 +132,8 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                   <Icon size={20} color="#1F5C68" />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.78rem', color: '#949A9E', marginBottom: 4 }}>{label}</div>
-                  <div style={{ fontWeight: 600, color: '#1D2A30', fontSize: '0.9rem' }}>{value}</div>
+                  <div style={{ fontSize: '0.78rem', color: '#86868B', marginBottom: 4 }}>{label}</div>
+                  <div style={{ fontWeight: 600, color: '#1D1D1F', fontSize: '0.9rem' }}>{value}</div>
                 </div>
               </div>
             ))}

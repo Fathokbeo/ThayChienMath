@@ -103,7 +103,7 @@ export default function PdfCanvasViewer({ url, zoom }: Props) {
 
   if (status === 'error') {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#949A9E', fontSize: '0.85rem', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#86868B', fontSize: '0.85rem', flexDirection: 'column', gap: 8 }}>
         <span>Không tải được đề bài.</span>
         <a href={url} target="_blank" rel="noreferrer" style={{ color: '#2F6F82' }}>Mở file trong tab mới</a>
       </div>
@@ -112,7 +112,7 @@ export default function PdfCanvasViewer({ url, zoom }: Props) {
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: 16 }}>
-      {status === 'loading' && <div style={{ color: '#949A9E', fontSize: '0.85rem', margin: 'auto' }}>Đang tải đề bài...</div>}
+      {status === 'loading' && <div style={{ color: '#86868B', fontSize: '0.85rem', margin: 'auto' }}>Đang tải đề bài...</div>}
       {Array.from({ length: numPages }, (_, i) => i + 1).map((p) => (
         <canvas key={p} data-page={p} style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.18)', background: 'white', flexShrink: 0 }} />
       ))}

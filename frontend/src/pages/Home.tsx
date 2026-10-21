@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import AdCarousel from '../components/AdCarousel';
 import PublicLayout from '../components/PublicLayout';
+import { useAuth } from '../contexts/AuthContext';
 import FacebookIcon from '../components/FacebookIcon';
 import api from '../lib/api';
 import { PAGE_MAX } from '../lib/layout';
-import { BookOpen, ChevronRight, ChevronDown, Trophy, Users, GraduationCap, Award, Calendar, UserCircle, Phone } from 'lucide-react';
+import { BookOpen, ChevronRight, ChevronDown, Trophy, Users, GraduationCap, Award, Calendar, UserCircle, Phone, Sparkles, Smartphone, LineChart } from 'lucide-react';
 
 /* Mỗi mục = 1 ô thống kê ở trên + 1 khối nội dung ngay trên trang chủ.
    Bấm vào ô thống kê sẽ cuộn xuống đúng khối đó (không mở trang khác). */
@@ -28,14 +29,12 @@ function scrollToSection(id: string) {
 
 function Section({ id, title, subtitle, icon: Icon, color, alt, children }: any) {
   return (
-    <section id={id} style={{ background: alt ? 'white' : 'transparent', scrollMarginTop: SCROLL_OFFSET, padding: '2.25rem 2rem' }}>
+    <section id={id} style={{ background: alt ? 'white' : 'transparent', scrollMarginTop: SCROLL_OFFSET, padding: '4rem 22px' }}>
       <div style={{ maxWidth: PAGE_MAX, margin: '0 auto' }}>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#1D2A30', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Icon size={22} color={color} /> {title}
-          </h2>
-          {subtitle && <p style={{ margin: '6px 0 0', color: '#7A8287', fontSize: '0.9rem' }}>{subtitle}</p>}
-          <div style={{ width: 52, height: 3, background: color, borderRadius: 2, marginTop: 12 }} />
+        <div style={{ marginBottom: '2.25rem', textAlign: 'center' }}>
+          <Icon size={26} color={color} style={{ margin: '0 auto 10px' }} />
+          <h2 style={{ margin: 0, fontSize: 'clamp(1.7rem, 3.6vw, 2.5rem)', fontWeight: 700, letterSpacing: '-0.03em', color: '#1D1D1F' }}>{title}</h2>
+          {subtitle && <p style={{ margin: '10px auto 0', color: '#6E6E73', fontSize: '1.08rem', maxWidth: 620 }}>{subtitle}</p>}
         </div>
         {children}
       </div>
@@ -44,7 +43,7 @@ function Section({ id, title, subtitle, icon: Icon, color, alt, children }: any)
 }
 
 function Empty({ text }: { text: string }) {
-  return <div style={{ textAlign: 'center', color: '#949A9E', padding: '2.5rem', background: '#FAF9F6', border: '1px dashed #E2DDD4', borderRadius: 12 }}>{text}</div>;
+  return <div style={{ textAlign: 'center', color: '#86868B', padding: '2.5rem', background: '#FAFAFC', border: '1px dashed #DCDCE1', borderRadius: 12 }}>{text}</div>;
 }
 
 function StaffGrid({ list }: { list: any[] }) {
@@ -60,9 +59,9 @@ function StaffGrid({ list }: { list: any[] }) {
             </div>
           )}
           <div style={{ padding: '1rem' }}>
-            <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1D2A30' }}>{s.name}</h3>
+            <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1D1D1F' }}>{s.name}</h3>
             {s.role_title && <div style={{ color: '#2F6F82', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>{s.role_title}</div>}
-            {s.description && <p style={{ margin: 0, fontSize: '0.83rem', color: '#6E767B', lineHeight: 1.5 }}>{s.description}</p>}
+            {s.description && <p style={{ margin: 0, fontSize: '0.83rem', color: '#6E6E73', lineHeight: 1.5 }}>{s.description}</p>}
             {(s.phone || s.facebook_url) && (
               <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
                 {s.phone && (
@@ -87,6 +86,7 @@ function StaffGrid({ list }: { list: any[] }) {
 }
 
 export default function Home() {
+  const { user } = useAuth();
   const { hash } = useLocation();
   const [ads, setAds] = useState([]);
   const [courses, setCourses] = useState<any[]>([]);
@@ -120,50 +120,46 @@ export default function Home() {
 
   return (
     <PublicLayout>
-      {/* Hero / Carousel */}
-      <section style={{ maxWidth: PAGE_MAX, margin: '0 auto', padding: '2rem 2rem 0' }}>
-        {ads.length > 0 ? (
-          <AdCarousel ads={ads} />
-        ) : (
-          <div style={{
-            borderRadius: 18, overflow: 'hidden',
-            background: '#1F5C68',
-            height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
-            color: 'white', textAlign: 'center', padding: '2rem'
-          }}>
-            <img src="/logo.svg" alt="Thầy Chiến Math" style={{ width: 72, height: 72, borderRadius: 18, marginBottom: 20 }} />
-            <h1 style={{ fontSize: '2.4rem', fontWeight: 700, margin: '0 0 12px', color: 'white' }}>
-              {settings.hero_title || 'Thầy Chiến Math'}
-            </h1>
-            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.05rem', maxWidth: 520 }}>
-              {settings.hero_subtitle || 'Học Toán vững vàng — tự tin chinh phục mọi kỳ thi'}
-            </p>
-          </div>
-        )}
+      {/* Mở đầu: tiêu đề lớn ở giữa + 2 nút; ảnh quảng cáo (nếu có) ngay bên dưới */}
+      <section style={{ background: '#fff', textAlign: 'center', padding: '4.5rem 22px 3.5rem' }}>
+        <img src="/logo.svg" alt="Thầy Chiến Math" style={{ width: 64, height: 64, borderRadius: 16, margin: '0 auto' }} />
+        <h1 style={{ fontSize: 'clamp(2.4rem, 6vw, 4rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: '18px auto 14px', maxWidth: 900, color: '#1D1D1F' }}>
+          {settings.hero_title || 'Thầy Chiến Math'}
+        </h1>
+        <p style={{ color: '#6E6E73', fontSize: 'clamp(1.05rem, 2.2vw, 1.35rem)', maxWidth: 640, margin: '0 auto', lineHeight: 1.45 }}>
+          {settings.hero_subtitle || 'Học Toán vững vàng — tự tin chinh phục mọi kỳ thi'}
+        </p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 26 }}>
+          {user
+            ? <Link to={`/${user.role}`} className="btn btn-primary btn-lg">{user.role === 'student' ? 'Vào học' : 'Vào trang quản lý'} <ChevronRight size={18} /></Link>
+            : <Link to="/login" className="btn btn-primary btn-lg">Đăng nhập để học <ChevronRight size={18} /></Link>}
+          <a href="#khoa-hoc" className="btn btn-outline btn-lg" onClick={(e) => { e.preventDefault(); scrollToSection('khoa-hoc'); }}>Xem khóa học</a>
+        </div>
       </section>
+      {ads.length > 0 && (
+        <section style={{ maxWidth: PAGE_MAX, margin: '0 auto', padding: '2rem 22px 0' }}>
+          <AdCarousel ads={ads} />
+        </section>
+      )}
 
       {/* Thống kê — mỗi ô là lối tắt cuộn xuống mục tương ứng bên dưới */}
-      <section style={{ maxWidth: PAGE_MAX, margin: '0 auto', padding: '1.5rem 2rem 1rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 16 }}>
-          {SECTIONS.map(({ id, nav, statLabel, statKey, statFallback, icon: Icon, color, bg }) => (
+      <section style={{ maxWidth: PAGE_MAX, margin: '0 auto', padding: '2.5rem 22px 0.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12 }}>
+          {SECTIONS.map(({ id, nav, statLabel, statKey, statFallback, icon: Icon, color }) => (
             <a key={id} href={`#${id}`} onClick={(e) => { e.preventDefault(); scrollToSection(id); }}
               style={{ textDecoration: 'none', display: 'block' }}>
               <div style={{
-                background: 'white', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', borderTop: `3px solid ${color}`,
-                height: '100%', display: 'flex', flexDirection: 'column', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s',
+                background: 'white', borderRadius: 18, height: '100%', padding: '1.25rem 1.25rem 1.1rem',
+                display: 'flex', flexDirection: 'column', cursor: 'pointer', transition: 'background 0.15s',
               }}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.1)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}>
-                <div style={{ padding: '1.15rem 1rem 0.9rem', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 800, color }}>{settings[statKey] || statFallback}</div>
-                  <div style={{ fontSize: '0.82rem', color: '#7A8287', marginTop: 4 }}>{statLabel}</div>
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#FAFAFC'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, color, fontWeight: 600, fontSize: '0.86rem' }}>
+                  <Icon size={17} color={color} /> {statLabel}
                 </div>
-                <div style={{ borderTop: '1px solid #EEEBE5', padding: '0.7rem 0.9rem', display: 'flex', alignItems: 'center', gap: 10, marginTop: 'auto' }}>
-                  <div style={{ width: 32, height: 32, background: bg, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icon size={17} color={color} />
-                  </div>
-                  <div style={{ fontWeight: 700, color: '#1D2A30', fontSize: '0.83rem' }}>{nav}</div>
-                  <ChevronDown size={16} color="#B6BBBE" style={{ marginLeft: 'auto', flexShrink: 0 }} />
+                <div style={{ fontSize: '2.2rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#1D1D1F', margin: '6px 0 8px' }}>{settings[statKey] || statFallback}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#1F5C68', fontSize: '0.86rem', fontWeight: 500, marginTop: 'auto' }}>
+                  {nav} <ChevronDown size={15} />
                 </div>
               </div>
             </a>
@@ -185,14 +181,14 @@ export default function Home() {
                   </div>
                 )}
                 <div style={{ padding: '1rem' }}>
-                  <h3 style={{ margin: '0 0 6px', fontSize: '1.05rem', fontWeight: 800, color: '#1D2A30' }}>{s.name}</h3>
+                  <h3 style={{ margin: '0 0 6px', fontSize: '1.05rem', fontWeight: 800, color: '#1D1D1F' }}>{s.name}</h3>
                   {s.exam && <span className="badge badge-red" style={{ marginBottom: 8 }}>{s.exam}</span>}
                   {s.achievement && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#1F5C68', fontWeight: 700, fontSize: '0.95rem', margin: '8px 0' }}>
                       <Award size={16} /> {s.achievement}
                     </div>
                   )}
-                  {s.description && <p style={{ margin: 0, fontSize: '0.85rem', color: '#6E767B', lineHeight: 1.5 }}>{s.description}</p>}
+                  {s.description && <p style={{ margin: 0, fontSize: '0.85rem', color: '#6E6E73', lineHeight: 1.5 }}>{s.description}</p>}
                 </div>
               </div>
             ))}
@@ -206,13 +202,13 @@ export default function Home() {
           <>
             {teachers.length > 0 && (
               <>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1D2A30', margin: '0 0 1rem' }}>Giáo viên</h3>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1D1D1F', margin: '0 0 1rem' }}>Giáo viên</h3>
                 <StaffGrid list={teachers} />
               </>
             )}
             {assistants.length > 0 && (
               <>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1D2A30', margin: '2rem 0 1rem' }}>Trợ giảng</h3>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1D1D1F', margin: '2rem 0 1rem' }}>Trợ giảng</h3>
                 <StaffGrid list={assistants} />
               </>
             )}
@@ -236,13 +232,13 @@ export default function Home() {
                   </div>
                 )}
                 <div style={{ padding: '1rem' }}>
-                  <h3 style={{ margin: '0 0 8px', fontSize: '1rem', fontWeight: 700, color: '#1D2A30' }}>{c.title}</h3>
+                  <h3 style={{ margin: '0 0 8px', fontSize: '1rem', fontWeight: 700, color: '#1D1D1F' }}>{c.title}</h3>
                   {c.student_count > 0 && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#3A7D5C', fontWeight: 700, fontSize: '0.85rem', marginBottom: 8 }}>
                       <Users size={15} /> {c.student_count} học sinh
                     </div>
                   )}
-                  {c.description && <p style={{ margin: '0 0 12px', fontSize: '0.85rem', color: '#7A8287', lineHeight: 1.5 }}>{c.description}</p>}
+                  {c.description && <p style={{ margin: '0 0 12px', fontSize: '0.85rem', color: '#6E6E73', lineHeight: 1.5 }}>{c.description}</p>}
                   <Link to={`/courses/${c.id}`} style={{ color: '#1F5C68', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
                     Xem chi tiết <ChevronRight size={14} />
                   </Link>
@@ -260,7 +256,7 @@ export default function Home() {
             {achievements.map((a, i) => (
               <div key={a.id} style={{
                 background: 'white', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-                border: '1px solid #EEEBE5',
+                border: '1px solid #EDEDF0',
                 display: 'flex', flexDirection: i % 2 === 0 ? 'row' : 'row-reverse', flexWrap: 'wrap',
               }}>
                 {a.image && (
@@ -272,8 +268,8 @@ export default function Home() {
                       <Calendar size={18} /> {a.year}
                     </div>
                   )}
-                  <h3 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: 800, color: '#1D2A30' }}>{a.title}</h3>
-                  {a.description && <p style={{ margin: 0, fontSize: '0.9rem', color: '#5E676C', lineHeight: 1.6 }}>{a.description}</p>}
+                  <h3 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: 800, color: '#1D1D1F' }}>{a.title}</h3>
+                  {a.description && <p style={{ margin: 0, fontSize: '0.9rem', color: '#6E6E73', lineHeight: 1.6 }}>{a.description}</p>}
                 </div>
               </div>
             ))}
@@ -282,20 +278,20 @@ export default function Home() {
       </Section>
 
       {/* Features */}
-      <section style={{ background: '#1F5C68', padding: '3rem 2rem' }}>
+      <section style={{ background: '#fff', padding: '4.5rem 22px' }}>
         <div style={{ maxWidth: PAGE_MAX, margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ color: 'white', fontWeight: 800, fontSize: '1.5rem', marginBottom: '2rem' }}>Vì sao chọn Thầy Chiến Math?</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
+          <h2 style={{ color: '#1D1D1F', fontWeight: 700, fontSize: 'clamp(1.7rem, 3.6vw, 2.5rem)', letterSpacing: '-0.03em', margin: '0 0 2.5rem' }}>Vì sao chọn Thầy Chiến Math?</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 32 }}>
             {[
-              { icon: '🎓', title: 'Giáo viên giỏi', desc: 'Đội ngũ giáo viên giàu kinh nghiệm, nhiệt tình' },
-              { icon: '🤖', title: 'Chấm bài bằng AI', desc: 'Hệ thống AI tự động chấm bài và đưa ra nhận xét' },
-              { icon: '📱', title: 'Học mọi lúc', desc: 'Xem bài giảng, nộp bài online tiện lợi' },
-              { icon: '📊', title: 'Theo dõi tiến độ', desc: 'Học sinh và phụ huynh dễ dàng theo dõi kết quả' },
-            ].map(({ icon, title, desc }) => (
-              <div key={title} style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: '1.5rem', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>{icon}</div>
-                <div style={{ color: 'white', fontWeight: 700, marginBottom: 8 }}>{title}</div>
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', lineHeight: 1.6 }}>{desc}</div>
+              { icon: GraduationCap, title: 'Giáo viên giỏi', desc: 'Đội ngũ giáo viên giàu kinh nghiệm, nhiệt tình' },
+              { icon: Sparkles, title: 'Chấm bài bằng AI', desc: 'Hệ thống AI tự động chấm bài và đưa ra nhận xét' },
+              { icon: Smartphone, title: 'Học mọi lúc', desc: 'Xem bài giảng, nộp bài online tiện lợi' },
+              { icon: LineChart, title: 'Theo dõi tiến độ', desc: 'Học sinh và phụ huynh dễ dàng theo dõi kết quả' },
+            ].map(({ icon: Icon, title, desc }) => (
+              <div key={title}>
+                <Icon size={34} color="#1F5C68" strokeWidth={1.6} style={{ margin: '0 auto 14px' }} />
+                <div style={{ color: '#1D1D1F', fontWeight: 700, fontSize: '1.1rem', marginBottom: 6 }}>{title}</div>
+                <div style={{ color: '#6E6E73', fontSize: '0.95rem', lineHeight: 1.55 }}>{desc}</div>
               </div>
             ))}
           </div>

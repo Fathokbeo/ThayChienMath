@@ -7,7 +7,7 @@ import { ArrowLeft, School, BookOpen, ChevronRight, Trophy } from 'lucide-react'
 // Màu huy hiệu xếp hạng: top 1 vàng, 2 bạc, 3 đồng, còn lại tím
 function rankStyle(rank: number): { bg: string; color: string } {
   if (rank === 1) return { bg: '#FFF8E1', color: '#F9A825' };
-  if (rank === 2) return { bg: '#F1EFEA', color: '#999FA2' };
+  if (rank === 2) return { bg: '#F2F2F4', color: '#8E8E93' };
   if (rank === 3) return { bg: '#F8E6DF', color: '#B04A2A' };
   return { bg: '#EFEBF5', color: '#6E5A94' };
 }
@@ -24,7 +24,7 @@ export default function StudentCourseDetail() {
   }, [courseId]);
 
   if (!course) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: '#949A9E' }}>Đang tải...</div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: '#86868B' }}>Đang tải...</div>
   );
 
   const classes: any[] = course.classes || [];
@@ -45,18 +45,18 @@ export default function StudentCourseDetail() {
           </div>
         )}
         <div style={{ padding: '1.25rem' }}>
-          <h1 style={{ margin: '0 0 6px', fontSize: '1.3rem', fontWeight: 800, color: '#1D2A30' }}>{course.title}</h1>
-          {course.description && <p style={{ margin: '0 0 12px', color: '#5E676C', fontSize: '0.9rem' }}>{course.description}</p>}
-          <div style={{ display: 'flex', gap: 16, fontSize: '0.83rem', color: '#7A8287' }}>
+          <h1 style={{ margin: '0 0 6px', fontSize: '1.3rem', fontWeight: 800, color: '#1D1D1F' }}>{course.title}</h1>
+          {course.description && <p style={{ margin: '0 0 12px', color: '#6E6E73', fontSize: '0.9rem' }}>{course.description}</p>}
+          <div style={{ display: 'flex', gap: 16, fontSize: '0.83rem', color: '#6E6E73' }}>
             <span><School size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />{classes.length} lớp học của bạn</span>
           </div>
         </div>
       </div>
 
-      <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: '#1D2A30' }}>Lớp học của bạn trong khóa này</h2>
+      <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: '#1D1D1F' }}>Lớp học của bạn trong khóa này</h2>
 
       {classes.length === 0 ? (
-        <div style={{ background: 'white', borderRadius: 12, padding: '3rem', textAlign: 'center', color: '#949A9E' }}>
+        <div style={{ background: 'white', borderRadius: 12, padding: '3rem', textAlign: 'center', color: '#86868B' }}>
           <School size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
           <div>Bạn chưa có lớp nào trong khóa học này</div>
         </div>
@@ -69,8 +69,8 @@ export default function StudentCourseDetail() {
                   <School size={18} color="#1F5C68" />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3 style={{ margin: '0 0 4px', fontSize: '0.95rem', fontWeight: 700, color: '#1D2A30' }}>{cls.title}</h3>
-                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#7A8287' }}>GV: {cls.teacher_name}</p>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '0.95rem', fontWeight: 700, color: '#1D1D1F' }}>{cls.title}</h3>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#6E6E73' }}>GV: {cls.teacher_name}</p>
                 </div>
               </div>
               {cls.my_rank ? (
@@ -81,9 +81,9 @@ export default function StudentCourseDetail() {
                   <span style={{ fontSize: '0.78rem', color: '#B8673E', fontWeight: 700 }}>Điểm TB: {cls.my_avg ?? '—'}</span>
                 </div>
               ) : (
-                <div style={{ fontSize: '0.74rem', color: '#B6BBBE', marginBottom: 10 }}>Chưa có điểm tháng này</div>
+                <div style={{ fontSize: '0.74rem', color: '#AEAEB2', marginBottom: 10 }}>Chưa có điểm tháng này</div>
               )}
-              <div style={{ display: 'flex', gap: 12, fontSize: '0.78rem', color: '#7A8287', borderTop: '1px solid #F1EFEA', paddingTop: 10, marginBottom: 12 }}>
+              <div style={{ display: 'flex', gap: 12, fontSize: '0.78rem', color: '#6E6E73', borderTop: '1px solid #F2F2F4', paddingTop: 10, marginBottom: 12 }}>
                 <span>{cls.lesson_count} bài giảng</span>
                 <span>{cls.submitted_count}/{cls.homework_count} bài đã nộp</span>
               </div>

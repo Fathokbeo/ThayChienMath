@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import api from '../../lib/api';
 import { buildContentSections } from '../../lib/classContent';
 import VideoPlayer from '../../components/VideoPlayer';
@@ -34,7 +34,11 @@ function submittedFileUrls(hw: any): string[] {
 export default function StudentClassDetail() {
   const { id } = useParams();
   const [cls, setCls] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'content' | 'todo' | 'assistants' | 'ranking'>('content');
+  // ?tab=todo|assistants|ranking: mở thẳng tab đó (vd từ "Việc cần làm" ở trang Tổng quan)
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<'content' | 'todo' | 'assistants' | 'ranking'>(
+    initialTab === 'todo' || initialTab === 'assistants' || initialTab === 'ranking' ? initialTab : 'content');
   const [scheduleAssistantId, setScheduleAssistantId] = useState<number | null>(null);
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
   // Danh sách bài giảng/bài tập nào (theo key "<chương>-lessons"/"-homework") đang được bung ra trong 1 chương —
@@ -182,7 +186,7 @@ export default function StudentClassDetail() {
     }
   };
 
-  if (!cls) return <div style={{ padding: '2rem', textAlign: 'center', color: '#949A9E' }}>Đang tải...</div>;
+  if (!cls) return <div style={{ padding: '2rem', textAlign: 'center', color: '#86868B' }}>Đang tải...</div>;
 
   const chapters: any[] = cls.chapters || [];
 
@@ -221,7 +225,7 @@ export default function StudentClassDetail() {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{l.title}</div>
-          {l.description && <div style={{ fontSize: '0.8rem', color: '#7A8287', marginTop: 2 }}>{l.description}</div>}
+          {l.description && <div style={{ fontSize: '0.8rem', color: '#6E6E73', marginTop: 2 }}>{l.description}</div>}
           {(l.video_url || atts.length > 0) && (
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
               {l.video_url && <span className="badge badge-blue"><Play size={10} style={{ marginRight: 3 }} />Video</span>}
@@ -234,7 +238,7 @@ export default function StudentClassDetail() {
           <button className="btn btn-primary btn-sm" onClick={() => { setViewingLesson(l); setViewLessonModal(true); }}>
             <Play size={13} /> Xem bài
           </button>
-        ) : <span style={{ fontSize: '0.78rem', color: '#C8C3BA' }}>Chưa có nội dung</span>}
+        ) : <span style={{ fontSize: '0.78rem', color: '#C7C7CC' }}>Chưa có nội dung</span>}
       </div>
     );
   };
@@ -263,9 +267,9 @@ export default function StudentClassDetail() {
               {!canSubmit && !isSubmitted && <span className="badge badge-gray">Hết hạn</span>}
               {!canSubmit && isSubmitted && !isOverdue && attemptsExhausted && <span className="badge badge-gray">Hết lượt nộp</span>}
             </div>
-            {hw.description && <p style={{ margin: '0 0 8px', fontSize: '0.82rem', color: '#7A8287', lineHeight: 1.5 }}>{hw.description}</p>}
+            {hw.description && <p style={{ margin: '0 0 8px', fontSize: '0.82rem', color: '#6E6E73', lineHeight: 1.5 }}>{hw.description}</p>}
 
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.78rem', color: '#7A8287' }}>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.78rem', color: '#6E6E73' }}>
               <span>Thang điểm: {hw.max_score}</span>
               {hw.due_date && <span><Clock size={11} style={{ verticalAlign: 'middle' }} /> HH: {new Date(hw.due_date).toLocaleString('vi-VN')}</span>}
               {hasAttemptLimit && <span><Upload size={11} style={{ verticalAlign: 'middle' }} /> Lượt nộp: {hw.max_attempts - hw.attempts_left}/{hw.max_attempts}</span>}
@@ -299,13 +303,13 @@ export default function StudentClassDetail() {
 
             {/* Grade display */}
             {hasGrade && (
-              <div style={{ marginTop: 12, background: '#F8F7F3', borderRadius: 10, padding: '0.75rem' }}>
+              <div style={{ marginTop: 12, background: '#F7F7F9', borderRadius: 10, padding: '0.75rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                   <div style={{ width: 48, height: 48, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.1rem', background: hw.score / hw.max_score >= 0.8 ? '#E5F1EA' : hw.score / hw.max_score >= 0.5 ? '#FBEEE6' : '#F8E6DF', color: hw.score / hw.max_score >= 0.8 ? '#3A7D5C' : hw.score / hw.max_score >= 0.5 ? '#B8673E' : '#B04A2A' }}>
                     {hw.score}
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.78rem', color: '#7A8287' }}>Điểm đạt được</div>
+                    <div style={{ fontSize: '0.78rem', color: '#6E6E73' }}>Điểm đạt được</div>
                     <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{hw.score}/{hw.max_score}</div>
                   </div>
                   {/* Góc trên bên phải: nhãn AI chấm + nút Chi tiết (mở/đóng nhận xét & từng câu) */}
@@ -329,7 +333,7 @@ export default function StudentClassDetail() {
                   openGradeDetails.has(hw.id) && (
                   <>
                     {hw.feedback && (
-                      <div style={{ fontSize: '0.83rem', color: '#525A5F', lineHeight: 1.6, borderTop: '1px solid #ECE8E1', paddingTop: 8, marginTop: 8 }}>
+                      <div style={{ fontSize: '0.83rem', color: '#515154', lineHeight: 1.6, borderTop: '1px solid #E8E8ED', paddingTop: 8, marginTop: 8 }}>
                         <strong>Nhận xét:</strong> {hw.feedback}
                       </div>
                     )}
@@ -337,7 +341,7 @@ export default function StudentClassDetail() {
                   </>
                   )
                 ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: '#949A9E', borderTop: '1px solid #ECE8E1', paddingTop: 8, marginTop: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: '#86868B', borderTop: '1px solid #E8E8ED', paddingTop: 8, marginTop: 8 }}>
                     <Lock size={12} />
                     Nhận xét &amp; chi tiết từng câu sẽ hiển thị cùng lúc với đáp án
                     {hw.answer_visible_date ? ` (lúc ${new Date(hw.answer_visible_date).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })})` : ''}.
@@ -360,7 +364,7 @@ export default function StudentClassDetail() {
               </div>
             )}
             {isSubmitted && !hasGrade && hw.grading_status === 'failed' && (
-              <div style={{ marginTop: 12, fontSize: '0.82rem', color: '#7A8287', background: '#F1EFEA', borderRadius: 8, padding: '0.6rem 0.8rem' }}>
+              <div style={{ marginTop: 12, fontSize: '0.82rem', color: '#6E6E73', background: '#F2F2F4', borderRadius: 8, padding: '0.6rem 0.8rem' }}>
                 Đã nhận bài. Giáo viên sẽ chấm và trả điểm sớm.
               </div>
             )}
@@ -396,7 +400,7 @@ export default function StudentClassDetail() {
               </button>
             )}
             {!hw.can_see_answer && hw.answer_visible_date && (
-              <span style={{ fontSize: '0.72rem', color: '#949A9E', display: 'flex', alignItems: 'center', gap: 3 }}>
+              <span style={{ fontSize: '0.72rem', color: '#86868B', display: 'flex', alignItems: 'center', gap: 3 }}>
                 <Lock size={11} /> Đáp án mở lúc {new Date(hw.answer_visible_date).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
               </span>
             )}
@@ -421,7 +425,7 @@ export default function StudentClassDetail() {
                   );
                 })()}
                 {hasAttemptLimit && (
-                  <span style={{ fontSize: '0.72rem', color: '#949A9E' }}>Giới hạn (còn {hw.attempts_left} lần nộp)</span>
+                  <span style={{ fontSize: '0.72rem', color: '#86868B' }}>Giới hạn (còn {hw.attempts_left} lần nộp)</span>
                 )}
                 {hw.exam_type === 'hsa' && hw.time_limit_minutes && (
                   hw.attempt_started_at ? (() => {
@@ -433,7 +437,7 @@ export default function StudentClassDetail() {
                       </span>
                     );
                   })() : (
-                    <span style={{ fontSize: '0.72rem', color: '#949A9E' }}>Thời gian làm bài: {hw.time_limit_minutes} phút</span>
+                    <span style={{ fontSize: '0.72rem', color: '#86868B' }}>Thời gian làm bài: {hw.time_limit_minutes} phút</span>
                   )
                 )}
               </div>
@@ -456,22 +460,22 @@ export default function StudentClassDetail() {
     const lessonsKey = `${group.key}-lessons`, hwKey = `${group.key}-homework`;
     const lessonsOpen = expandedSections.has(lessonsKey), hwOpen = expandedSections.has(hwKey);
     return (
-      <div style={{ padding: standalone ? '1.25rem' : '0 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 16, borderTop: standalone ? 'none' : '1px solid #EEEBE5' }}>
+      <div style={{ padding: standalone ? '1.25rem' : '0 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 16, borderTop: standalone ? 'none' : '1px solid #EDEDF0' }}>
         <div style={{ marginTop: standalone ? 0 : 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, cursor: lc > 0 ? 'pointer' : 'default' }} onClick={() => lc > 0 && toggleSection(lessonsKey)}>
-            {lc > 0 && (lessonsOpen ? <ChevronDown size={14} color="#A6ABAE" /> : <ChevronRight size={14} color="#A6ABAE" />)}
+            {lc > 0 && (lessonsOpen ? <ChevronDown size={14} color="#A1A1A6" /> : <ChevronRight size={14} color="#A1A1A6" />)}
             <BookOpen size={14} color="#2F6F82" /><span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Bài giảng ({lc})</span>
           </div>
-          {lc === 0 ? <div style={{ fontSize: '0.8rem', color: '#A6ABAE' }}>Chưa có bài giảng</div> : lessonsOpen && (
+          {lc === 0 ? <div style={{ fontSize: '0.8rem', color: '#A1A1A6' }}>Chưa có bài giảng</div> : lessonsOpen && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{group.lessons.map((l: any, i: number) => renderLessonCard(l, i))}</div>
           )}
         </div>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, cursor: hc > 0 ? 'pointer' : 'default' }} onClick={() => hc > 0 && toggleSection(hwKey)}>
-            {hc > 0 && (hwOpen ? <ChevronDown size={14} color="#A6ABAE" /> : <ChevronRight size={14} color="#A6ABAE" />)}
+            {hc > 0 && (hwOpen ? <ChevronDown size={14} color="#A1A1A6" /> : <ChevronRight size={14} color="#A1A1A6" />)}
             <ClipboardList size={14} color="#6E5A94" /><span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Bài tập ({hc})</span>
           </div>
-          {hc === 0 ? <div style={{ fontSize: '0.8rem', color: '#A6ABAE' }}>Chưa có bài tập</div> : hwOpen && (
+          {hc === 0 ? <div style={{ fontSize: '0.8rem', color: '#A1A1A6' }}>Chưa có bài tập</div> : hwOpen && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{group.homework.map((hw: any, i: number) => renderHomeworkCard(hw, i))}</div>
           )}
         </div>
@@ -485,13 +489,13 @@ export default function StudentClassDetail() {
     return (
       <div key={group.key} className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div onClick={() => toggleChapter(group.key)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '1rem 1.25rem', cursor: 'pointer' }}>
-          {open ? <ChevronDown size={18} color="#7A8287" /> : <ChevronRight size={18} color="#7A8287" />}
+          {open ? <ChevronDown size={18} color="#6E6E73" /> : <ChevronRight size={18} color="#6E6E73" />}
           <div style={{ width: 36, height: 36, background: '#E6F0F3', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <span style={{ fontWeight: 700, color: '#2F6F82', fontSize: '0.9rem' }}>{idx + 1}</span>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1D2A30' }}>{group.chapter.title}</div>
-            <div style={{ fontSize: '0.78rem', color: '#7A8287', marginTop: 2 }}>{lc} bài giảng · {hc} bài tập</div>
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1D1D1F' }}>{group.chapter.title}</div>
+            <div style={{ fontSize: '0.78rem', color: '#6E6E73', marginTop: 2 }}>{lc} bài giảng · {hc} bài tập</div>
           </div>
         </div>
         {open && renderGroupBody(group)}
@@ -511,7 +515,7 @@ export default function StudentClassDetail() {
     <div className="fade-in">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: '1.5rem' }}>
-        <Link to="/student" style={{ color: '#7A8287', textDecoration: 'none', marginTop: 4 }}>
+        <Link to="/student" style={{ color: '#6E6E73', textDecoration: 'none', marginTop: 4 }}>
           <ChevronLeft size={18} />
         </Link>
         <div>
@@ -519,7 +523,7 @@ export default function StudentClassDetail() {
             {cls.course_title && <span className="badge badge-blue">{cls.course_title}</span>}
           </div>
           <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>{cls.title}</h1>
-          <p style={{ color: '#7A8287', margin: '4px 0 0', fontSize: '0.88rem' }}>Giáo viên: <strong>{cls.teacher_name}</strong></p>
+          <p style={{ color: '#6E6E73', margin: '4px 0 0', fontSize: '0.88rem' }}>Giáo viên: <strong>{cls.teacher_name}</strong></p>
         </div>
       </div>
 
@@ -530,8 +534,8 @@ export default function StudentClassDetail() {
             <Star size={20} color="#B8673E" />
           </div>
           <div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#B8673E', lineHeight: 1.1 }}>{cls.my_avg ?? '—'}<span style={{ fontSize: '0.8rem', color: '#B6BBBE', fontWeight: 600 }}>/10</span></div>
-            <div style={{ fontSize: '0.76rem', color: '#7A8287' }}>Điểm TB tháng này</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#B8673E', lineHeight: 1.1 }}>{cls.my_avg ?? '—'}<span style={{ fontSize: '0.8rem', color: '#AEAEB2', fontWeight: 600 }}>/10</span></div>
+            <div style={{ fontSize: '0.76rem', color: '#6E6E73' }}>Điểm TB tháng này</div>
           </div>
         </div>
         <div className="card" style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', gap: 12, padding: '0.9rem 1.1rem' }}>
@@ -540,15 +544,15 @@ export default function StudentClassDetail() {
           </div>
           <div>
             <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#6E5A94', lineHeight: 1.1 }}>
-              {cls.my_rank ? <>Hạng {cls.my_rank}<span style={{ fontSize: '0.8rem', color: '#B6BBBE', fontWeight: 600 }}>/{cls.rank_total}</span></> : '—'}
+              {cls.my_rank ? <>Hạng {cls.my_rank}<span style={{ fontSize: '0.8rem', color: '#AEAEB2', fontWeight: 600 }}>/{cls.rank_total}</span></> : '—'}
             </div>
-            <div style={{ fontSize: '0.76rem', color: '#7A8287' }}>Xếp hạng tháng này</div>
+            <div style={{ fontSize: '0.76rem', color: '#6E6E73' }}>Xếp hạng tháng này</div>
           </div>
         </div>
       </div>
 
       {/* Tabs: Nội dung / Bài tập cần làm / Trợ giảng / Xếp hạng */}
-      <div style={{ display: 'flex', gap: 4, background: '#F1EFEA', padding: 4, borderRadius: 10, marginBottom: '1.25rem', width: isMobile ? '100%' : 'fit-content', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 4, background: '#F2F2F4', padding: 4, borderRadius: 10, marginBottom: '1.25rem', width: isMobile ? '100%' : 'fit-content', flexWrap: 'wrap' }}>
         {[
           { key: 'content' as const, label: 'Nội dung', icon: Layers },
           { key: 'todo' as const, label: `Bài tập cần làm (${todoHomework.length})`, icon: ClipboardList },
@@ -556,7 +560,7 @@ export default function StudentClassDetail() {
           { key: 'ranking' as const, label: 'Xếp hạng', icon: Trophy },
         ].map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => setActiveTab(key)} className="btn"
-            style={{ background: activeTab === key ? 'white' : 'transparent', boxShadow: activeTab === key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: activeTab === key ? '#1F5C68' : '#7A8287', border: 'none', gap: 6 }}>
+            style={{ background: activeTab === key ? 'white' : 'transparent', boxShadow: activeTab === key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: activeTab === key ? '#1F5C68' : '#6E6E73', border: 'none', gap: 6 }}>
             <Icon size={15} />{label}
           </button>
         ))}
@@ -565,12 +569,12 @@ export default function StudentClassDetail() {
       {/* Danh sách chương → mở chương ra mới thấy bài giảng & bài tập. Đại số trước, Hình học sau. */}
       {activeTab === 'content' && (
         contentSections.length === 0 && !orphanGroup ? (
-          <div style={{ textAlign: 'center', color: '#949A9E', padding: '2rem', background: 'white', borderRadius: 12 }}>Chưa có nội dung</div>
+          <div style={{ textAlign: 'center', color: '#86868B', padding: '2rem', background: 'white', borderRadius: 12 }}>Chưa có nội dung</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
             {contentSections.map((sec) => (
               <div key={sec.key}>
-                <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1D2A30', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
+                <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1D1D1F', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
                   <span style={{ width: 9, height: 9, borderRadius: '50%', background: sec.color, display: 'inline-block' }} /> {sec.label}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -591,7 +595,7 @@ export default function StudentClassDetail() {
       {/* Bài tập cần làm: chỉ bài có hạn & chưa nộp, nộp bài ngay tại đây (dùng chung thẻ bài tập) */}
       {activeTab === 'todo' && (
         todoHomework.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#949A9E', padding: '2rem', background: 'white', borderRadius: 12 }}>
+          <div style={{ textAlign: 'center', color: '#86868B', padding: '2rem', background: 'white', borderRadius: 12 }}>
             <CheckCircle size={36} color="#3A7D5C" style={{ margin: '0 auto 12px', opacity: 0.5 }} />
             <div>Không có bài tập nào cần nộp</div>
           </div>
@@ -608,7 +612,7 @@ export default function StudentClassDetail() {
       {/* Trợ giảng: chỉ xem thông tin liên hệ + lịch làm việc, không sửa được */}
       {activeTab === 'assistants' && (
         (cls.assistants || []).length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#949A9E', padding: '2rem', background: 'white', borderRadius: 12 }}>
+          <div style={{ textAlign: 'center', color: '#86868B', padding: '2rem', background: 'white', borderRadius: 12 }}>
             <UserCog size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
             <div>Lớp chưa có trợ giảng</div>
           </div>
@@ -624,7 +628,7 @@ export default function StudentClassDetail() {
                   </div>
                 )}
                 <div style={{ padding: '1rem' }}>
-                  <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1D2A30' }}>{a.full_name}</h3>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1D1D1F' }}>{a.full_name}</h3>
                   <div style={{ color: '#6E5A94', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>Trợ giảng</div>
                   {(a.phone || a.facebook_url) && (
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 4, marginBottom: 12, flexWrap: 'wrap' }}>
@@ -655,7 +659,7 @@ export default function StudentClassDetail() {
       {/* View Lesson Modal */}
       <Modal open={viewLessonModal} onClose={() => setViewLessonModal(false)} title={viewingLesson?.title || ''} size="xl">
         {viewingLesson?.video_url && <VideoPlayer url={viewingLesson.video_url} type={viewingLesson.video_type} />}
-        {viewingLesson?.description && <p style={{ color: '#525A5F', marginTop: 12, lineHeight: 1.6 }}>{viewingLesson.description}</p>}
+        {viewingLesson?.description && <p style={{ color: '#515154', marginTop: 12, lineHeight: 1.6 }}>{viewingLesson.description}</p>}
         {viewingLesson && parseAttachments(viewingLesson.attachments).length > 0 && (
           <div style={{ marginTop: 14 }}>
             <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -663,7 +667,7 @@ export default function StudentClassDetail() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {parseAttachments(viewingLesson.attachments).map((a) => (
-                <div key={a.file} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', background: '#FAF9F6', border: '1px solid #ECE8E1', borderRadius: 8, padding: '0.5rem 0.75rem' }}>
+                <div key={a.file} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', background: '#FAFAFC', border: '1px solid #E8E8ED', borderRadius: 8, padding: '0.5rem 0.75rem' }}>
                   <FileText size={15} color={a.kind === 'answer' ? '#3A7D5C' : '#B8673E'} style={{ flexShrink: 0 }} />
                   <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {a.name} <span className={`badge ${a.kind === 'answer' ? 'badge-green' : 'badge-orange'}`} style={{ marginLeft: 6 }}>{a.kind === 'answer' ? 'Đáp án BT trên lớp' : 'Tài liệu bài giảng'}</span>

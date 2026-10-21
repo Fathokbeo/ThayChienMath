@@ -629,7 +629,7 @@ export default function ClassDetail() {
     fetchClass();
   };
 
-  if (!cls) return <div style={{ padding: '2rem', color: '#949A9E', textAlign: 'center' }}>Đang tải...</div>;
+  if (!cls) return <div style={{ padding: '2rem', color: '#86868B', textAlign: 'center' }}>Đang tải...</div>;
 
   const chapters: any[] = cls.chapters || [];
 
@@ -686,7 +686,7 @@ export default function ClassDetail() {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{l.title}</div>
-          {l.description && <div style={{ fontSize: '0.8rem', color: '#7A8287', marginTop: 2 }}>{l.description}</div>}
+          {l.description && <div style={{ fontSize: '0.8rem', color: '#6E6E73', marginTop: 2 }}>{l.description}</div>}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
             {l.video_url && (
               <span className="badge badge-blue">
@@ -719,9 +719,9 @@ export default function ClassDetail() {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 4 }}>{h.title}</div>
-          {h.description && <div style={{ fontSize: '0.82rem', color: '#7A8287', marginBottom: 8 }}>{h.description}</div>}
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.78rem', color: '#7A8287' }}>
-            <span>Thang điểm: <strong style={{ color: '#1D2A30' }}>{h.max_score}</strong></span>
+          {h.description && <div style={{ fontSize: '0.82rem', color: '#6E6E73', marginBottom: 8 }}>{h.description}</div>}
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.78rem', color: '#6E6E73' }}>
+            <span>Thang điểm: <strong style={{ color: '#1D1D1F' }}>{h.max_score}</strong></span>
             {h.due_date && <span><Clock size={11} style={{ verticalAlign: 'middle' }} /> HH: {new Date(h.due_date).toLocaleString('vi-VN')}</span>}
             {h.pdf_file && <span className="badge badge-orange"><File size={10} style={{ marginRight: 3 }} />Có đề</span>}
             {h.answer_file && <span className="badge badge-green"><Eye size={10} style={{ marginRight: 3 }} />Có đáp án</span>}
@@ -746,13 +746,13 @@ export default function ClassDetail() {
     return (
       <div key={group.key} className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div onClick={() => toggleChapter(group.key)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '1rem 1.25rem', cursor: 'pointer' }}>
-          {open ? <ChevronDown size={18} color="#7A8287" /> : <ChevronRight size={18} color="#7A8287" />}
-          <div style={{ width: 36, height: 36, background: group.chapter ? '#E6F0F3' : '#F1EFEA', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            {group.chapter ? <span style={{ fontWeight: 700, color: '#2F6F82', fontSize: '0.9rem' }}>{idx + 1}</span> : <Layers size={16} color="#949A9E" />}
+          {open ? <ChevronDown size={18} color="#6E6E73" /> : <ChevronRight size={18} color="#6E6E73" />}
+          <div style={{ width: 36, height: 36, background: group.chapter ? '#E6F0F3' : '#F2F2F4', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {group.chapter ? <span style={{ fontWeight: 700, color: '#2F6F82', fontSize: '0.9rem' }}>{idx + 1}</span> : <Layers size={16} color="#86868B" />}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: group.chapter ? '#1D2A30' : '#6E767B' }}>{group.chapter ? group.chapter.title : 'Chưa phân chương'}</div>
-            <div style={{ fontSize: '0.78rem', color: '#7A8287', marginTop: 2 }}>{lc} bài giảng · {hc} bài tập</div>
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: group.chapter ? '#1D1D1F' : '#6E6E73' }}>{group.chapter ? group.chapter.title : 'Chưa phân chương'}</div>
+            <div style={{ fontSize: '0.78rem', color: '#6E6E73', marginTop: 2 }}>{lc} bài giảng · {hc} bài tập</div>
           </div>
           {group.chapter && (
             <div style={{ display: 'flex', gap: 6 }} onClick={(e) => e.stopPropagation()}>
@@ -765,10 +765,10 @@ export default function ClassDetail() {
           const lessonsKey = `${group.key}-lessons`, hwKey = `${group.key}-homework`;
           const lessonsOpen = expandedSections.has(lessonsKey), hwOpen = expandedSections.has(hwKey);
           return (
-          <div style={{ padding: '0 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 16, borderTop: '1px solid #EEEBE5' }}>
+          <div style={{ padding: '0 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 16, borderTop: '1px solid #EDEDF0' }}>
             <div style={{ marginTop: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, cursor: lc > 0 ? 'pointer' : 'default' }} onClick={() => lc > 0 && toggleSection(lessonsKey)}>
-                {lc > 0 && (lessonsOpen ? <ChevronDown size={14} color="#A6ABAE" /> : <ChevronRight size={14} color="#A6ABAE" />)}
+                {lc > 0 && (lessonsOpen ? <ChevronDown size={14} color="#A1A1A6" /> : <ChevronRight size={14} color="#A1A1A6" />)}
                 <BookOpen size={14} color="#2F6F82" /><span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Bài giảng ({lc})</span>
                 <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#2F6F82', border: '1px dashed #A7CAD5' }}
                   title={group.chapter ? `Thêm bài giảng vào "${group.chapter.title}"` : 'Thêm bài giảng (chưa phân chương)'}
@@ -776,13 +776,13 @@ export default function ClassDetail() {
                   <Plus size={14} />
                 </button>
               </div>
-              {lc === 0 ? <div style={{ fontSize: '0.8rem', color: '#A6ABAE' }}>Chưa có bài giảng</div> : lessonsOpen && (
+              {lc === 0 ? <div style={{ fontSize: '0.8rem', color: '#A1A1A6' }}>Chưa có bài giảng</div> : lessonsOpen && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{group.lessons.map((l: any, i: number) => renderLessonCard(l, i))}</div>
               )}
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, cursor: hc > 0 ? 'pointer' : 'default' }} onClick={() => hc > 0 && toggleSection(hwKey)}>
-                {hc > 0 && (hwOpen ? <ChevronDown size={14} color="#A6ABAE" /> : <ChevronRight size={14} color="#A6ABAE" />)}
+                {hc > 0 && (hwOpen ? <ChevronDown size={14} color="#A1A1A6" /> : <ChevronRight size={14} color="#A1A1A6" />)}
                 <ClipboardList size={14} color="#6E5A94" /><span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Bài tập ({hc})</span>
                 <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#6E5A94', border: '1px dashed #B9ACD4' }}
                   title={group.chapter ? `Thêm bài tập vào "${group.chapter.title}"` : 'Thêm bài tập (chưa phân chương)'}
@@ -790,7 +790,7 @@ export default function ClassDetail() {
                   <Plus size={14} />
                 </button>
               </div>
-              {hc === 0 ? <div style={{ fontSize: '0.8rem', color: '#A6ABAE' }}>Chưa có bài tập</div> : hwOpen && (
+              {hc === 0 ? <div style={{ fontSize: '0.8rem', color: '#A1A1A6' }}>Chưa có bài tập</div> : hwOpen && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{group.homework.map((h: any, i: number) => renderHomeworkCard(h, i))}</div>
               )}
             </div>
@@ -815,7 +815,7 @@ export default function ClassDetail() {
     <div className="fade-in">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: '1.5rem' }}>
-        <Link to={cls.course_id_ref ? `/teacher/courses/${cls.course_id_ref}` : '/teacher'} style={{ color: '#7A8287', textDecoration: 'none', display: 'flex', alignItems: 'center', marginTop: 4 }}>
+        <Link to={cls.course_id_ref ? `/teacher/courses/${cls.course_id_ref}` : '/teacher'} style={{ color: '#6E6E73', textDecoration: 'none', display: 'flex', alignItems: 'center', marginTop: 4 }}>
           <ChevronLeft size={18} />
         </Link>
         <div style={{ flex: 1 }}>
@@ -823,15 +823,15 @@ export default function ClassDetail() {
             {cls.course_title && <span className="badge badge-blue">{cls.course_title}</span>}
           </div>
           <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>{cls.title}</h1>
-          {cls.description && <p style={{ color: '#7A8287', margin: '4px 0 0', fontSize: '0.88rem' }}>{cls.description}</p>}
+          {cls.description && <p style={{ color: '#6E6E73', margin: '4px 0 0', fontSize: '0.88rem' }}>{cls.description}</p>}
         </div>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, background: '#F1EFEA', padding: 4, borderRadius: 10, marginBottom: '1.5rem', width: isMobile ? '100%' : 'fit-content', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 4, background: '#F2F2F4', padding: 4, borderRadius: 10, marginBottom: '1.5rem', width: isMobile ? '100%' : 'fit-content', flexWrap: 'wrap' }}>
         {tabs.map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => setActiveTab(key as any)} className="btn"
-            style={{ background: activeTab === key ? 'white' : 'transparent', boxShadow: activeTab === key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: activeTab === key ? '#1F5C68' : '#7A8287', border: 'none', gap: 6 }}>
+            style={{ background: activeTab === key ? 'white' : 'transparent', boxShadow: activeTab === key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: activeTab === key ? '#1F5C68' : '#6E6E73', border: 'none', gap: 6 }}>
             <Icon size={15} />{label}
           </button>
         ))}
@@ -842,7 +842,7 @@ export default function ClassDetail() {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
             <div style={{ position: 'relative', flex: 1, minWidth: 200, maxWidth: 360 }}>
-              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#949A9E' }} />
+              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#86868B' }} />
               <input
                 className="input"
                 style={{ paddingLeft: 32 }}
@@ -862,7 +862,7 @@ export default function ClassDetail() {
             </div>
           </div>
 
-          <div style={{ fontSize: '0.72rem', color: '#A6ABAE', marginTop: -6, marginBottom: 12 }}>
+          <div style={{ fontSize: '0.72rem', color: '#A1A1A6', marginTop: -6, marginBottom: 12 }}>
             {studentSearch ? 'Xóa ô tìm kiếm để kéo thả sắp xếp lại thứ tự học sinh.' : 'Kéo biểu tượng ⠿ ở đầu mỗi dòng để sắp xếp lại thứ tự học sinh.'}
           </div>
 
@@ -904,15 +904,15 @@ export default function ClassDetail() {
                     style={selectedIds.has(s.id) ? { background: '#F2F7F8' } : undefined}>
                     <td style={{ textAlign: 'center', cursor: studentSearch ? 'default' : 'grab' }}
                       title={studentSearch ? 'Xóa ô tìm kiếm để kéo thả sắp xếp' : 'Kéo để đổi vị trí'}>
-                      <GripVertical size={14} color={studentSearch ? '#E2DDD4' : '#B6BBBE'} />
+                      <GripVertical size={14} color={studentSearch ? '#DCDCE1' : '#AEAEB2'} />
                     </td>
                     <td>
                       <input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleStudentSelect(s.id)} style={{ cursor: 'pointer', width: 16, height: 16 }} />
                     </td>
-                    <td style={{ color: '#949A9E' }}>{i + 1}</td>
+                    <td style={{ color: '#86868B' }}>{i + 1}</td>
                     <td><strong>{s.full_name}</strong></td>
-                    <td style={{ color: '#7A8287', fontFamily: 'monospace' }}>{s.username}</td>
-                    <td style={{ fontFamily: 'monospace', color: '#525A5F' }}>
+                    <td style={{ color: '#6E6E73', fontFamily: 'monospace' }}>{s.username}</td>
+                    <td style={{ fontFamily: 'monospace', color: '#515154' }}>
                       {s.plain_password ? (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                           <span>{pwRevealed ? s.plain_password : '••••••'}</span>
@@ -922,9 +922,9 @@ export default function ClassDetail() {
                             </button>
                           )}
                         </span>
-                      ) : <span style={{ color: '#B6BBBE' }}>—</span>}
+                      ) : <span style={{ color: '#AEAEB2' }}>—</span>}
                     </td>
-                    <td style={{ color: '#7A8287' }}>{s.parent_phone || '—'}</td>
+                    <td style={{ color: '#6E6E73' }}>{s.parent_phone || '—'}</td>
                     <td>
                       <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} title="Gỡ khỏi lớp" onClick={() => removeStudent(s.id, s.full_name)}>
                         <UserMinus size={14} />
@@ -934,10 +934,10 @@ export default function ClassDetail() {
                   );
                 })}
                 {(!cls.students || cls.students.length === 0) && (
-                  <tr><td colSpan={8} style={{ textAlign: 'center', color: '#949A9E', padding: '2rem' }}>Chưa có học sinh</td></tr>
+                  <tr><td colSpan={8} style={{ textAlign: 'center', color: '#86868B', padding: '2rem' }}>Chưa có học sinh</td></tr>
                 )}
                 {cls.students?.length > 0 && visibleStudents.length === 0 && (
-                  <tr><td colSpan={8} style={{ textAlign: 'center', color: '#949A9E', padding: '2rem' }}>Không tìm thấy học sinh phù hợp</td></tr>
+                  <tr><td colSpan={8} style={{ textAlign: 'center', color: '#86868B', padding: '2rem' }}>Không tìm thấy học sinh phù hợp</td></tr>
                 )}
               </tbody>
             </table>
@@ -954,14 +954,14 @@ export default function ClassDetail() {
             <button className="btn btn-primary" onClick={() => openCreateHw()}><ClipboardList size={15} /> Thêm bài tập</button>
           </div>
           {contentSections.length === 0 && !orphanGroup ? (
-            <div style={{ textAlign: 'center', color: '#949A9E', padding: '2rem', background: 'white', borderRadius: 12 }}>
+            <div style={{ textAlign: 'center', color: '#86868B', padding: '2rem', background: 'white', borderRadius: 12 }}>
               Chưa có nội dung. Hãy thêm chương, bài giảng hoặc bài tập.
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
               {contentSections.map((sec) => (
                 <div key={sec.key}>
-                  <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1D2A30', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1D1D1F', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
                     <span style={{ width: 9, height: 9, borderRadius: '50%', background: sec.color, display: 'inline-block' }} /> {sec.label}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -986,7 +986,7 @@ export default function ClassDetail() {
             <button className="btn btn-primary" onClick={openCreateAssistant}><Plus size={15} /> Thêm trợ giảng</button>
           </div>
           {(cls.assistants || []).length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#949A9E', padding: '2rem', background: 'white', borderRadius: 12 }}>
+            <div style={{ textAlign: 'center', color: '#86868B', padding: '2rem', background: 'white', borderRadius: 12 }}>
               <UserCog size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
               <div>Chưa có trợ giảng nào</div>
             </div>
@@ -997,7 +997,7 @@ export default function ClassDetail() {
                   <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 4, zIndex: 1 }}>
                     <button onClick={() => openEditAssistant(a)} title="Sửa"
                       style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}>
-                      <Edit size={13} color="#525A5F" />
+                      <Edit size={13} color="#515154" />
                     </button>
                     <button onClick={() => deleteAssistant(a)} title="Xóa"
                       style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}>
@@ -1012,7 +1012,7 @@ export default function ClassDetail() {
                     </div>
                   )}
                   <div style={{ padding: '1rem' }}>
-                    <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1D2A30' }}>{a.full_name}</h3>
+                    <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1D1D1F' }}>{a.full_name}</h3>
                     <div style={{ color: '#6E5A94', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>Trợ giảng</div>
                     {(a.phone || a.facebook_url) && (
                       <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 4, marginBottom: 12, flexWrap: 'wrap' }}>
@@ -1048,11 +1048,11 @@ export default function ClassDetail() {
       <Modal open={addStudentModal} onClose={() => setAddStudentModal(false)} title="Thêm học sinh vào lớp"
         footer={<><button className="btn btn-ghost" onClick={() => setAddStudentModal(false)}>Hủy</button><button className="btn btn-primary" onClick={addStudent} disabled={loading}>{loading ? 'Đang lưu...' : addMode === 'new' ? 'Tạo & thêm vào lớp' : 'Thêm vào lớp'}</button></>}>
         {/* Toggle chế độ */}
-        <div style={{ display: 'flex', gap: 4, background: '#F1EFEA', padding: 4, borderRadius: 10, marginBottom: '1rem' }}>
-          <button className="btn" style={{ flex: 1, background: addMode === 'new' ? 'white' : 'transparent', boxShadow: addMode === 'new' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: addMode === 'new' ? '#1F5C68' : '#7A8287', border: 'none' }} onClick={() => setAddMode('new')}>
+        <div style={{ display: 'flex', gap: 4, background: '#F2F2F4', padding: 4, borderRadius: 10, marginBottom: '1rem' }}>
+          <button className="btn" style={{ flex: 1, background: addMode === 'new' ? 'white' : 'transparent', boxShadow: addMode === 'new' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: addMode === 'new' ? '#1F5C68' : '#6E6E73', border: 'none' }} onClick={() => setAddMode('new')}>
             <UserPlus size={14} /> Tạo tài khoản mới
           </button>
-          <button className="btn" style={{ flex: 1, background: addMode === 'existing' ? 'white' : 'transparent', boxShadow: addMode === 'existing' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: addMode === 'existing' ? '#1F5C68' : '#7A8287', border: 'none' }} onClick={() => setAddMode('existing')}>
+          <button className="btn" style={{ flex: 1, background: addMode === 'existing' ? 'white' : 'transparent', boxShadow: addMode === 'existing' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: addMode === 'existing' ? '#1F5C68' : '#6E6E73', border: 'none' }} onClick={() => setAddMode('existing')}>
             <Users size={14} /> Chọn có sẵn
           </button>
         </div>
@@ -1080,7 +1080,7 @@ export default function ClassDetail() {
           <div className="form-group">
             <label className="label">Chọn học sinh đã có</label>
             <div style={{ position: 'relative', marginBottom: 8 }}>
-              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#949A9E' }} />
+              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#86868B' }} />
               <input
                 className="input"
                 style={{ paddingLeft: 32 }}
@@ -1089,21 +1089,21 @@ export default function ClassDetail() {
                 onChange={(e) => setExistingSearch(e.target.value)}
               />
             </div>
-            <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid #ECE8E1', borderRadius: 8 }}>
+            <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid #E8E8ED', borderRadius: 8 }}>
               {availableStudents.map((s: any) => (
                 <div key={s.id}
                   onClick={() => setSelectedStudent(String(s.id))}
                   style={{
                     padding: '0.5rem 0.75rem', cursor: 'pointer',
                     background: selectedStudent === String(s.id) ? '#E4EFF1' : 'transparent',
-                    borderBottom: '1px solid #F1EFEA',
+                    borderBottom: '1px solid #F2F2F4',
                   }}>
                   <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{s.full_name}</div>
-                  <div style={{ fontSize: '0.76rem', color: '#949A9E' }}>{s.username}</div>
+                  <div style={{ fontSize: '0.76rem', color: '#86868B' }}>{s.username}</div>
                 </div>
               ))}
               {availableStudents.length === 0 && (
-                <div style={{ padding: '0.75rem', textAlign: 'center', color: '#949A9E', fontSize: '0.85rem' }}>Không tìm thấy học sinh</div>
+                <div style={{ padding: '0.75rem', textAlign: 'center', color: '#86868B', fontSize: '0.85rem' }}>Không tìm thấy học sinh</div>
               )}
             </div>
           </div>
@@ -1119,14 +1119,14 @@ export default function ClassDetail() {
         </div>
         <div className="form-group">
           <label className="label">Phân môn</label>
-          <div style={{ display: 'flex', gap: 4, background: '#F1EFEA', padding: 4, borderRadius: 10 }}>
+          <div style={{ display: 'flex', gap: 4, background: '#F2F2F4', padding: 4, borderRadius: 10 }}>
             {(['algebra', 'geometry', 'other'] as const).map((subj) => (
               <button key={subj} type="button" className="btn"
                 style={{
                   flex: 1, border: 'none',
                   background: chapterForm.subject === subj ? 'white' : 'transparent',
                   boxShadow: chapterForm.subject === subj ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
-                  color: chapterForm.subject === subj ? '#1F5C68' : '#7A8287',
+                  color: chapterForm.subject === subj ? '#1F5C68' : '#6E6E73',
                 }}
                 onClick={() => setChapterForm({
                   ...chapterForm, subject: subj,
@@ -1149,7 +1149,7 @@ export default function ClassDetail() {
             <datalist id="chapter-section-titles">
               {sectionTitleSuggestions.map((t) => <option key={t} value={t} />)}
             </datalist>
-            <div style={{ fontSize: '0.75rem', color: '#7A8287', marginTop: 4 }}>
+            <div style={{ fontSize: '0.75rem', color: '#6E6E73', marginTop: 4 }}>
               Các chương cùng tên phần sẽ gom chung một mục mang tên đó. Để trống thì mục hiện tên là “Khác”.
             </div>
           </div>
@@ -1157,7 +1157,7 @@ export default function ClassDetail() {
         <div className="form-group">
           <label className="label">Thứ tự</label>
           <input className="input" type="number" min={0} value={chapterForm.chapter_order} onChange={(e) => setChapterForm({ ...chapterForm, chapter_order: e.target.value })} />
-          <div style={{ fontSize: '0.75rem', color: '#7A8287', marginTop: 4 }}>Số nhỏ hiển thị trước. Mỗi phần (Đại số, Hình học, và từng tên phần trong mục Khác) đánh số độc lập với nhau.</div>
+          <div style={{ fontSize: '0.75rem', color: '#6E6E73', marginTop: 4 }}>Số nhỏ hiển thị trước. Mỗi phần (Đại số, Hình học, và từng tên phần trong mục Khác) đánh số độc lập với nhau.</div>
         </div>
       </Modal>
 
@@ -1165,11 +1165,11 @@ export default function ClassDetail() {
       <Modal open={assistantModal} onClose={() => setAssistantModal(false)} title={editingAssistant ? 'Sửa trợ giảng' : 'Thêm trợ giảng'}
         footer={<><button className="btn btn-ghost" onClick={() => setAssistantModal(false)}>Hủy</button><button className="btn btn-primary" onClick={saveAssistant} disabled={loading}>{loading ? 'Đang lưu...' : assistantAddMode === 'existing' && !editingAssistant ? 'Thêm vào lớp' : 'Lưu'}</button></>}>
         {!editingAssistant && (
-          <div style={{ display: 'flex', gap: 4, background: '#F1EFEA', padding: 4, borderRadius: 10, marginBottom: '1rem' }}>
-            <button className="btn" style={{ flex: 1, background: assistantAddMode === 'new' ? 'white' : 'transparent', boxShadow: assistantAddMode === 'new' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: assistantAddMode === 'new' ? '#1F5C68' : '#7A8287', border: 'none' }} onClick={() => setAssistantAddMode('new')}>
+          <div style={{ display: 'flex', gap: 4, background: '#F2F2F4', padding: 4, borderRadius: 10, marginBottom: '1rem' }}>
+            <button className="btn" style={{ flex: 1, background: assistantAddMode === 'new' ? 'white' : 'transparent', boxShadow: assistantAddMode === 'new' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: assistantAddMode === 'new' ? '#1F5C68' : '#6E6E73', border: 'none' }} onClick={() => setAssistantAddMode('new')}>
               <UserPlus size={14} /> Trợ giảng mới
             </button>
-            <button className="btn" style={{ flex: 1, background: assistantAddMode === 'existing' ? 'white' : 'transparent', boxShadow: assistantAddMode === 'existing' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: assistantAddMode === 'existing' ? '#1F5C68' : '#7A8287', border: 'none' }} onClick={() => setAssistantAddMode('existing')}>
+            <button className="btn" style={{ flex: 1, background: assistantAddMode === 'existing' ? 'white' : 'transparent', boxShadow: assistantAddMode === 'existing' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: assistantAddMode === 'existing' ? '#1F5C68' : '#6E6E73', border: 'none' }} onClick={() => setAssistantAddMode('existing')}>
               <UserCog size={14} /> Chọn có sẵn
             </button>
           </div>
@@ -1185,7 +1185,7 @@ export default function ClassDetail() {
           <div className="form-group">
             <label className="label">Chọn trợ giảng đã tạo ở lớp khác</label>
             <div style={{ position: 'relative', marginBottom: 8 }}>
-              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#949A9E' }} />
+              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#86868B' }} />
               <input
                 className="input"
                 style={{ paddingLeft: 32 }}
@@ -1194,14 +1194,14 @@ export default function ClassDetail() {
                 onChange={(e) => setExistingAssistantSearch(e.target.value)}
               />
             </div>
-            <div style={{ maxHeight: 260, overflowY: 'auto', border: '1px solid #ECE8E1', borderRadius: 8 }}>
+            <div style={{ maxHeight: 260, overflowY: 'auto', border: '1px solid #E8E8ED', borderRadius: 8 }}>
               {availableAssistants.map((a: any) => (
                 <div key={a.id}
                   onClick={() => setSelectedAssistantId(String(a.id))}
                   style={{
                     padding: '0.5rem 0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
                     background: selectedAssistantId === String(a.id) ? '#E4EFF1' : 'transparent',
-                    borderBottom: '1px solid #F1EFEA',
+                    borderBottom: '1px solid #F2F2F4',
                   }}>
                   {a.photo ? (
                     <img src={`/uploads/assistants/${a.photo}`} alt={a.full_name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
@@ -1212,12 +1212,12 @@ export default function ClassDetail() {
                   )}
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{a.full_name}</div>
-                    <div style={{ fontSize: '0.76rem', color: '#949A9E' }}>Đang dạy: {a.class_titles || '—'}{a.phone ? ` · ${a.phone}` : ''}</div>
+                    <div style={{ fontSize: '0.76rem', color: '#86868B' }}>Đang dạy: {a.class_titles || '—'}{a.phone ? ` · ${a.phone}` : ''}</div>
                   </div>
                 </div>
               ))}
               {availableAssistants.length === 0 && (
-                <div style={{ padding: '0.75rem', textAlign: 'center', color: '#949A9E', fontSize: '0.85rem' }}>Không tìm thấy trợ giảng nào khác</div>
+                <div style={{ padding: '0.75rem', textAlign: 'center', color: '#86868B', fontSize: '0.85rem' }}>Không tìm thấy trợ giảng nào khác</div>
               )}
             </div>
           </div>
@@ -1314,7 +1314,7 @@ export default function ClassDetail() {
               <input ref={ref} type="file" multiple hidden
                 accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
                 onChange={(e) => { if (e.target.files?.length) addLessonFiles(kind, e.target.files); e.target.value = ''; }} />
-              <div style={{ fontSize: '0.75rem', color: '#7A8287', marginTop: 4 }}>{hint} — chọn được nhiều file</div>
+              <div style={{ fontSize: '0.75rem', color: '#6E6E73', marginTop: 4 }}>{hint} — chọn được nhiều file</div>
               {lessonFiles[kind].length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 8 }}>
                   {lessonFiles[kind].map((f, i) => (
@@ -1339,7 +1339,7 @@ export default function ClassDetail() {
             <label className="label">File đã đính kèm</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {parseAttachments(editingLesson.attachments).map((a) => (
-                <div key={a.file} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', background: '#FAF9F6', border: '1px solid #ECE8E1', borderRadius: 6, padding: '0.4rem 0.6rem' }}>
+                <div key={a.file} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', background: '#FAFAFC', border: '1px solid #E8E8ED', borderRadius: 6, padding: '0.4rem 0.6rem' }}>
                   <Paperclip size={13} color={a.kind === 'answer' ? '#3A7D5C' : '#B8673E'} style={{ flexShrink: 0 }} />
                   <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {a.name} <span className={`badge ${a.kind === 'answer' ? 'badge-green' : 'badge-orange'}`} style={{ marginLeft: 6 }}>{a.kind === 'answer' ? 'Đáp án BT' : 'Tài liệu'}</span>
@@ -1366,7 +1366,7 @@ export default function ClassDetail() {
       {/* View Lesson Modal */}
       <Modal open={viewLessonModal} onClose={() => setViewLessonModal(false)} title={viewingLesson?.title || ''} size="xl">
         {viewingLesson?.video_url && <VideoPlayer url={viewingLesson.video_url} type={viewingLesson.video_type} />}
-        {viewingLesson?.description && <p style={{ color: '#525A5F', marginTop: 12, lineHeight: 1.6 }}>{viewingLesson.description}</p>}
+        {viewingLesson?.description && <p style={{ color: '#515154', marginTop: 12, lineHeight: 1.6 }}>{viewingLesson.description}</p>}
         {viewingLesson && parseAttachments(viewingLesson.attachments).length > 0 && (
           <div style={{ marginTop: 14 }}>
             <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1374,7 +1374,7 @@ export default function ClassDetail() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {parseAttachments(viewingLesson.attachments).map((a) => (
-                <div key={a.file} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', background: '#FAF9F6', border: '1px solid #ECE8E1', borderRadius: 8, padding: '0.5rem 0.75rem' }}>
+                <div key={a.file} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', background: '#FAFAFC', border: '1px solid #E8E8ED', borderRadius: 8, padding: '0.5rem 0.75rem' }}>
                   <FileText size={15} color={a.kind === 'answer' ? '#3A7D5C' : '#B8673E'} style={{ flexShrink: 0 }} />
                   <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {a.name} <span className={`badge ${a.kind === 'answer' ? 'badge-green' : 'badge-orange'}`} style={{ marginLeft: 6 }}>{a.kind === 'answer' ? 'Đáp án BT trên lớp' : 'Tài liệu bài giảng'}</span>
@@ -1426,11 +1426,11 @@ export default function ClassDetail() {
                 <button key={o.key} type="button" onClick={() => setHwForm({ ...hwForm, exam_type: o.key })}
                   style={{
                     textAlign: 'left', flex: '1 1 260px', minWidth: 220, cursor: 'pointer',
-                    border: `1.5px solid ${active ? '#1F5C68' : '#DAD5CC'}`, background: active ? '#EEF5F6' : 'white',
+                    border: `1.5px solid ${active ? '#1F5C68' : '#D2D2D7'}`, background: active ? '#EEF5F6' : 'white',
                     borderRadius: 10, padding: '8px 12px',
                   }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1D2A30' }}>{o.title}</div>
-                  <div style={{ fontSize: '0.74rem', color: '#6E767B', marginTop: 4, lineHeight: 1.5 }}>{o.desc}</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1D1D1F' }}>{o.title}</div>
+                  <div style={{ fontSize: '0.74rem', color: '#6E6E73', marginTop: 4, lineHeight: 1.5 }}>{o.desc}</div>
                 </button>
               );
             })}
@@ -1446,7 +1446,7 @@ export default function ClassDetail() {
               <label className="label">Thời gian làm bài (phút)</label>
               <input className="input" type="number" min={1} step={1} placeholder="Không giới hạn thời gian"
                 value={hwForm.time_limit_minutes} onChange={(e) => setHwForm({ ...hwForm, time_limit_minutes: e.target.value })} />
-              <div style={{ fontSize: '0.72rem', color: '#7A8287', marginTop: 4, lineHeight: 1.5 }}>
+              <div style={{ fontSize: '0.72rem', color: '#6E6E73', marginTop: 4, lineHeight: 1.5 }}>
                 Học sinh bấm <strong>"Làm bài"</strong> mới bắt đầu tính giờ — hết thời gian này mà chưa nộp sẽ{' '}
                 <strong>tự động nộp bài</strong>, không phụ thuộc "Hạn nộp bài" chung ở dưới. Để trống = không giới hạn thời gian làm bài.
               </div>
@@ -1455,7 +1455,7 @@ export default function ClassDetail() {
         ) : (
           <div className="form-group">
             <label className="label">Kiểu nộp bài</label>
-            <div style={{ fontSize: '0.75rem', color: '#7A8287', margin: '2px 0 10px', lineHeight: 1.6 }}>
+            <div style={{ fontSize: '0.75rem', color: '#6E6E73', margin: '2px 0 10px', lineHeight: 1.6 }}>
               Chọn các phần học sinh sẽ làm. Thứ tự khi làm bài: Trắc nghiệm → Đúng/Sai → Trả lời ngắn → Tự luận.
               Trắc nghiệm/Đúng-Sai/Trả lời ngắn được <strong>chấm tự động</strong> theo đáp án &amp; điểm bạn đặt.
               Câu nào <strong>để trống đáp án</strong> → AI tự đọc từ <strong>File đáp án (PDF)</strong> bên dưới để chấm. Phần tự luận do AI chấm theo file đáp án.
@@ -1468,7 +1468,7 @@ export default function ClassDetail() {
           <div className="form-group">
             <label className="label">Thang điểm{hwForm.exam_type === 'thpt' && anyPartEnabled(hwParts) ? ' (quy đổi về)' : ''}</label>
             {hwForm.exam_type === 'hsa' ? (
-              <div className="input" style={{ background: '#F1EFEA', color: '#5E676C', display: 'flex', alignItems: 'center' }}>
+              <div className="input" style={{ background: '#F2F2F4', color: '#6E6E73', display: 'flex', alignItems: 'center' }}>
                 {hsaMaxScore(hsaConfig)} điểm (tự động = số câu, không quy đổi)
               </div>
             ) : (
@@ -1477,7 +1477,7 @@ export default function ClassDetail() {
               onChange={(e) => setHwForm({ ...hwForm, max_score: e.target.value })} />
             )}
             {hwForm.exam_type === 'thpt' && anyPartEnabled(hwParts) && (
-              <div style={{ fontSize: '0.72rem', color: '#7A8287', marginTop: 4, lineHeight: 1.5 }}>
+              <div style={{ fontSize: '0.72rem', color: '#6E6E73', marginTop: 4, lineHeight: 1.5 }}>
                 Tổng điểm các câu: <strong>{computeMaxScore(hwParts)}</strong>. Điểm cuối = (điểm đạt ÷ tổng) × thang điểm.{' '}
                 {computeMaxScore(hwParts) > 0 && String(computeMaxScore(hwParts)) !== String(hwForm.max_score) && (
                   <button type="button" className="btn btn-ghost btn-sm" style={{ padding: '0 6px', height: 'auto' }}
@@ -1502,13 +1502,13 @@ export default function ClassDetail() {
             <label className="label">Số lần nộp tối đa</label>
             <input className="input" type="number" min={1} step={1} placeholder="Không giới hạn"
               value={hwForm.max_attempts} onChange={(e) => setHwForm({ ...hwForm, max_attempts: e.target.value })} />
-            <div style={{ fontSize: '0.72rem', color: '#7A8287', marginTop: 4 }}>Để trống = học sinh được nộp lại không giới hạn.</div>
+            <div style={{ fontSize: '0.72rem', color: '#6E6E73', marginTop: 4 }}>Để trống = học sinh được nộp lại không giới hạn.</div>
           </div>
         </div>
         <div className="form-group">
           <label className="label">Link video chữa bài (YouTube)</label>
           <input className="input" placeholder="https://youtube.com/watch?v=..." value={hwForm.solution_video_url} onChange={(e) => setHwForm({ ...hwForm, solution_video_url: e.target.value })} />
-          <div style={{ fontSize: '0.75rem', color: '#7A8287', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div style={{ fontSize: '0.75rem', color: '#6E6E73', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
             <Video size={12} /> Học sinh sẽ xem được video chữa cùng lúc với đáp án (theo "Thời gian xem đáp án").
           </div>
         </div>
@@ -1543,7 +1543,7 @@ export default function ClassDetail() {
                 { kind: 'pdf' as const, file: editingHw.pdf_file, name: editingHw.pdf_name || 'File đề bài.pdf', badge: 'Đề bài', color: '#B8673E', cls: 'badge-orange', replacing: !!hwFiles.pdf },
                 { kind: 'answer' as const, file: editingHw.answer_file, name: editingHw.answer_name || 'File đáp án.pdf', badge: 'Đáp án', color: '#3A7D5C', cls: 'badge-green', replacing: !!hwFiles.answer },
               ]).filter((a) => a.file).map((a) => (
-                <div key={a.kind} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', background: '#FAF9F6', border: '1px solid #ECE8E1', borderRadius: 6, padding: '0.4rem 0.6rem', opacity: a.replacing ? 0.5 : 1 }}>
+                <div key={a.kind} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', background: '#FAFAFC', border: '1px solid #E8E8ED', borderRadius: 6, padding: '0.4rem 0.6rem', opacity: a.replacing ? 0.5 : 1 }}>
                   <Paperclip size={13} color={a.color} style={{ flexShrink: 0 }} />
                   <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: a.replacing ? 'line-through' : 'none' }} title={a.name}>
                     {a.name} <span className={`badge ${a.cls}`} style={{ marginLeft: 6 }}>{a.replacing ? 'Sẽ được thay' : a.badge}</span>
@@ -1583,7 +1583,7 @@ export default function ClassDetail() {
           <input ref={excelRef} type="file" accept=".xlsx,.xls" hidden
             onChange={(e) => { if (e.target.files?.[0]) handleExcelFile(e.target.files[0]); e.target.value = ''; }} />
         </div>
-        <div style={{ padding: '0.6rem 0.8rem', background: '#F1EFEA', borderRadius: 8, fontSize: '0.8rem', color: '#5E676C', lineHeight: 1.6, marginBottom: 14 }}>
+        <div style={{ padding: '0.6rem 0.8rem', background: '#F2F2F4', borderRadius: 8, fontSize: '0.8rem', color: '#6E6E73', lineHeight: 1.6, marginBottom: 14 }}>
           File Excel cần các cột: <strong>Họ và tên</strong>, <strong>Tên đăng nhập</strong>, <strong>Mật khẩu</strong>, <strong>Số điện thoại</strong> (tùy chọn).
           Mỗi dòng là một học sinh — tất cả sẽ được tạo tài khoản và thêm thẳng vào lớp này. Nếu tên đăng nhập đã tồn tại và họ tên + số điện thoại khớp
           hoàn toàn với tài khoản cũ, tài khoản đó vẫn được thêm vào lớp (không tạo mới); nếu chỉ trùng tên đăng nhập nhưng thông tin khác thì sẽ báo lỗi.
@@ -1603,7 +1603,7 @@ export default function ClassDetail() {
                 <tbody>
                   {excelRows.map((r) => (
                     <tr key={r.row} style={r.error ? { background: '#FCF4F0' } : undefined}>
-                      <td style={{ color: '#949A9E' }}>{r.row}</td>
+                      <td style={{ color: '#86868B' }}>{r.row}</td>
                       <td><strong>{r.full_name || '—'}</strong></td>
                       <td style={{ fontFamily: 'monospace' }}>{r.username || '—'}</td>
                       <td style={{ fontFamily: 'monospace' }}>{r.password || '—'}</td>
@@ -1635,9 +1635,9 @@ export default function ClassDetail() {
                   <div style={{ fontSize: '0.8rem', color: '#2F6F82' }}>Tài khoản đã tồn tại, thêm vào lớp</div>
                 </div>
               )}
-              <div className="card" style={{ flex: 1, padding: '0.8rem 1rem', background: excelResult.failed > 0 ? '#F8E6DF' : '#F1EFEA', minWidth: 140 }}>
-                <div style={{ fontWeight: 800, fontSize: '1.3rem', color: excelResult.failed > 0 ? '#B04A2A' : '#7A8287' }}>{excelResult.failed}</div>
-                <div style={{ fontSize: '0.8rem', color: excelResult.failed > 0 ? '#B04A2A' : '#7A8287' }}>Dòng lỗi</div>
+              <div className="card" style={{ flex: 1, padding: '0.8rem 1rem', background: excelResult.failed > 0 ? '#F8E6DF' : '#F2F2F4', minWidth: 140 }}>
+                <div style={{ fontWeight: 800, fontSize: '1.3rem', color: excelResult.failed > 0 ? '#B04A2A' : '#6E6E73' }}>{excelResult.failed}</div>
+                <div style={{ fontSize: '0.8rem', color: excelResult.failed > 0 ? '#B04A2A' : '#6E6E73' }}>Dòng lỗi</div>
               </div>
             </div>
             {excelResult.existed?.length > 0 && (
@@ -1647,7 +1647,7 @@ export default function ClassDetail() {
                   <tbody>
                     {excelResult.existed.map((e: any, i: number) => (
                       <tr key={i}>
-                        <td style={{ color: '#949A9E' }}>{e.row}</td>
+                        <td style={{ color: '#86868B' }}>{e.row}</td>
                         <td style={{ fontFamily: 'monospace' }}>{e.username || '—'}</td>
                         <td style={{ color: '#2F6F82' }}>{e.reason}</td>
                       </tr>
@@ -1663,7 +1663,7 @@ export default function ClassDetail() {
                   <tbody>
                     {excelResult.errors.map((e: any, i: number) => (
                       <tr key={i}>
-                        <td style={{ color: '#949A9E' }}>{e.row}</td>
+                        <td style={{ color: '#86868B' }}>{e.row}</td>
                         <td style={{ fontFamily: 'monospace' }}>{e.username || '—'}</td>
                         <td style={{ color: '#B04A2A' }}>{e.reason}</td>
                       </tr>
