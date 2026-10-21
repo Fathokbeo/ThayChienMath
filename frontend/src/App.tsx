@@ -17,6 +17,7 @@ import ClassManagement from './pages/admin/ClassManagement';
 import SiteContent from './pages/admin/SiteContent';
 
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import TeacherCourses from './pages/teacher/TeacherCourses';
 import TeacherCourseDetail from './pages/teacher/TeacherCourseDetail';
 import ClassDetail from './pages/teacher/ClassDetail';
 import HomeworkDetail from './pages/teacher/HomeworkDetail';
@@ -71,6 +72,7 @@ function AppRoutes() {
       {/* Teacher (admin cũng vào được) */}
       <Route path="/teacher" element={<ProtectedRoute role={['teacher', 'admin']}><Layout /></ProtectedRoute>}>
         <Route index element={<TeacherDashboard />} />
+        <Route path="courses" element={<TeacherCourses />} />
         <Route path="courses/:courseId" element={<TeacherCourseDetail />} />
         <Route path="classes/:id" element={<ClassDetail />} />
         <Route path="homework/:id" element={<HomeworkDetail />} />

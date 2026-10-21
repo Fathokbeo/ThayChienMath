@@ -18,7 +18,8 @@ const ADMIN: NavItem[] = [
 ];
 
 const TEACHER: NavItem[] = [
-  { to: '/teacher', icon: LayoutDashboard, label: 'Khóa học của tôi', short: 'Khóa học' },
+  { to: '/teacher', icon: LayoutDashboard, label: 'Tổng quát', short: 'Tổng quát' },
+  { to: '/teacher/courses', icon: BookOpen, label: 'Khóa học', short: 'Khóa học' },
   { to: '/teacher/students', icon: GraduationCap, label: 'Học sinh', short: 'Học sinh' },
   { to: '/teacher/assistants', icon: UserCog, label: 'Trợ giảng', short: 'Trợ giảng' },
 ];

@@ -22,7 +22,7 @@ export default function TeacherCourseDetail() {
       setCourse(data);
     } catch {
       toast.error('Không thể tải khóa học');
-      navigate('/teacher');
+      navigate('/teacher/courses');
     }
   };
 
@@ -80,7 +80,7 @@ export default function TeacherCourseDetail() {
   return (
     <div className="fade-in">
       {/* Back */}
-      <button className="btn btn-ghost btn-sm" onClick={() => navigate('/teacher')} style={{ marginBottom: '1rem', gap: 6 }}>
+      <button className="btn btn-ghost btn-sm" onClick={() => navigate('/teacher/courses')} style={{ marginBottom: '1rem', gap: 6 }}>
         <ArrowLeft size={15} /> Quay lại
       </button>
 
