@@ -82,9 +82,9 @@ export default function HomeworkDetail() {
 
   const scoreColor = (score: number, max: number) => {
     const ratio = score / max;
-    if (ratio >= 0.8) return { bg: '#E8F5E9', color: '#2E7D32' };
-    if (ratio >= 0.5) return { bg: '#FFF3E0', color: '#E65100' };
-    return { bg: '#FFEBEE', color: '#C62828' };
+    if (ratio >= 0.8) return { bg: '#E5F1EA', color: '#3A7D5C' };
+    if (ratio >= 0.5) return { bg: '#FBEEE6', color: '#B8673E' };
+    return { bg: '#F8E6DF', color: '#B04A2A' };
   };
 
   // Xuất bảng điểm CẢ LỚP ra file Excel (.xlsx): STT, Họ và tên, Trạng thái, Điểm, Nhận xét
@@ -131,7 +131,7 @@ export default function HomeworkDetail() {
     toast.success('Đã xuất file Excel');
   };
 
-  if (!hw) return <div style={{ padding: '2rem', color: '#999', textAlign: 'center' }}>Đang tải...</div>;
+  if (!hw) return <div style={{ padding: '2rem', color: '#949A9E', textAlign: 'center' }}>Đang tải...</div>;
 
   // Danh sách CẢ LỚP (kèm bài nộp nếu có), thứ tự khớp với danh sách học sinh của lớp (server đã sort)
   // quá hạn mà chưa nộp → "Chưa nộp bài" + 0 điểm
@@ -149,15 +149,15 @@ export default function HomeworkDetail() {
     <div className="fade-in">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: '1.5rem' }}>
-        <Link to={`/teacher/classes/${hw.class_id}`} style={{ color: '#888', textDecoration: 'none', display: 'flex', alignItems: 'center', marginTop: 4 }}>
+        <Link to={`/teacher/classes/${hw.class_id}`} style={{ color: '#7A8287', textDecoration: 'none', display: 'flex', alignItems: 'center', marginTop: 4 }}>
           <ChevronLeft size={18} />
         </Link>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '0.82rem', color: '#888', marginBottom: 4 }}>{hw.class_title}</div>
+          <div style={{ fontSize: '0.82rem', color: '#7A8287', marginBottom: 4 }}>{hw.class_title}</div>
           <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>{hw.title}</h1>
-          {hw.description && <p style={{ color: '#888', margin: '4px 0 0', fontSize: '0.88rem' }}>{hw.description}</p>}
+          {hw.description && <p style={{ color: '#7A8287', margin: '4px 0 0', fontSize: '0.88rem' }}>{hw.description}</p>}
           {hw.grading_note && (
-            <div style={{ marginTop: 8, padding: '0.6rem 0.8rem', background: '#F3E9FF', borderRadius: 8, fontSize: '0.8rem', color: '#6A1B9A', display: 'flex', gap: 6 }}>
+            <div style={{ marginTop: 8, padding: '0.6rem 0.8rem', background: '#EFEBF5', borderRadius: 8, fontSize: '0.8rem', color: '#6E5A94', display: 'flex', gap: 6 }}>
               <Bot size={15} style={{ flexShrink: 0, marginTop: 1 }} />
               <span><strong>Ghi chú cho AI:</strong> {hw.grading_note}</span>
             </div>
@@ -168,21 +168,21 @@ export default function HomeworkDetail() {
       {/* Info cards */}
       <div className="stat-grid" style={{ marginBottom: '1.5rem' }}>
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#E3F2FD' }}><Users size={18} color="#1565C0" /></div>
-          <div><div className="stat-value" style={{ color: '#1565C0' }}>{submittedCount}/{roster.length}</div><div className="stat-label">Đã nộp</div></div>
+          <div className="stat-icon" style={{ background: '#E6F0F3' }}><Users size={18} color="#2F6F82" /></div>
+          <div><div className="stat-value" style={{ color: '#2F6F82' }}>{submittedCount}/{roster.length}</div><div className="stat-label">Đã nộp</div></div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#FFEBEE' }}><XCircle size={18} color="#C62828" /></div>
-          <div><div className="stat-value" style={{ color: '#C62828' }}>{missingCount}</div><div className="stat-label">Chưa nộp</div></div>
+          <div className="stat-icon" style={{ background: '#F8E6DF' }}><XCircle size={18} color="#B04A2A" /></div>
+          <div><div className="stat-value" style={{ color: '#B04A2A' }}>{missingCount}</div><div className="stat-label">Chưa nộp</div></div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#E8F5E9' }}><CheckCircle size={18} color="#2E7D32" /></div>
-          <div><div className="stat-value" style={{ color: '#2E7D32' }}>{graded}</div><div className="stat-label">Đã chấm</div></div>
+          <div className="stat-icon" style={{ background: '#E5F1EA' }}><CheckCircle size={18} color="#3A7D5C" /></div>
+          <div><div className="stat-value" style={{ color: '#3A7D5C' }}>{graded}</div><div className="stat-label">Đã chấm</div></div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#FFF3E0' }}><Star size={18} color="#E65100" /></div>
+          <div className="stat-icon" style={{ background: '#FBEEE6' }}><Star size={18} color="#B8673E" /></div>
           <div>
-            <div className="stat-value" style={{ color: '#E65100' }}>
+            <div className="stat-value" style={{ color: '#B8673E' }}>
               {graded > 0 ? (hw.submissions.filter((s: any) => s.score !== null).reduce((a: number, s: any) => a + s.score, 0) / graded).toFixed(1) : '—'}
             </div>
             <div className="stat-label">Điểm TB</div>
@@ -190,14 +190,14 @@ export default function HomeworkDetail() {
         </div>
         {hw.due_date && (
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#F3E5F5' }}><Clock size={18} color="#6A1B9A" /></div>
-            <div><div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#6A1B9A' }}>{new Date(hw.due_date).toLocaleDateString('vi-VN')}</div><div className="stat-label">Hạn nộp</div></div>
+            <div className="stat-icon" style={{ background: '#EFEBF5' }}><Clock size={18} color="#6E5A94" /></div>
+            <div><div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#6E5A94' }}>{new Date(hw.due_date).toLocaleDateString('vi-VN')}</div><div className="stat-label">Hạn nộp</div></div>
           </div>
         )}
         {hw.max_attempts && (
           <div className="stat-card">
-            <div className="stat-icon" style={{ background: '#EDE7F6' }}><Repeat size={18} color="#5E35B1" /></div>
-            <div><div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#5E35B1' }}>{hw.max_attempts} lần</div><div className="stat-label">Giới hạn nộp bài</div></div>
+            <div className="stat-icon" style={{ background: '#ECE8F3' }}><Repeat size={18} color="#5B4C8A" /></div>
+            <div><div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#5B4C8A' }}>{hw.max_attempts} lần</div><div className="stat-label">Giới hạn nộp bài</div></div>
           </div>
         )}
       </div>
@@ -223,7 +223,7 @@ export default function HomeworkDetail() {
         <h2 className="section-title" style={{ margin: 0 }}>Danh sách lớp</h2>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {/* Bộ lọc trạng thái nộp */}
-          <div style={{ display: 'flex', gap: 4, background: '#F5F5F5', padding: 4, borderRadius: 10 }}>
+          <div style={{ display: 'flex', gap: 4, background: '#F1EFEA', padding: 4, borderRadius: 10 }}>
             {([
               { key: 'all', label: `Tất cả (${roster.length})` },
               { key: 'submitted', label: `Đã nộp (${submittedCount})` },
@@ -231,7 +231,7 @@ export default function HomeworkDetail() {
               { key: 'review', label: 'Nhận xét' },
             ] as const).map(({ key, label }) => (
               <button key={key} className="btn btn-sm" onClick={() => setFilter(key)}
-                style={{ background: filter === key ? 'white' : 'transparent', boxShadow: filter === key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: filter === key ? '#C62828' : '#888', border: 'none' }}>
+                style={{ background: filter === key ? 'white' : 'transparent', boxShadow: filter === key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: filter === key ? '#1F5C68' : '#7A8287', border: 'none' }}>
                 {label}
               </button>
             ))}
@@ -266,7 +266,7 @@ export default function HomeworkDetail() {
               const fileUrls = submitted ? submissionFileUrls(s) : [];
               return (
                 <tr key={s.student_id}>
-                  <td><strong>{s.full_name}</strong><div style={{ fontSize: '0.78rem', color: '#999' }}>{s.username}</div></td>
+                  <td><strong>{s.full_name}</strong><div style={{ fontSize: '0.78rem', color: '#949A9E' }}>{s.username}</div></td>
                   <td>
                     {submitted
                       ? <span className="badge badge-green"><CheckCircle size={10} style={{ marginRight: 4 }} />Đã nộp</span>
@@ -274,7 +274,7 @@ export default function HomeworkDetail() {
                         ? <span className="badge badge-red"><XCircle size={10} style={{ marginRight: 4 }} />Chưa nộp bài</span>
                         : <span className="badge badge-gray">Chưa nộp</span>}
                   </td>
-                  <td style={{ fontSize: '0.82rem', color: '#888' }}>{submitted ? new Date(s.submitted_at).toLocaleString('vi-VN') : '—'}</td>
+                  <td style={{ fontSize: '0.82rem', color: '#7A8287' }}>{submitted ? new Date(s.submitted_at).toLocaleString('vi-VN') : '—'}</td>
                   <td style={{ fontSize: '0.82rem' }}>
                     {submitted ? `${s.submit_count || 1}${hw.max_attempts ? `/${hw.max_attempts}` : ''}` : '—'}
                   </td>
@@ -284,7 +284,7 @@ export default function HomeworkDetail() {
                         <Eye size={13} /> Xem{fileUrls.length > 1 ? ` (${fileUrls.length})` : ''}
                       </button>
                     ) : submitted && s.structured_answers ? (
-                      <span style={{ fontSize: '0.78rem', color: '#6A1B9A' }}>Đã làm bài</span>
+                      <span style={{ fontSize: '0.78rem', color: '#6E5A94' }}>Đã làm bài</span>
                     ) : '—'}
                   </td>
                   <td>
@@ -294,18 +294,18 @@ export default function HomeworkDetail() {
                           {s.score}/{hw.max_score}
                         </span>
                       ) : (s.grading_status === 'pending' || s.grading_status === 'grading') ? (
-                        <span style={{ color: '#1565C0', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ color: '#2F6F82', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                           <Bot size={12} /> Đang chấm...
                         </span>
                       ) : s.grading_status === 'failed' ? (
-                        <span style={{ color: '#C62828', fontSize: '0.82rem' }}>Chấm lỗi</span>
-                      ) : <span style={{ color: '#ccc' }}>Chưa chấm</span>
+                        <span style={{ color: '#B04A2A', fontSize: '0.82rem' }}>Chấm lỗi</span>
+                      ) : <span style={{ color: '#C8C3BA' }}>Chưa chấm</span>
                     ) : isOverdue ? (
                       // Quá hạn không nộp → 0 điểm (khớp cách tính điểm TB & xếp hạng)
-                      <span style={{ background: '#FFEBEE', color: '#C62828', padding: '3px 10px', borderRadius: 99, fontWeight: 700, fontSize: '0.88rem' }}>
+                      <span style={{ background: '#F8E6DF', color: '#B04A2A', padding: '3px 10px', borderRadius: 99, fontWeight: 700, fontSize: '0.88rem' }}>
                         0/{hw.max_score}
                       </span>
-                    ) : <span style={{ color: '#ccc' }}>—</span>}
+                    ) : <span style={{ color: '#C8C3BA' }}>—</span>}
                   </td>
                   <td>
                     {submitted
@@ -320,7 +320,7 @@ export default function HomeworkDetail() {
                         </button>
                         {aiGradable && (fileUrls.length > 0 || s.structured_answers) && (
                           <button className="btn btn-ghost btn-sm" onClick={() => regrade(s.submission_id)} disabled={regrading === s.submission_id} title="Chấm lại bằng AI">
-                            <Bot size={13} style={{ color: '#6A1B9A' }} />
+                            <Bot size={13} style={{ color: '#6E5A94' }} />
                             {regrading === s.submission_id ? '...' : 'AI'}
                           </button>
                         )}
@@ -331,10 +331,10 @@ export default function HomeworkDetail() {
               );
             })}
             {roster.length === 0 && (
-              <tr><td colSpan={8} style={{ textAlign: 'center', color: '#999', padding: '2rem' }}>Lớp chưa có học sinh</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', color: '#949A9E', padding: '2rem' }}>Lớp chưa có học sinh</td></tr>
             )}
             {roster.length > 0 && visibleRoster.length === 0 && (
-              <tr><td colSpan={8} style={{ textAlign: 'center', color: '#999', padding: '2rem' }}>Không có học sinh nào trong nhóm lọc này</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', color: '#949A9E', padding: '2rem' }}>Không có học sinh nào trong nhóm lọc này</td></tr>
             )}
           </tbody>
         </table>

@@ -38,7 +38,7 @@ export default function PartsSolver({ cfg, value, onChange, readOnly = false }: 
           <div style={sectionTitle}>Phần I — Trắc nghiệm</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {Array.from({ length: cfg.multiple_choice.count }).map((_, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', padding: '4px 0', borderBottom: '1px solid #F2F2F2' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', padding: '4px 0', borderBottom: '1px solid #F0EDE7' }}>
                 <span style={qLabel}>Câu {i + 1}</span>
                 <div style={{ display: 'flex', gap: 18 }}>
                   {MC_OPTIONS.map((opt) => {
@@ -46,8 +46,8 @@ export default function PartsSolver({ cfg, value, onChange, readOnly = false }: 
                     return (
                       <button key={opt} type="button" disabled={readOnly} onClick={() => setMC(i, active ? '' : opt)}
                         style={mcOption(readOnly)}>
-                        {radio(active, '#1565C0')}
-                        <span style={{ fontWeight: 700, fontSize: '0.9rem', color: active ? '#1565C0' : '#444' }}>{opt}</span>
+                        {radio(active, '#2F6F82')}
+                        <span style={{ fontWeight: 700, fontSize: '0.9rem', color: active ? '#2F6F82' : '#40494E' }}>{opt}</span>
                       </button>
                     );
                   })}
@@ -68,16 +68,16 @@ export default function PartsSolver({ cfg, value, onChange, readOnly = false }: 
                 <div style={tfCardHead}>Câu {i + 1}</div>
                 <div style={tfGridHead}>
                   <span />
-                  <span style={tfColHead('#2E7D32')}>Đúng</span>
-                  <span style={tfColHead('#C62828')}>Sai</span>
+                  <span style={tfColHead('#3A7D5C')}>Đúng</span>
+                  <span style={tfColHead('#B04A2A')}>Sai</span>
                 </div>
                 {TF_SUB_LABELS.map((sub, j) => {
                   const v = (value.true_false[i] || [])[j] || '';
                   return (
                     <div key={sub} style={tfGridRow}>
                       <span style={tfSub}>{sub})</span>
-                      <span style={tfCell(readOnly)} onClick={() => !readOnly && setTF(i, j, v === 'T' ? '' : 'T')}>{radio(v === 'T', '#2E7D32', readOnly)}</span>
-                      <span style={tfCell(readOnly)} onClick={() => !readOnly && setTF(i, j, v === 'F' ? '' : 'F')}>{radio(v === 'F', '#C62828', readOnly)}</span>
+                      <span style={tfCell(readOnly)} onClick={() => !readOnly && setTF(i, j, v === 'T' ? '' : 'T')}>{radio(v === 'T', '#3A7D5C', readOnly)}</span>
+                      <span style={tfCell(readOnly)} onClick={() => !readOnly && setTF(i, j, v === 'F' ? '' : 'F')}>{radio(v === 'F', '#B04A2A', readOnly)}</span>
                     </div>
                   );
                 })}
@@ -99,7 +99,7 @@ export default function PartsSolver({ cfg, value, onChange, readOnly = false }: 
                   <input className="input" style={{ flex: 1, padding: '6px 10px' }} disabled={readOnly}
                     placeholder="Nhập đáp án..." value={value.short_answer[i] || ''} onChange={(e) => setSA(i, e.target.value)} />
                 </div>
-                {saNotes[i] && <div style={{ marginLeft: 62, fontSize: '0.78rem', color: '#B26A00', fontStyle: 'italic' }}>Gợi ý: {saNotes[i]}</div>}
+                {saNotes[i] && <div style={{ marginLeft: 62, fontSize: '0.78rem', color: '#9C5F33', fontStyle: 'italic' }}>Gợi ý: {saNotes[i]}</div>}
               </div>
             ))}
           </div>
@@ -109,8 +109,8 @@ export default function PartsSolver({ cfg, value, onChange, readOnly = false }: 
   );
 }
 
-const sectionTitle: React.CSSProperties = { fontWeight: 800, fontSize: '0.9rem', color: '#C62828', marginBottom: 8 };
-const qLabel: React.CSSProperties = { fontSize: '0.85rem', fontWeight: 700, color: '#1A1A2E', minWidth: 52 };
+const sectionTitle: React.CSSProperties = { fontWeight: 800, fontSize: '0.9rem', color: '#1F5C68', marginBottom: 8 };
+const qLabel: React.CSSProperties = { fontSize: '0.85rem', fontWeight: 700, color: '#1D2A30', minWidth: 52 };
 
 function mcOption(readOnly: boolean): React.CSSProperties {
   return {
@@ -120,11 +120,11 @@ function mcOption(readOnly: boolean): React.CSSProperties {
 }
 
 // Thẻ 1 câu Đúng/Sai (kiểu THPT)
-const tfCard: React.CSSProperties = { border: '1px solid #E0E0E0', borderRadius: 8, padding: '8px 12px', background: '#FAFAFA', minWidth: 150 };
-const tfCardHead: React.CSSProperties = { fontSize: '0.82rem', fontWeight: 800, color: '#1A1A2E', textAlign: 'center', marginBottom: 6 };
+const tfCard: React.CSSProperties = { border: '1px solid #E2DDD4', borderRadius: 8, padding: '8px 12px', background: '#FAF9F6', minWidth: 150 };
+const tfCardHead: React.CSSProperties = { fontSize: '0.82rem', fontWeight: 800, color: '#1D2A30', textAlign: 'center', marginBottom: 6 };
 const tfGridHead: React.CSSProperties = { display: 'grid', gridTemplateColumns: '26px 1fr 1fr', alignItems: 'center', marginBottom: 2 };
 const tfGridRow: React.CSSProperties = { display: 'grid', gridTemplateColumns: '26px 1fr 1fr', alignItems: 'center', padding: '3px 0' };
-const tfSub: React.CSSProperties = { fontSize: '0.82rem', fontWeight: 700, color: '#555' };
+const tfSub: React.CSSProperties = { fontSize: '0.82rem', fontWeight: 700, color: '#525A5F' };
 function tfCell(readOnly: boolean): React.CSSProperties {
   return { display: 'flex', justifyContent: 'center', cursor: readOnly ? 'default' : 'pointer' };
 }
@@ -136,7 +136,7 @@ function tfColHead(color: string): React.CSSProperties {
 function radio(active: boolean, color: string, disabled = false): React.ReactNode {
   return (
     <span style={{
-      width: 20, height: 20, borderRadius: '50%', border: `2px solid ${active ? color : '#BBB'}`,
+      width: 20, height: 20, borderRadius: '50%', border: `2px solid ${active ? color : '#B6BBBE'}`,
       background: active ? color : 'white', display: 'inline-flex', flexShrink: 0,
       boxShadow: active ? 'inset 0 0 0 3px white' : 'none', opacity: disabled ? 0.55 : 1,
     }} />

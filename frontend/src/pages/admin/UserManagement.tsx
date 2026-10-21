@@ -172,7 +172,7 @@ export default function UserManagement() {
       {/* Filters */}
       <div style={{ display: 'flex', gap: 12, marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
-          <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+          <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#949A9E' }} />
           <input className="input" style={{ paddingLeft: 32 }} placeholder="Tìm kiếm..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <select className="input" style={{ width: 'auto', minWidth: 140 }} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
@@ -193,11 +193,11 @@ export default function UserManagement() {
 
       {/* Bulk action bar */}
       {selected.size > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFEBEE', border: '1px solid #FFCDD2', borderRadius: 10, padding: '0.6rem 1rem', marginBottom: '1rem' }}>
-          <span style={{ fontSize: '0.88rem', color: '#C62828', fontWeight: 600 }}>Đã chọn {selected.size} tài khoản</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#E4EFF1', border: '1px solid #CFE2E6', borderRadius: 10, padding: '0.6rem 1rem', marginBottom: '1rem' }}>
+          <span style={{ fontSize: '0.88rem', color: '#1F5C68', fontWeight: 600 }}>Đã chọn {selected.size} tài khoản</span>
           <div style={{ display: 'flex', gap: 8 }}>
             <button className="btn btn-ghost btn-sm" onClick={() => setSelected(new Set())}>Bỏ chọn</button>
-            <button className="btn btn-primary btn-sm" style={{ background: '#C62828' }} onClick={bulkDelete}>
+            <button className="btn btn-primary btn-sm" style={{ background: '#B04A2A' }} onClick={bulkDelete}>
               <Trash2 size={14} /> Xóa {selected.size} tài khoản
             </button>
           </div>
@@ -224,7 +224,7 @@ export default function UserManagement() {
             {filtered.map((u) => {
               const isRevealed = showPw || revealed.has(u.id);
               return (
-              <tr key={u.id} style={selected.has(u.id) ? { background: '#FFF8F8' } : undefined}>
+              <tr key={u.id} style={selected.has(u.id) ? { background: '#F2F7F8' } : undefined}>
                 <td>
                   <input type="checkbox" checked={selected.has(u.id)} onChange={() => toggleSelect(u.id)} style={{ cursor: 'pointer', width: 16, height: 16 }} />
                 </td>
@@ -250,8 +250,8 @@ export default function UserManagement() {
                     </>
                   ) : <strong>{u.full_name}</strong>}
                 </td>
-                <td style={{ color: '#888', fontFamily: 'monospace' }}>{u.username}</td>
-                <td style={{ fontFamily: 'monospace', color: '#555' }}>
+                <td style={{ color: '#7A8287', fontFamily: 'monospace' }}>{u.username}</td>
+                <td style={{ fontFamily: 'monospace', color: '#525A5F' }}>
                   {u.plain_password ? (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                       <span>{isRevealed ? u.plain_password : '••••••'}</span>
@@ -261,9 +261,9 @@ export default function UserManagement() {
                         </button>
                       )}
                     </span>
-                  ) : <span style={{ color: '#bbb' }}>—</span>}
+                  ) : <span style={{ color: '#B6BBBE' }}>—</span>}
                 </td>
-                <td style={{ color: '#888' }}>{u.parent_phone || '—'}</td>
+                <td style={{ color: '#7A8287' }}>{u.parent_phone || '—'}</td>
                 <td><span className={`badge ${roleBadge[u.role]}`}>{roleLabels[u.role]}</span></td>
                 <td>
                   <span className={`badge ${u.active ? 'badge-green' : 'badge-gray'}`}>
@@ -276,13 +276,13 @@ export default function UserManagement() {
                     <button className="btn btn-ghost btn-sm btn-icon" title={u.active ? 'Vô hiệu hóa' : 'Kích hoạt'} onClick={() => toggleActive(u)}>
                       {u.active ? <UserX size={14} /> : <UserCheck size={14} />}
                     </button>
-                    <button className="btn btn-ghost btn-sm btn-icon" title="Xóa vĩnh viễn" style={{ color: '#C62828' }} onClick={() => deleteUser(u)}><Trash2 size={14} /></button>
+                    <button className="btn btn-ghost btn-sm btn-icon" title="Xóa vĩnh viễn" style={{ color: '#B04A2A' }} onClick={() => deleteUser(u)}><Trash2 size={14} /></button>
                   </div>
                 </td>
               </tr>
             )})}
             {filtered.length === 0 && (
-              <tr><td colSpan={8} style={{ textAlign: 'center', color: '#999', padding: '2rem' }}>Không có tài khoản nào</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', color: '#949A9E', padding: '2rem' }}>Không có tài khoản nào</td></tr>
             )}
           </tbody>
         </table>

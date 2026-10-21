@@ -69,19 +69,19 @@ export default function AssistantManagement() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', gap: 12, flexWrap: 'wrap' }}>
         <h1 className="page-title" style={{ margin: 0 }}>Trợ giảng</h1>
         <div style={{ position: 'relative', minWidth: 220 }}>
-          <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+          <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#949A9E' }} />
           <input className="input" style={{ paddingLeft: 32 }} placeholder="Tìm trợ giảng..."
             value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
       </div>
 
-      <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '1rem' }}>
+      <div style={{ fontSize: '0.8rem', color: '#7A8287', marginBottom: '1rem' }}>
         Mỗi trợ giảng chỉ có một hồ sơ dùng chung cho mọi lớp họ dạy — sửa thông tin hay lịch làm việc ở đây
         sẽ tự động đồng bộ sang tất cả các lớp đó. Thêm hoặc gỡ trợ giảng khỏi một lớp thì làm trong trang lớp học.
       </div>
 
       {visible.length === 0 ? (
-        <div style={{ textAlign: 'center', color: '#999', padding: '3rem', background: 'white', borderRadius: 12 }}>
+        <div style={{ textAlign: 'center', color: '#949A9E', padding: '3rem', background: 'white', borderRadius: 12 }}>
           <UserCog size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
           <div>{assistants.length === 0 ? 'Chưa có trợ giảng nào. Vào một lớp học, tab "Trợ giảng" để thêm.' : 'Không tìm thấy trợ giảng phù hợp'}</div>
         </div>
@@ -91,35 +91,35 @@ export default function AssistantManagement() {
             <div key={a.id} style={{ background: 'white', borderRadius: 14, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', textAlign: 'center', position: 'relative' }}>
               <button onClick={() => openEdit(a)} title="Sửa thông tin"
                 style={{ position: 'absolute', top: 8, right: 8, zIndex: 1, width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}>
-                <Edit size={13} color="#555" />
+                <Edit size={13} color="#525A5F" />
               </button>
               {a.photo ? (
                 <img src={`/uploads/assistants/${a.photo}`} alt={a.full_name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
               ) : (
-                <div style={{ height: 220, background: 'linear-gradient(135deg, #F3E5F5, #E1BEE7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <UserCog size={56} color="#6A1B9A" />
+                <div style={{ height: 220, background: 'linear-gradient(135deg, #EFEBF5, #D9D0E8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <UserCog size={56} color="#6E5A94" />
                 </div>
               )}
               <div style={{ padding: '1rem' }}>
-                <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1A1A2E' }}>{a.full_name}</h3>
-                <div style={{ color: '#6A1B9A', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>Trợ giảng</div>
+                <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1D2A30' }}>{a.full_name}</h3>
+                <div style={{ color: '#6E5A94', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>Trợ giảng</div>
                 {(a.phone || a.facebook_url) && (
                   <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 4, marginBottom: 10, flexWrap: 'wrap' }}>
                     {a.phone && (
                       <a href={`tel:${String(a.phone).replace(/[^+\d]/g, '')}`}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E8F5E9', color: '#2E7D32', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E5F1EA', color: '#3A7D5C', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
                         <Phone size={13} /> {a.phone}
                       </a>
                     )}
                     {a.facebook_url && (
                       <a href={a.facebook_url} target="_blank" rel="noopener noreferrer"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E3F2FD', color: '#1565C0', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E6F0F3', color: '#2F6F82', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
                         <FacebookIcon size={13} /> Facebook
                       </a>
                     )}
                   </div>
                 )}
-                <div style={{ fontSize: '0.76rem', color: '#999', marginBottom: 10, lineHeight: 1.4 }}>
+                <div style={{ fontSize: '0.76rem', color: '#949A9E', marginBottom: 10, lineHeight: 1.4 }}>
                   <School size={11} style={{ verticalAlign: 'middle', marginRight: 4 }} />
                   {a.class_count > 0 ? `${a.class_count} lớp: ${a.class_titles}` : 'Chưa dạy lớp nào'}
                 </div>
@@ -135,7 +135,7 @@ export default function AssistantManagement() {
       <Modal open={!!editing} onClose={() => setEditing(null)} title="Sửa trợ giảng"
         footer={<><button className="btn btn-ghost" onClick={() => setEditing(null)}>Hủy</button><button className="btn btn-primary" onClick={save} disabled={loading}>{loading ? 'Đang lưu...' : 'Lưu'}</button></>}>
         {editing && editing.class_count > 1 && (
-          <div style={{ background: '#E3F2FD', color: '#1565C0', borderRadius: 8, padding: '0.6rem 0.75rem', fontSize: '0.8rem', marginBottom: '1rem' }}>
+          <div style={{ background: '#E6F0F3', color: '#2F6F82', borderRadius: 8, padding: '0.6rem 0.75rem', fontSize: '0.8rem', marginBottom: '1rem' }}>
             Trợ giảng này đang dạy {editing.class_count} lớp. Thay đổi sẽ áp dụng cho tất cả các lớp đó.
           </div>
         )}

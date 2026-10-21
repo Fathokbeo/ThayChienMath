@@ -629,7 +629,7 @@ export default function ClassDetail() {
     fetchClass();
   };
 
-  if (!cls) return <div style={{ padding: '2rem', color: '#999', textAlign: 'center' }}>Đang tải...</div>;
+  if (!cls) return <div style={{ padding: '2rem', color: '#949A9E', textAlign: 'center' }}>Đang tải...</div>;
 
   const chapters: any[] = cls.chapters || [];
 
@@ -681,12 +681,12 @@ export default function ClassDetail() {
     const ansCount = atts.filter((a) => a.kind === 'answer').length;
     return (
       <div key={l.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '1rem 1.25rem' }}>
-        <div style={{ width: 36, height: 36, background: '#E3F2FD', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <span style={{ fontWeight: 700, color: '#1565C0', fontSize: '0.9rem' }}>{i + 1}</span>
+        <div style={{ width: 36, height: 36, background: '#E6F0F3', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ fontWeight: 700, color: '#2F6F82', fontSize: '0.9rem' }}>{i + 1}</span>
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{l.title}</div>
-          {l.description && <div style={{ fontSize: '0.8rem', color: '#888', marginTop: 2 }}>{l.description}</div>}
+          {l.description && <div style={{ fontSize: '0.8rem', color: '#7A8287', marginTop: 2 }}>{l.description}</div>}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
             {l.video_url && (
               <span className="badge badge-blue">
@@ -705,7 +705,7 @@ export default function ClassDetail() {
             </button>
           )}
           <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEditLesson(l)}><Edit size={14} /></button>
-          <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} onClick={() => deleteLesson(l.id)}><Trash2 size={14} /></button>
+          <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} onClick={() => deleteLesson(l.id)}><Trash2 size={14} /></button>
         </div>
       </div>
     );
@@ -714,14 +714,14 @@ export default function ClassDetail() {
   const renderHomeworkCard = (h: any, i: number) => (
     <div key={h.id} className="card" style={{ padding: '1rem 1.25rem' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        <div style={{ width: 36, height: 36, background: '#F3E5F5', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <span style={{ fontWeight: 700, color: '#6A1B9A', fontSize: '0.9rem' }}>{i + 1}</span>
+        <div style={{ width: 36, height: 36, background: '#EFEBF5', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ fontWeight: 700, color: '#6E5A94', fontSize: '0.9rem' }}>{i + 1}</span>
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 4 }}>{h.title}</div>
-          {h.description && <div style={{ fontSize: '0.82rem', color: '#888', marginBottom: 8 }}>{h.description}</div>}
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.78rem', color: '#888' }}>
-            <span>Thang điểm: <strong style={{ color: '#1A1A2E' }}>{h.max_score}</strong></span>
+          {h.description && <div style={{ fontSize: '0.82rem', color: '#7A8287', marginBottom: 8 }}>{h.description}</div>}
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.78rem', color: '#7A8287' }}>
+            <span>Thang điểm: <strong style={{ color: '#1D2A30' }}>{h.max_score}</strong></span>
             {h.due_date && <span><Clock size={11} style={{ verticalAlign: 'middle' }} /> HH: {new Date(h.due_date).toLocaleString('vi-VN')}</span>}
             {h.pdf_file && <span className="badge badge-orange"><File size={10} style={{ marginRight: 3 }} />Có đề</span>}
             {h.answer_file && <span className="badge badge-green"><Eye size={10} style={{ marginRight: 3 }} />Có đáp án</span>}
@@ -733,7 +733,7 @@ export default function ClassDetail() {
         <div style={{ display: 'flex', gap: 6 }}>
           <Link to={`/teacher/homework/${h.id}`} className="btn btn-secondary btn-sm"><Eye size={13} /> Xem bài</Link>
           <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEditHw(h)}><Edit size={14} /></button>
-          <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} onClick={() => deleteHw(h.id)}><Trash2 size={14} /></button>
+          <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} onClick={() => deleteHw(h.id)}><Trash2 size={14} /></button>
         </div>
       </div>
     </div>
@@ -746,18 +746,18 @@ export default function ClassDetail() {
     return (
       <div key={group.key} className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <div onClick={() => toggleChapter(group.key)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '1rem 1.25rem', cursor: 'pointer' }}>
-          {open ? <ChevronDown size={18} color="#888" /> : <ChevronRight size={18} color="#888" />}
-          <div style={{ width: 36, height: 36, background: group.chapter ? '#E3F2FD' : '#F5F5F5', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            {group.chapter ? <span style={{ fontWeight: 700, color: '#1565C0', fontSize: '0.9rem' }}>{idx + 1}</span> : <Layers size={16} color="#999" />}
+          {open ? <ChevronDown size={18} color="#7A8287" /> : <ChevronRight size={18} color="#7A8287" />}
+          <div style={{ width: 36, height: 36, background: group.chapter ? '#E6F0F3' : '#F1EFEA', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {group.chapter ? <span style={{ fontWeight: 700, color: '#2F6F82', fontSize: '0.9rem' }}>{idx + 1}</span> : <Layers size={16} color="#949A9E" />}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: group.chapter ? '#1A1A2E' : '#777' }}>{group.chapter ? group.chapter.title : 'Chưa phân chương'}</div>
-            <div style={{ fontSize: '0.78rem', color: '#888', marginTop: 2 }}>{lc} bài giảng · {hc} bài tập</div>
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: group.chapter ? '#1D2A30' : '#6E767B' }}>{group.chapter ? group.chapter.title : 'Chưa phân chương'}</div>
+            <div style={{ fontSize: '0.78rem', color: '#7A8287', marginTop: 2 }}>{lc} bài giảng · {hc} bài tập</div>
           </div>
           {group.chapter && (
             <div style={{ display: 'flex', gap: 6 }} onClick={(e) => e.stopPropagation()}>
               <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEditChapter(group.chapter)}><Edit size={14} /></button>
-              <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} onClick={() => deleteChapter(group.chapter.id)}><Trash2 size={14} /></button>
+              <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} onClick={() => deleteChapter(group.chapter.id)}><Trash2 size={14} /></button>
             </div>
           )}
         </div>
@@ -765,32 +765,32 @@ export default function ClassDetail() {
           const lessonsKey = `${group.key}-lessons`, hwKey = `${group.key}-homework`;
           const lessonsOpen = expandedSections.has(lessonsKey), hwOpen = expandedSections.has(hwKey);
           return (
-          <div style={{ padding: '0 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 16, borderTop: '1px solid #F0F0F0' }}>
+          <div style={{ padding: '0 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 16, borderTop: '1px solid #EEEBE5' }}>
             <div style={{ marginTop: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, cursor: lc > 0 ? 'pointer' : 'default' }} onClick={() => lc > 0 && toggleSection(lessonsKey)}>
-                {lc > 0 && (lessonsOpen ? <ChevronDown size={14} color="#aaa" /> : <ChevronRight size={14} color="#aaa" />)}
-                <BookOpen size={14} color="#1565C0" /><span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Bài giảng ({lc})</span>
-                <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#1565C0', border: '1px dashed #90CAF9' }}
+                {lc > 0 && (lessonsOpen ? <ChevronDown size={14} color="#A6ABAE" /> : <ChevronRight size={14} color="#A6ABAE" />)}
+                <BookOpen size={14} color="#2F6F82" /><span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Bài giảng ({lc})</span>
+                <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#2F6F82', border: '1px dashed #A7CAD5' }}
                   title={group.chapter ? `Thêm bài giảng vào "${group.chapter.title}"` : 'Thêm bài giảng (chưa phân chương)'}
                   onClick={(e) => { e.stopPropagation(); openCreateLesson(group.chapter?.id); }}>
                   <Plus size={14} />
                 </button>
               </div>
-              {lc === 0 ? <div style={{ fontSize: '0.8rem', color: '#aaa' }}>Chưa có bài giảng</div> : lessonsOpen && (
+              {lc === 0 ? <div style={{ fontSize: '0.8rem', color: '#A6ABAE' }}>Chưa có bài giảng</div> : lessonsOpen && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{group.lessons.map((l: any, i: number) => renderLessonCard(l, i))}</div>
               )}
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, cursor: hc > 0 ? 'pointer' : 'default' }} onClick={() => hc > 0 && toggleSection(hwKey)}>
-                {hc > 0 && (hwOpen ? <ChevronDown size={14} color="#aaa" /> : <ChevronRight size={14} color="#aaa" />)}
-                <ClipboardList size={14} color="#6A1B9A" /><span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Bài tập ({hc})</span>
-                <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#6A1B9A', border: '1px dashed #CE93D8' }}
+                {hc > 0 && (hwOpen ? <ChevronDown size={14} color="#A6ABAE" /> : <ChevronRight size={14} color="#A6ABAE" />)}
+                <ClipboardList size={14} color="#6E5A94" /><span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Bài tập ({hc})</span>
+                <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#6E5A94', border: '1px dashed #B9ACD4' }}
                   title={group.chapter ? `Thêm bài tập vào "${group.chapter.title}"` : 'Thêm bài tập (chưa phân chương)'}
                   onClick={(e) => { e.stopPropagation(); openCreateHw(group.chapter?.id); }}>
                   <Plus size={14} />
                 </button>
               </div>
-              {hc === 0 ? <div style={{ fontSize: '0.8rem', color: '#aaa' }}>Chưa có bài tập</div> : hwOpen && (
+              {hc === 0 ? <div style={{ fontSize: '0.8rem', color: '#A6ABAE' }}>Chưa có bài tập</div> : hwOpen && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{group.homework.map((h: any, i: number) => renderHomeworkCard(h, i))}</div>
               )}
             </div>
@@ -815,7 +815,7 @@ export default function ClassDetail() {
     <div className="fade-in">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: '1.5rem' }}>
-        <Link to={cls.course_id_ref ? `/teacher/courses/${cls.course_id_ref}` : '/teacher'} style={{ color: '#888', textDecoration: 'none', display: 'flex', alignItems: 'center', marginTop: 4 }}>
+        <Link to={cls.course_id_ref ? `/teacher/courses/${cls.course_id_ref}` : '/teacher'} style={{ color: '#7A8287', textDecoration: 'none', display: 'flex', alignItems: 'center', marginTop: 4 }}>
           <ChevronLeft size={18} />
         </Link>
         <div style={{ flex: 1 }}>
@@ -823,15 +823,15 @@ export default function ClassDetail() {
             {cls.course_title && <span className="badge badge-blue">{cls.course_title}</span>}
           </div>
           <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>{cls.title}</h1>
-          {cls.description && <p style={{ color: '#888', margin: '4px 0 0', fontSize: '0.88rem' }}>{cls.description}</p>}
+          {cls.description && <p style={{ color: '#7A8287', margin: '4px 0 0', fontSize: '0.88rem' }}>{cls.description}</p>}
         </div>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, background: '#F5F5F5', padding: 4, borderRadius: 10, marginBottom: '1.5rem', width: isMobile ? '100%' : 'fit-content', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 4, background: '#F1EFEA', padding: 4, borderRadius: 10, marginBottom: '1.5rem', width: isMobile ? '100%' : 'fit-content', flexWrap: 'wrap' }}>
         {tabs.map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => setActiveTab(key as any)} className="btn"
-            style={{ background: activeTab === key ? 'white' : 'transparent', boxShadow: activeTab === key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: activeTab === key ? '#C62828' : '#888', border: 'none', gap: 6 }}>
+            style={{ background: activeTab === key ? 'white' : 'transparent', boxShadow: activeTab === key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: activeTab === key ? '#1F5C68' : '#7A8287', border: 'none', gap: 6 }}>
             <Icon size={15} />{label}
           </button>
         ))}
@@ -842,7 +842,7 @@ export default function ClassDetail() {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
             <div style={{ position: 'relative', flex: 1, minWidth: 200, maxWidth: 360 }}>
-              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#949A9E' }} />
               <input
                 className="input"
                 style={{ paddingLeft: 32 }}
@@ -862,17 +862,17 @@ export default function ClassDetail() {
             </div>
           </div>
 
-          <div style={{ fontSize: '0.72rem', color: '#aaa', marginTop: -6, marginBottom: 12 }}>
+          <div style={{ fontSize: '0.72rem', color: '#A6ABAE', marginTop: -6, marginBottom: 12 }}>
             {studentSearch ? 'Xóa ô tìm kiếm để kéo thả sắp xếp lại thứ tự học sinh.' : 'Kéo biểu tượng ⠿ ở đầu mỗi dòng để sắp xếp lại thứ tự học sinh.'}
           </div>
 
           {/* Thanh thao tác hàng loạt */}
           {selectedIds.size > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFEBEE', border: '1px solid #FFCDD2', borderRadius: 10, padding: '0.6rem 1rem', marginBottom: 12 }}>
-              <span style={{ fontSize: '0.88rem', color: '#C62828', fontWeight: 600 }}>Đã chọn {selectedIds.size} học sinh</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#E4EFF1', border: '1px solid #CFE2E6', borderRadius: 10, padding: '0.6rem 1rem', marginBottom: 12 }}>
+              <span style={{ fontSize: '0.88rem', color: '#1F5C68', fontWeight: 600 }}>Đã chọn {selectedIds.size} học sinh</span>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button className="btn btn-ghost btn-sm" onClick={() => setSelectedIds(new Set())}>Bỏ chọn</button>
-                <button className="btn btn-primary btn-sm" style={{ background: '#C62828' }} onClick={bulkDeleteStudents}>
+                <button className="btn btn-primary btn-sm" style={{ background: '#B04A2A' }} onClick={bulkDeleteStudents}>
                   <Trash2 size={14} /> Xóa {selectedIds.size} học sinh
                 </button>
               </div>
@@ -901,18 +901,18 @@ export default function ClassDetail() {
                       if (draggedStudentId.current != null) reorderStudents(draggedStudentId.current, s.id);
                       draggedStudentId.current = null;
                     }}
-                    style={selectedIds.has(s.id) ? { background: '#FFF8F8' } : undefined}>
+                    style={selectedIds.has(s.id) ? { background: '#F2F7F8' } : undefined}>
                     <td style={{ textAlign: 'center', cursor: studentSearch ? 'default' : 'grab' }}
                       title={studentSearch ? 'Xóa ô tìm kiếm để kéo thả sắp xếp' : 'Kéo để đổi vị trí'}>
-                      <GripVertical size={14} color={studentSearch ? '#e0e0e0' : '#bbb'} />
+                      <GripVertical size={14} color={studentSearch ? '#E2DDD4' : '#B6BBBE'} />
                     </td>
                     <td>
                       <input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleStudentSelect(s.id)} style={{ cursor: 'pointer', width: 16, height: 16 }} />
                     </td>
-                    <td style={{ color: '#999' }}>{i + 1}</td>
+                    <td style={{ color: '#949A9E' }}>{i + 1}</td>
                     <td><strong>{s.full_name}</strong></td>
-                    <td style={{ color: '#888', fontFamily: 'monospace' }}>{s.username}</td>
-                    <td style={{ fontFamily: 'monospace', color: '#555' }}>
+                    <td style={{ color: '#7A8287', fontFamily: 'monospace' }}>{s.username}</td>
+                    <td style={{ fontFamily: 'monospace', color: '#525A5F' }}>
                       {s.plain_password ? (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                           <span>{pwRevealed ? s.plain_password : '••••••'}</span>
@@ -922,11 +922,11 @@ export default function ClassDetail() {
                             </button>
                           )}
                         </span>
-                      ) : <span style={{ color: '#bbb' }}>—</span>}
+                      ) : <span style={{ color: '#B6BBBE' }}>—</span>}
                     </td>
-                    <td style={{ color: '#888' }}>{s.parent_phone || '—'}</td>
+                    <td style={{ color: '#7A8287' }}>{s.parent_phone || '—'}</td>
                     <td>
-                      <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} title="Gỡ khỏi lớp" onClick={() => removeStudent(s.id, s.full_name)}>
+                      <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} title="Gỡ khỏi lớp" onClick={() => removeStudent(s.id, s.full_name)}>
                         <UserMinus size={14} />
                       </button>
                     </td>
@@ -934,10 +934,10 @@ export default function ClassDetail() {
                   );
                 })}
                 {(!cls.students || cls.students.length === 0) && (
-                  <tr><td colSpan={8} style={{ textAlign: 'center', color: '#999', padding: '2rem' }}>Chưa có học sinh</td></tr>
+                  <tr><td colSpan={8} style={{ textAlign: 'center', color: '#949A9E', padding: '2rem' }}>Chưa có học sinh</td></tr>
                 )}
                 {cls.students?.length > 0 && visibleStudents.length === 0 && (
-                  <tr><td colSpan={8} style={{ textAlign: 'center', color: '#999', padding: '2rem' }}>Không tìm thấy học sinh phù hợp</td></tr>
+                  <tr><td colSpan={8} style={{ textAlign: 'center', color: '#949A9E', padding: '2rem' }}>Không tìm thấy học sinh phù hợp</td></tr>
                 )}
               </tbody>
             </table>
@@ -954,14 +954,14 @@ export default function ClassDetail() {
             <button className="btn btn-primary" onClick={() => openCreateHw()}><ClipboardList size={15} /> Thêm bài tập</button>
           </div>
           {contentSections.length === 0 && !orphanGroup ? (
-            <div style={{ textAlign: 'center', color: '#999', padding: '2rem', background: 'white', borderRadius: 12 }}>
+            <div style={{ textAlign: 'center', color: '#949A9E', padding: '2rem', background: 'white', borderRadius: 12 }}>
               Chưa có nội dung. Hãy thêm chương, bài giảng hoặc bài tập.
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
               {contentSections.map((sec) => (
                 <div key={sec.key}>
-                  <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1A1A2E', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1D2A30', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
                     <span style={{ width: 9, height: 9, borderRadius: '50%', background: sec.color, display: 'inline-block' }} /> {sec.label}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -986,7 +986,7 @@ export default function ClassDetail() {
             <button className="btn btn-primary" onClick={openCreateAssistant}><Plus size={15} /> Thêm trợ giảng</button>
           </div>
           {(cls.assistants || []).length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#999', padding: '2rem', background: 'white', borderRadius: 12 }}>
+            <div style={{ textAlign: 'center', color: '#949A9E', padding: '2rem', background: 'white', borderRadius: 12 }}>
               <UserCog size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
               <div>Chưa có trợ giảng nào</div>
             </div>
@@ -997,34 +997,34 @@ export default function ClassDetail() {
                   <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 4, zIndex: 1 }}>
                     <button onClick={() => openEditAssistant(a)} title="Sửa"
                       style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}>
-                      <Edit size={13} color="#555" />
+                      <Edit size={13} color="#525A5F" />
                     </button>
                     <button onClick={() => deleteAssistant(a)} title="Xóa"
                       style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}>
-                      <Trash2 size={13} color="#C62828" />
+                      <Trash2 size={13} color="#B04A2A" />
                     </button>
                   </div>
                   {a.photo ? (
                     <img src={`/uploads/assistants/${a.photo}`} alt={a.full_name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
                   ) : (
-                    <div style={{ height: 220, background: 'linear-gradient(135deg, #F3E5F5, #E1BEE7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <UserCog size={56} color="#6A1B9A" />
+                    <div style={{ height: 220, background: 'linear-gradient(135deg, #EFEBF5, #D9D0E8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <UserCog size={56} color="#6E5A94" />
                     </div>
                   )}
                   <div style={{ padding: '1rem' }}>
-                    <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1A1A2E' }}>{a.full_name}</h3>
-                    <div style={{ color: '#6A1B9A', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>Trợ giảng</div>
+                    <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1D2A30' }}>{a.full_name}</h3>
+                    <div style={{ color: '#6E5A94', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>Trợ giảng</div>
                     {(a.phone || a.facebook_url) && (
                       <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 4, marginBottom: 12, flexWrap: 'wrap' }}>
                         {a.phone && (
                           <a href={`tel:${String(a.phone).replace(/[^+\d]/g, '')}`}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E8F5E9', color: '#2E7D32', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E5F1EA', color: '#3A7D5C', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
                             <Phone size={13} /> {a.phone}
                           </a>
                         )}
                         {a.facebook_url && (
                           <a href={a.facebook_url} target="_blank" rel="noopener noreferrer"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E3F2FD', color: '#1565C0', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E6F0F3', color: '#2F6F82', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
                             <FacebookIcon size={13} /> Facebook
                           </a>
                         )}
@@ -1048,11 +1048,11 @@ export default function ClassDetail() {
       <Modal open={addStudentModal} onClose={() => setAddStudentModal(false)} title="Thêm học sinh vào lớp"
         footer={<><button className="btn btn-ghost" onClick={() => setAddStudentModal(false)}>Hủy</button><button className="btn btn-primary" onClick={addStudent} disabled={loading}>{loading ? 'Đang lưu...' : addMode === 'new' ? 'Tạo & thêm vào lớp' : 'Thêm vào lớp'}</button></>}>
         {/* Toggle chế độ */}
-        <div style={{ display: 'flex', gap: 4, background: '#F5F5F5', padding: 4, borderRadius: 10, marginBottom: '1rem' }}>
-          <button className="btn" style={{ flex: 1, background: addMode === 'new' ? 'white' : 'transparent', boxShadow: addMode === 'new' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: addMode === 'new' ? '#C62828' : '#888', border: 'none' }} onClick={() => setAddMode('new')}>
+        <div style={{ display: 'flex', gap: 4, background: '#F1EFEA', padding: 4, borderRadius: 10, marginBottom: '1rem' }}>
+          <button className="btn" style={{ flex: 1, background: addMode === 'new' ? 'white' : 'transparent', boxShadow: addMode === 'new' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: addMode === 'new' ? '#1F5C68' : '#7A8287', border: 'none' }} onClick={() => setAddMode('new')}>
             <UserPlus size={14} /> Tạo tài khoản mới
           </button>
-          <button className="btn" style={{ flex: 1, background: addMode === 'existing' ? 'white' : 'transparent', boxShadow: addMode === 'existing' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: addMode === 'existing' ? '#C62828' : '#888', border: 'none' }} onClick={() => setAddMode('existing')}>
+          <button className="btn" style={{ flex: 1, background: addMode === 'existing' ? 'white' : 'transparent', boxShadow: addMode === 'existing' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: addMode === 'existing' ? '#1F5C68' : '#7A8287', border: 'none' }} onClick={() => setAddMode('existing')}>
             <Users size={14} /> Chọn có sẵn
           </button>
         </div>
@@ -1080,7 +1080,7 @@ export default function ClassDetail() {
           <div className="form-group">
             <label className="label">Chọn học sinh đã có</label>
             <div style={{ position: 'relative', marginBottom: 8 }}>
-              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#949A9E' }} />
               <input
                 className="input"
                 style={{ paddingLeft: 32 }}
@@ -1089,21 +1089,21 @@ export default function ClassDetail() {
                 onChange={(e) => setExistingSearch(e.target.value)}
               />
             </div>
-            <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid #eee', borderRadius: 8 }}>
+            <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid #ECE8E1', borderRadius: 8 }}>
               {availableStudents.map((s: any) => (
                 <div key={s.id}
                   onClick={() => setSelectedStudent(String(s.id))}
                   style={{
                     padding: '0.5rem 0.75rem', cursor: 'pointer',
-                    background: selectedStudent === String(s.id) ? '#FFEBEE' : 'transparent',
-                    borderBottom: '1px solid #f5f5f5',
+                    background: selectedStudent === String(s.id) ? '#E4EFF1' : 'transparent',
+                    borderBottom: '1px solid #F1EFEA',
                   }}>
                   <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{s.full_name}</div>
-                  <div style={{ fontSize: '0.76rem', color: '#999' }}>{s.username}</div>
+                  <div style={{ fontSize: '0.76rem', color: '#949A9E' }}>{s.username}</div>
                 </div>
               ))}
               {availableStudents.length === 0 && (
-                <div style={{ padding: '0.75rem', textAlign: 'center', color: '#999', fontSize: '0.85rem' }}>Không tìm thấy học sinh</div>
+                <div style={{ padding: '0.75rem', textAlign: 'center', color: '#949A9E', fontSize: '0.85rem' }}>Không tìm thấy học sinh</div>
               )}
             </div>
           </div>
@@ -1119,14 +1119,14 @@ export default function ClassDetail() {
         </div>
         <div className="form-group">
           <label className="label">Phân môn</label>
-          <div style={{ display: 'flex', gap: 4, background: '#F5F5F5', padding: 4, borderRadius: 10 }}>
+          <div style={{ display: 'flex', gap: 4, background: '#F1EFEA', padding: 4, borderRadius: 10 }}>
             {(['algebra', 'geometry', 'other'] as const).map((subj) => (
               <button key={subj} type="button" className="btn"
                 style={{
                   flex: 1, border: 'none',
                   background: chapterForm.subject === subj ? 'white' : 'transparent',
                   boxShadow: chapterForm.subject === subj ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
-                  color: chapterForm.subject === subj ? '#C62828' : '#888',
+                  color: chapterForm.subject === subj ? '#1F5C68' : '#7A8287',
                 }}
                 onClick={() => setChapterForm({
                   ...chapterForm, subject: subj,
@@ -1149,7 +1149,7 @@ export default function ClassDetail() {
             <datalist id="chapter-section-titles">
               {sectionTitleSuggestions.map((t) => <option key={t} value={t} />)}
             </datalist>
-            <div style={{ fontSize: '0.75rem', color: '#888', marginTop: 4 }}>
+            <div style={{ fontSize: '0.75rem', color: '#7A8287', marginTop: 4 }}>
               Các chương cùng tên phần sẽ gom chung một mục mang tên đó. Để trống thì mục hiện tên là “Khác”.
             </div>
           </div>
@@ -1157,7 +1157,7 @@ export default function ClassDetail() {
         <div className="form-group">
           <label className="label">Thứ tự</label>
           <input className="input" type="number" min={0} value={chapterForm.chapter_order} onChange={(e) => setChapterForm({ ...chapterForm, chapter_order: e.target.value })} />
-          <div style={{ fontSize: '0.75rem', color: '#888', marginTop: 4 }}>Số nhỏ hiển thị trước. Mỗi phần (Đại số, Hình học, và từng tên phần trong mục Khác) đánh số độc lập với nhau.</div>
+          <div style={{ fontSize: '0.75rem', color: '#7A8287', marginTop: 4 }}>Số nhỏ hiển thị trước. Mỗi phần (Đại số, Hình học, và từng tên phần trong mục Khác) đánh số độc lập với nhau.</div>
         </div>
       </Modal>
 
@@ -1165,18 +1165,18 @@ export default function ClassDetail() {
       <Modal open={assistantModal} onClose={() => setAssistantModal(false)} title={editingAssistant ? 'Sửa trợ giảng' : 'Thêm trợ giảng'}
         footer={<><button className="btn btn-ghost" onClick={() => setAssistantModal(false)}>Hủy</button><button className="btn btn-primary" onClick={saveAssistant} disabled={loading}>{loading ? 'Đang lưu...' : assistantAddMode === 'existing' && !editingAssistant ? 'Thêm vào lớp' : 'Lưu'}</button></>}>
         {!editingAssistant && (
-          <div style={{ display: 'flex', gap: 4, background: '#F5F5F5', padding: 4, borderRadius: 10, marginBottom: '1rem' }}>
-            <button className="btn" style={{ flex: 1, background: assistantAddMode === 'new' ? 'white' : 'transparent', boxShadow: assistantAddMode === 'new' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: assistantAddMode === 'new' ? '#C62828' : '#888', border: 'none' }} onClick={() => setAssistantAddMode('new')}>
+          <div style={{ display: 'flex', gap: 4, background: '#F1EFEA', padding: 4, borderRadius: 10, marginBottom: '1rem' }}>
+            <button className="btn" style={{ flex: 1, background: assistantAddMode === 'new' ? 'white' : 'transparent', boxShadow: assistantAddMode === 'new' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: assistantAddMode === 'new' ? '#1F5C68' : '#7A8287', border: 'none' }} onClick={() => setAssistantAddMode('new')}>
               <UserPlus size={14} /> Trợ giảng mới
             </button>
-            <button className="btn" style={{ flex: 1, background: assistantAddMode === 'existing' ? 'white' : 'transparent', boxShadow: assistantAddMode === 'existing' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: assistantAddMode === 'existing' ? '#C62828' : '#888', border: 'none' }} onClick={() => setAssistantAddMode('existing')}>
+            <button className="btn" style={{ flex: 1, background: assistantAddMode === 'existing' ? 'white' : 'transparent', boxShadow: assistantAddMode === 'existing' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: assistantAddMode === 'existing' ? '#1F5C68' : '#7A8287', border: 'none' }} onClick={() => setAssistantAddMode('existing')}>
               <UserCog size={14} /> Chọn có sẵn
             </button>
           </div>
         )}
 
         {editingAssistant && editingAssistant.class_count > 1 && (
-          <div style={{ background: '#E3F2FD', color: '#1565C0', borderRadius: 8, padding: '0.6rem 0.75rem', fontSize: '0.8rem', marginBottom: '1rem' }}>
+          <div style={{ background: '#E6F0F3', color: '#2F6F82', borderRadius: 8, padding: '0.6rem 0.75rem', fontSize: '0.8rem', marginBottom: '1rem' }}>
             Trợ giảng này đang dạy {editingAssistant.class_count} lớp. Thông tin và lịch làm việc dùng chung nên thay đổi sẽ áp dụng cho tất cả các lớp đó.
           </div>
         )}
@@ -1185,7 +1185,7 @@ export default function ClassDetail() {
           <div className="form-group">
             <label className="label">Chọn trợ giảng đã tạo ở lớp khác</label>
             <div style={{ position: 'relative', marginBottom: 8 }}>
-              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#949A9E' }} />
               <input
                 className="input"
                 style={{ paddingLeft: 32 }}
@@ -1194,30 +1194,30 @@ export default function ClassDetail() {
                 onChange={(e) => setExistingAssistantSearch(e.target.value)}
               />
             </div>
-            <div style={{ maxHeight: 260, overflowY: 'auto', border: '1px solid #eee', borderRadius: 8 }}>
+            <div style={{ maxHeight: 260, overflowY: 'auto', border: '1px solid #ECE8E1', borderRadius: 8 }}>
               {availableAssistants.map((a: any) => (
                 <div key={a.id}
                   onClick={() => setSelectedAssistantId(String(a.id))}
                   style={{
                     padding: '0.5rem 0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
-                    background: selectedAssistantId === String(a.id) ? '#FFEBEE' : 'transparent',
-                    borderBottom: '1px solid #f5f5f5',
+                    background: selectedAssistantId === String(a.id) ? '#E4EFF1' : 'transparent',
+                    borderBottom: '1px solid #F1EFEA',
                   }}>
                   {a.photo ? (
                     <img src={`/uploads/assistants/${a.photo}`} alt={a.full_name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                   ) : (
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#F3E5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <UserCog size={16} color="#6A1B9A" />
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#EFEBF5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <UserCog size={16} color="#6E5A94" />
                     </div>
                   )}
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{a.full_name}</div>
-                    <div style={{ fontSize: '0.76rem', color: '#999' }}>Đang dạy: {a.class_titles || '—'}{a.phone ? ` · ${a.phone}` : ''}</div>
+                    <div style={{ fontSize: '0.76rem', color: '#949A9E' }}>Đang dạy: {a.class_titles || '—'}{a.phone ? ` · ${a.phone}` : ''}</div>
                   </div>
                 </div>
               ))}
               {availableAssistants.length === 0 && (
-                <div style={{ padding: '0.75rem', textAlign: 'center', color: '#999', fontSize: '0.85rem' }}>Không tìm thấy trợ giảng nào khác</div>
+                <div style={{ padding: '0.75rem', textAlign: 'center', color: '#949A9E', fontSize: '0.85rem' }}>Không tìm thấy trợ giảng nào khác</div>
               )}
             </div>
           </div>
@@ -1308,20 +1308,20 @@ export default function ClassDetail() {
               <label className="label">{label}</label>
               <div className="dropzone" style={{ padding: '1rem' }} onClick={() => ref.current?.click()}>
                 {lessonFiles[kind].length > 0
-                  ? <span style={{ color: '#2E7D32', fontSize: '0.85rem' }}>✓ {lessonFiles[kind].length === 1 ? lessonFiles[kind][0].name : `Đã chọn ${lessonFiles[kind].length} file`}</span>
+                  ? <span style={{ color: '#3A7D5C', fontSize: '0.85rem' }}>✓ {lessonFiles[kind].length === 1 ? lessonFiles[kind][0].name : `Đã chọn ${lessonFiles[kind].length} file`}</span>
                   : <span style={{ fontSize: '0.82rem' }}><Upload size={16} style={{ verticalAlign: 'middle' }} /> Chọn file</span>}
               </div>
               <input ref={ref} type="file" multiple hidden
                 accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
                 onChange={(e) => { if (e.target.files?.length) addLessonFiles(kind, e.target.files); e.target.value = ''; }} />
-              <div style={{ fontSize: '0.75rem', color: '#888', marginTop: 4 }}>{hint} — chọn được nhiều file</div>
+              <div style={{ fontSize: '0.75rem', color: '#7A8287', marginTop: 4 }}>{hint} — chọn được nhiều file</div>
               {lessonFiles[kind].length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 8 }}>
                   {lessonFiles[kind].map((f, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', background: '#F1F8E9', borderRadius: 6, padding: '0.35rem 0.55rem' }}>
-                      <FileText size={13} color="#2E7D32" style={{ flexShrink: 0 }} />
-                      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#2E7D32', fontWeight: 600 }}>{f.name}</span>
-                      <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} title="Bỏ file này"
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', background: '#EDF5EF', borderRadius: 6, padding: '0.35rem 0.55rem' }}>
+                      <FileText size={13} color="#3A7D5C" style={{ flexShrink: 0 }} />
+                      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#3A7D5C', fontWeight: 600 }}>{f.name}</span>
+                      <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} title="Bỏ file này"
                         onClick={() => setLessonFiles((prev) => ({ ...prev, [kind]: prev[kind].filter((_, k) => k !== i) }))}>
                         <X size={13} />
                       </button>
@@ -1339,15 +1339,15 @@ export default function ClassDetail() {
             <label className="label">File đã đính kèm</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {parseAttachments(editingLesson.attachments).map((a) => (
-                <div key={a.file} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', background: '#FAFAFA', border: '1px solid #EEE', borderRadius: 6, padding: '0.4rem 0.6rem' }}>
-                  <Paperclip size={13} color={a.kind === 'answer' ? '#2E7D32' : '#E65100'} style={{ flexShrink: 0 }} />
+                <div key={a.file} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', background: '#FAF9F6', border: '1px solid #ECE8E1', borderRadius: 6, padding: '0.4rem 0.6rem' }}>
+                  <Paperclip size={13} color={a.kind === 'answer' ? '#3A7D5C' : '#B8673E'} style={{ flexShrink: 0 }} />
                   <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {a.name} <span className={`badge ${a.kind === 'answer' ? 'badge-green' : 'badge-orange'}`} style={{ marginLeft: 6 }}>{a.kind === 'answer' ? 'Đáp án BT' : 'Tài liệu'}</span>
                   </span>
                   {isViewableFile(a.file)
                     ? <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([`/uploads/lessons/${a.file}`])}><Eye size={13} /> Xem</button>
                     : <a className="btn btn-ghost btn-sm" href={`/uploads/lessons/${a.file}`} download={a.name}><Download size={13} /> Tải</a>}
-                  <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} title="Xóa file"
+                  <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} title="Xóa file"
                     onClick={() => { if (confirm(`Xóa file "${a.name}"?`)) deleteAttachment(a.file); }}>
                     <Trash2 size={13} />
                   </button>
@@ -1366,7 +1366,7 @@ export default function ClassDetail() {
       {/* View Lesson Modal */}
       <Modal open={viewLessonModal} onClose={() => setViewLessonModal(false)} title={viewingLesson?.title || ''} size="xl">
         {viewingLesson?.video_url && <VideoPlayer url={viewingLesson.video_url} type={viewingLesson.video_type} />}
-        {viewingLesson?.description && <p style={{ color: '#555', marginTop: 12, lineHeight: 1.6 }}>{viewingLesson.description}</p>}
+        {viewingLesson?.description && <p style={{ color: '#525A5F', marginTop: 12, lineHeight: 1.6 }}>{viewingLesson.description}</p>}
         {viewingLesson && parseAttachments(viewingLesson.attachments).length > 0 && (
           <div style={{ marginTop: 14 }}>
             <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1374,8 +1374,8 @@ export default function ClassDetail() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {parseAttachments(viewingLesson.attachments).map((a) => (
-                <div key={a.file} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', background: '#FAFAFA', border: '1px solid #EEE', borderRadius: 8, padding: '0.5rem 0.75rem' }}>
-                  <FileText size={15} color={a.kind === 'answer' ? '#2E7D32' : '#E65100'} style={{ flexShrink: 0 }} />
+                <div key={a.file} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', background: '#FAF9F6', border: '1px solid #ECE8E1', borderRadius: 8, padding: '0.5rem 0.75rem' }}>
+                  <FileText size={15} color={a.kind === 'answer' ? '#3A7D5C' : '#B8673E'} style={{ flexShrink: 0 }} />
                   <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {a.name} <span className={`badge ${a.kind === 'answer' ? 'badge-green' : 'badge-orange'}`} style={{ marginLeft: 6 }}>{a.kind === 'answer' ? 'Đáp án BT trên lớp' : 'Tài liệu bài giảng'}</span>
                   </span>
@@ -1426,11 +1426,11 @@ export default function ClassDetail() {
                 <button key={o.key} type="button" onClick={() => setHwForm({ ...hwForm, exam_type: o.key })}
                   style={{
                     textAlign: 'left', flex: '1 1 260px', minWidth: 220, cursor: 'pointer',
-                    border: `1.5px solid ${active ? '#C62828' : '#DDD'}`, background: active ? '#FFF4F4' : 'white',
+                    border: `1.5px solid ${active ? '#1F5C68' : '#DAD5CC'}`, background: active ? '#EEF5F6' : 'white',
                     borderRadius: 10, padding: '8px 12px',
                   }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1A1A2E' }}>{o.title}</div>
-                  <div style={{ fontSize: '0.74rem', color: '#777', marginTop: 4, lineHeight: 1.5 }}>{o.desc}</div>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1D2A30' }}>{o.title}</div>
+                  <div style={{ fontSize: '0.74rem', color: '#6E767B', marginTop: 4, lineHeight: 1.5 }}>{o.desc}</div>
                 </button>
               );
             })}
@@ -1446,7 +1446,7 @@ export default function ClassDetail() {
               <label className="label">Thời gian làm bài (phút)</label>
               <input className="input" type="number" min={1} step={1} placeholder="Không giới hạn thời gian"
                 value={hwForm.time_limit_minutes} onChange={(e) => setHwForm({ ...hwForm, time_limit_minutes: e.target.value })} />
-              <div style={{ fontSize: '0.72rem', color: '#888', marginTop: 4, lineHeight: 1.5 }}>
+              <div style={{ fontSize: '0.72rem', color: '#7A8287', marginTop: 4, lineHeight: 1.5 }}>
                 Học sinh bấm <strong>"Làm bài"</strong> mới bắt đầu tính giờ — hết thời gian này mà chưa nộp sẽ{' '}
                 <strong>tự động nộp bài</strong>, không phụ thuộc "Hạn nộp bài" chung ở dưới. Để trống = không giới hạn thời gian làm bài.
               </div>
@@ -1455,7 +1455,7 @@ export default function ClassDetail() {
         ) : (
           <div className="form-group">
             <label className="label">Kiểu nộp bài</label>
-            <div style={{ fontSize: '0.75rem', color: '#888', margin: '2px 0 10px', lineHeight: 1.6 }}>
+            <div style={{ fontSize: '0.75rem', color: '#7A8287', margin: '2px 0 10px', lineHeight: 1.6 }}>
               Chọn các phần học sinh sẽ làm. Thứ tự khi làm bài: Trắc nghiệm → Đúng/Sai → Trả lời ngắn → Tự luận.
               Trắc nghiệm/Đúng-Sai/Trả lời ngắn được <strong>chấm tự động</strong> theo đáp án &amp; điểm bạn đặt.
               Câu nào <strong>để trống đáp án</strong> → AI tự đọc từ <strong>File đáp án (PDF)</strong> bên dưới để chấm. Phần tự luận do AI chấm theo file đáp án.
@@ -1468,7 +1468,7 @@ export default function ClassDetail() {
           <div className="form-group">
             <label className="label">Thang điểm{hwForm.exam_type === 'thpt' && anyPartEnabled(hwParts) ? ' (quy đổi về)' : ''}</label>
             {hwForm.exam_type === 'hsa' ? (
-              <div className="input" style={{ background: '#F5F5F5', color: '#666', display: 'flex', alignItems: 'center' }}>
+              <div className="input" style={{ background: '#F1EFEA', color: '#5E676C', display: 'flex', alignItems: 'center' }}>
                 {hsaMaxScore(hsaConfig)} điểm (tự động = số câu, không quy đổi)
               </div>
             ) : (
@@ -1477,7 +1477,7 @@ export default function ClassDetail() {
               onChange={(e) => setHwForm({ ...hwForm, max_score: e.target.value })} />
             )}
             {hwForm.exam_type === 'thpt' && anyPartEnabled(hwParts) && (
-              <div style={{ fontSize: '0.72rem', color: '#888', marginTop: 4, lineHeight: 1.5 }}>
+              <div style={{ fontSize: '0.72rem', color: '#7A8287', marginTop: 4, lineHeight: 1.5 }}>
                 Tổng điểm các câu: <strong>{computeMaxScore(hwParts)}</strong>. Điểm cuối = (điểm đạt ÷ tổng) × thang điểm.{' '}
                 {computeMaxScore(hwParts) > 0 && String(computeMaxScore(hwParts)) !== String(hwForm.max_score) && (
                   <button type="button" className="btn btn-ghost btn-sm" style={{ padding: '0 6px', height: 'auto' }}
@@ -1502,13 +1502,13 @@ export default function ClassDetail() {
             <label className="label">Số lần nộp tối đa</label>
             <input className="input" type="number" min={1} step={1} placeholder="Không giới hạn"
               value={hwForm.max_attempts} onChange={(e) => setHwForm({ ...hwForm, max_attempts: e.target.value })} />
-            <div style={{ fontSize: '0.72rem', color: '#888', marginTop: 4 }}>Để trống = học sinh được nộp lại không giới hạn.</div>
+            <div style={{ fontSize: '0.72rem', color: '#7A8287', marginTop: 4 }}>Để trống = học sinh được nộp lại không giới hạn.</div>
           </div>
         </div>
         <div className="form-group">
           <label className="label">Link video chữa bài (YouTube)</label>
           <input className="input" placeholder="https://youtube.com/watch?v=..." value={hwForm.solution_video_url} onChange={(e) => setHwForm({ ...hwForm, solution_video_url: e.target.value })} />
-          <div style={{ fontSize: '0.75rem', color: '#888', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div style={{ fontSize: '0.75rem', color: '#7A8287', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
             <Video size={12} /> Học sinh sẽ xem được video chữa cùng lúc với đáp án (theo "Thời gian xem đáp án").
           </div>
         </div>
@@ -1521,14 +1521,14 @@ export default function ClassDetail() {
           <div className="form-group">
             <label className="label">File đề bài (PDF)</label>
             <div className="dropzone" style={{ padding: '1rem' }} onClick={() => pdfRef.current?.click()}>
-              {hwFiles.pdf ? <span style={{ color: '#2E7D32', fontSize: '0.85rem' }}>✓ {hwFiles.pdf.name}</span> : <span style={{ fontSize: '0.82rem' }}><Upload size={16} style={{ verticalAlign: 'middle' }} /> Chọn PDF đề</span>}
+              {hwFiles.pdf ? <span style={{ color: '#3A7D5C', fontSize: '0.85rem' }}>✓ {hwFiles.pdf.name}</span> : <span style={{ fontSize: '0.82rem' }}><Upload size={16} style={{ verticalAlign: 'middle' }} /> Chọn PDF đề</span>}
             </div>
             <input ref={pdfRef} type="file" accept=".pdf" hidden onChange={(e) => { if (e.target.files?.[0]) setHwFiles({ ...hwFiles, pdf: e.target.files[0] }); }} />
           </div>
           <div className="form-group">
             <label className="label">File đáp án (PDF cho AI)</label>
             <div className="dropzone" style={{ padding: '1rem' }} onClick={() => answerRef.current?.click()}>
-              {hwFiles.answer ? <span style={{ color: '#2E7D32', fontSize: '0.85rem' }}>✓ {hwFiles.answer.name}</span> : <span style={{ fontSize: '0.82rem' }}><Upload size={16} style={{ verticalAlign: 'middle' }} /> Chọn PDF đáp án</span>}
+              {hwFiles.answer ? <span style={{ color: '#3A7D5C', fontSize: '0.85rem' }}>✓ {hwFiles.answer.name}</span> : <span style={{ fontSize: '0.82rem' }}><Upload size={16} style={{ verticalAlign: 'middle' }} /> Chọn PDF đáp án</span>}
             </div>
             <input ref={answerRef} type="file" accept=".pdf" hidden onChange={(e) => { if (e.target.files?.[0]) setHwFiles({ ...hwFiles, answer: e.target.files[0] }); }} />
           </div>
@@ -1540,16 +1540,16 @@ export default function ClassDetail() {
             <label className="label">File đã đính kèm</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {([
-                { kind: 'pdf' as const, file: editingHw.pdf_file, name: editingHw.pdf_name || 'File đề bài.pdf', badge: 'Đề bài', color: '#E65100', cls: 'badge-orange', replacing: !!hwFiles.pdf },
-                { kind: 'answer' as const, file: editingHw.answer_file, name: editingHw.answer_name || 'File đáp án.pdf', badge: 'Đáp án', color: '#2E7D32', cls: 'badge-green', replacing: !!hwFiles.answer },
+                { kind: 'pdf' as const, file: editingHw.pdf_file, name: editingHw.pdf_name || 'File đề bài.pdf', badge: 'Đề bài', color: '#B8673E', cls: 'badge-orange', replacing: !!hwFiles.pdf },
+                { kind: 'answer' as const, file: editingHw.answer_file, name: editingHw.answer_name || 'File đáp án.pdf', badge: 'Đáp án', color: '#3A7D5C', cls: 'badge-green', replacing: !!hwFiles.answer },
               ]).filter((a) => a.file).map((a) => (
-                <div key={a.kind} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', background: '#FAFAFA', border: '1px solid #EEE', borderRadius: 6, padding: '0.4rem 0.6rem', opacity: a.replacing ? 0.5 : 1 }}>
+                <div key={a.kind} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', background: '#FAF9F6', border: '1px solid #ECE8E1', borderRadius: 6, padding: '0.4rem 0.6rem', opacity: a.replacing ? 0.5 : 1 }}>
                   <Paperclip size={13} color={a.color} style={{ flexShrink: 0 }} />
                   <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: a.replacing ? 'line-through' : 'none' }} title={a.name}>
                     {a.name} <span className={`badge ${a.cls}`} style={{ marginLeft: 6 }}>{a.replacing ? 'Sẽ được thay' : a.badge}</span>
                   </span>
                   <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([`/uploads/homework/${a.file}`])}><Eye size={13} /> Xem</button>
-                  <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} title="Xóa file"
+                  <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} title="Xóa file"
                     onClick={() => { if (confirm(`Xóa file "${a.name}"?`)) deleteHwFile(a.kind); }}>
                     <Trash2 size={13} />
                   </button>
@@ -1583,7 +1583,7 @@ export default function ClassDetail() {
           <input ref={excelRef} type="file" accept=".xlsx,.xls" hidden
             onChange={(e) => { if (e.target.files?.[0]) handleExcelFile(e.target.files[0]); e.target.value = ''; }} />
         </div>
-        <div style={{ padding: '0.6rem 0.8rem', background: '#F5F5F5', borderRadius: 8, fontSize: '0.8rem', color: '#666', lineHeight: 1.6, marginBottom: 14 }}>
+        <div style={{ padding: '0.6rem 0.8rem', background: '#F1EFEA', borderRadius: 8, fontSize: '0.8rem', color: '#5E676C', lineHeight: 1.6, marginBottom: 14 }}>
           File Excel cần các cột: <strong>Họ và tên</strong>, <strong>Tên đăng nhập</strong>, <strong>Mật khẩu</strong>, <strong>Số điện thoại</strong> (tùy chọn).
           Mỗi dòng là một học sinh — tất cả sẽ được tạo tài khoản và thêm thẳng vào lớp này. Nếu tên đăng nhập đã tồn tại và họ tên + số điện thoại khớp
           hoàn toàn với tài khoản cũ, tài khoản đó vẫn được thêm vào lớp (không tạo mới); nếu chỉ trùng tên đăng nhập nhưng thông tin khác thì sẽ báo lỗi.
@@ -1595,15 +1595,15 @@ export default function ClassDetail() {
             <div style={{ fontSize: '0.85rem', marginBottom: 8 }}>
               <FileSpreadsheet size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
               <strong>{excelName}</strong> — {excelRows.length} dòng, {excelRows.filter((r) => !r.error).length} hợp lệ
-              {excelRows.some((r) => r.error) && <span style={{ color: '#C62828' }}> · {excelRows.filter((r) => r.error).length} dòng lỗi (bỏ qua khi tạo)</span>}
+              {excelRows.some((r) => r.error) && <span style={{ color: '#B04A2A' }}> · {excelRows.filter((r) => r.error).length} dòng lỗi (bỏ qua khi tạo)</span>}
             </div>
             <div className="table-wrap" style={{ maxHeight: 320, overflowY: 'auto' }}>
               <table>
                 <thead><tr><th>Dòng</th><th>Họ và tên</th><th>Tên đăng nhập</th><th>Mật khẩu</th><th>SĐT</th><th>Trạng thái</th></tr></thead>
                 <tbody>
                   {excelRows.map((r) => (
-                    <tr key={r.row} style={r.error ? { background: '#FFF8F8' } : undefined}>
-                      <td style={{ color: '#999' }}>{r.row}</td>
+                    <tr key={r.row} style={r.error ? { background: '#FCF4F0' } : undefined}>
+                      <td style={{ color: '#949A9E' }}>{r.row}</td>
                       <td><strong>{r.full_name || '—'}</strong></td>
                       <td style={{ fontFamily: 'monospace' }}>{r.username || '—'}</td>
                       <td style={{ fontFamily: 'monospace' }}>{r.password || '—'}</td>
@@ -1625,19 +1625,19 @@ export default function ClassDetail() {
         {excelResult && (
           <div>
             <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
-              <div className="card" style={{ flex: 1, padding: '0.8rem 1rem', background: '#E8F5E9', minWidth: 140 }}>
-                <div style={{ fontWeight: 800, fontSize: '1.3rem', color: '#2E7D32' }}>{excelResult.created}</div>
-                <div style={{ fontSize: '0.8rem', color: '#2E7D32' }}>Tài khoản mới đã tạo & thêm vào lớp</div>
+              <div className="card" style={{ flex: 1, padding: '0.8rem 1rem', background: '#E5F1EA', minWidth: 140 }}>
+                <div style={{ fontWeight: 800, fontSize: '1.3rem', color: '#3A7D5C' }}>{excelResult.created}</div>
+                <div style={{ fontSize: '0.8rem', color: '#3A7D5C' }}>Tài khoản mới đã tạo & thêm vào lớp</div>
               </div>
               {excelResult.addedExisting > 0 && (
-                <div className="card" style={{ flex: 1, padding: '0.8rem 1rem', background: '#E3F2FD', minWidth: 140 }}>
-                  <div style={{ fontWeight: 800, fontSize: '1.3rem', color: '#1565C0' }}>{excelResult.addedExisting}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#1565C0' }}>Tài khoản đã tồn tại, thêm vào lớp</div>
+                <div className="card" style={{ flex: 1, padding: '0.8rem 1rem', background: '#E6F0F3', minWidth: 140 }}>
+                  <div style={{ fontWeight: 800, fontSize: '1.3rem', color: '#2F6F82' }}>{excelResult.addedExisting}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#2F6F82' }}>Tài khoản đã tồn tại, thêm vào lớp</div>
                 </div>
               )}
-              <div className="card" style={{ flex: 1, padding: '0.8rem 1rem', background: excelResult.failed > 0 ? '#FFEBEE' : '#F5F5F5', minWidth: 140 }}>
-                <div style={{ fontWeight: 800, fontSize: '1.3rem', color: excelResult.failed > 0 ? '#C62828' : '#888' }}>{excelResult.failed}</div>
-                <div style={{ fontSize: '0.8rem', color: excelResult.failed > 0 ? '#C62828' : '#888' }}>Dòng lỗi</div>
+              <div className="card" style={{ flex: 1, padding: '0.8rem 1rem', background: excelResult.failed > 0 ? '#F8E6DF' : '#F1EFEA', minWidth: 140 }}>
+                <div style={{ fontWeight: 800, fontSize: '1.3rem', color: excelResult.failed > 0 ? '#B04A2A' : '#7A8287' }}>{excelResult.failed}</div>
+                <div style={{ fontSize: '0.8rem', color: excelResult.failed > 0 ? '#B04A2A' : '#7A8287' }}>Dòng lỗi</div>
               </div>
             </div>
             {excelResult.existed?.length > 0 && (
@@ -1647,9 +1647,9 @@ export default function ClassDetail() {
                   <tbody>
                     {excelResult.existed.map((e: any, i: number) => (
                       <tr key={i}>
-                        <td style={{ color: '#999' }}>{e.row}</td>
+                        <td style={{ color: '#949A9E' }}>{e.row}</td>
                         <td style={{ fontFamily: 'monospace' }}>{e.username || '—'}</td>
-                        <td style={{ color: '#1565C0' }}>{e.reason}</td>
+                        <td style={{ color: '#2F6F82' }}>{e.reason}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1663,9 +1663,9 @@ export default function ClassDetail() {
                   <tbody>
                     {excelResult.errors.map((e: any, i: number) => (
                       <tr key={i}>
-                        <td style={{ color: '#999' }}>{e.row}</td>
+                        <td style={{ color: '#949A9E' }}>{e.row}</td>
                         <td style={{ fontFamily: 'monospace' }}>{e.username || '—'}</td>
-                        <td style={{ color: '#C62828' }}>{e.reason}</td>
+                        <td style={{ color: '#B04A2A' }}>{e.reason}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -1,18 +1,19 @@
 @echo off
+chcp 65001 > nul
 echo ========================================
-echo   APLUS HOANG MAI - Math Education
+echo   THAY CHIEN MATH
 echo ========================================
 echo.
-echo Starting backend server...
-start "Backend" cmd /k "cd backend && node src/server.js"
+echo Dang khoi dong backend (cong 5100)...
+start "ThayChienMath - Backend" cmd /k "cd backend && node src/server.js"
 timeout /t 2 /nobreak > nul
-echo Starting frontend...
-start "Frontend" cmd /k "cd frontend && npm run dev"
+echo Dang khoi dong giao dien (cong 5174)...
+start "ThayChienMath - Frontend" cmd /k "cd frontend && npm run dev"
 echo.
-echo ✓ Backend: http://localhost:5000
-echo ✓ Frontend: http://localhost:5173
+echo  Backend : http://localhost:5100
+echo  Web     : http://localhost:5174
 echo.
-echo Open http://localhost:5173 in your browser
-echo Default login: admin / admin123
+echo Mo http://localhost:5174 tren trinh duyet
+echo Tai khoan mac dinh: admin / admin123
 echo.
 pause

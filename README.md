@@ -1,6 +1,6 @@
-# APLUS Hoàng Mai — Hệ thống Trung tâm Giáo dục
+# Thầy Chiến Math
 
-Ứng dụng web full-stack cho Trung Tâm Giáo Dục APLUS Hoàng Mai: quản lý khóa học, lớp học, bài giảng, bài tập với **chấm điểm bằng AI (Google Gemini)**, cùng các trang giới thiệu công khai do admin tự quản lý.
+Ứng dụng web full-stack học Toán của Thầy Chiến: quản lý khóa học, lớp học, bài giảng, bài tập với **chấm điểm bằng AI (Google Gemini)**, cùng các trang giới thiệu công khai do admin tự quản lý.
 
 ## Tính năng
 
@@ -23,14 +23,14 @@
 cd backend
 npm install
 cp .env.example .env        # rồi điền GEMINI_API_KEY của bạn
-node src/server.js          # chạy tại http://localhost:5000
+node src/server.js          # chạy tại http://localhost:5100
 ```
 
 ### 2. Frontend
 ```bash
 cd frontend
 npm install
-npm run dev                 # chạy tại http://localhost:5173
+npm run dev                 # chạy tại http://localhost:5174
 ```
 
 Hoặc trên Windows chạy `start.bat` để mở cả hai cùng lúc.
@@ -42,7 +42,7 @@ Hoặc trên Windows chạy `start.bat` để mở cả hai cùng lúc.
 
 | Biến | Mô tả |
 |------|-------|
-| `PORT` | Cổng backend (mặc định 5000) |
+| `PORT` | Cổng backend (mặc định 5100) |
 | `JWT_SECRET` | Chuỗi bí mật ký JWT |
 | `GEMINI_API_KEY` | Google Gemini API key ([lấy tại đây](https://aistudio.google.com/apikey)) |
 | `FRONTEND_URL` | URL frontend cho CORS |

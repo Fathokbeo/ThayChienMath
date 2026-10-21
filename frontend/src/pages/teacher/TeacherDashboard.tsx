@@ -84,7 +84,7 @@ export default function TeacherDashboard() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
         <div>
           <h1 className="page-title" style={{ margin: 0 }}>Xin chào, {user?.full_name}</h1>
-          <p style={{ color: '#888', margin: '4px 0 0', fontSize: '0.88rem' }}>Quản lý khóa học và lớp học của bạn</p>
+          <p style={{ color: '#7A8287', margin: '4px 0 0', fontSize: '0.88rem' }}>Quản lý khóa học và lớp học của bạn</p>
         </div>
         <button className="btn btn-primary" onClick={openCreate}>
           <Plus size={16} /> Tạo khóa học
@@ -94,9 +94,9 @@ export default function TeacherDashboard() {
       {/* Stats */}
       <div className="stat-grid" style={{ marginBottom: '2rem' }}>
         {[
-          { label: 'Khóa học', value: courses.length, icon: BookOpen, color: '#C62828', bg: '#FFEBEE' },
-          { label: 'Lớp học', value: totalClasses, icon: School, color: '#1565C0', bg: '#E3F2FD' },
-          { label: 'Tổng học sinh', value: totalStudents, icon: Users, color: '#2E7D32', bg: '#E8F5E9' },
+          { label: 'Khóa học', value: courses.length, icon: BookOpen, color: '#1F5C68', bg: '#E4EFF1' },
+          { label: 'Lớp học', value: totalClasses, icon: School, color: '#2F6F82', bg: '#E6F0F3' },
+          { label: 'Tổng học sinh', value: totalStudents, icon: Users, color: '#3A7D5C', bg: '#E5F1EA' },
         ].map(({ label, value, icon: Icon, color, bg }) => (
           <div key={label} className="stat-card">
             <div className="stat-icon" style={{ background: bg }}>
@@ -113,7 +113,7 @@ export default function TeacherDashboard() {
       {/* Courses */}
       <h2 className="section-title">Khóa học của tôi</h2>
       {courses.length === 0 ? (
-        <div style={{ background: 'white', borderRadius: 12, padding: '3rem', textAlign: 'center', color: '#999' }}>
+        <div style={{ background: 'white', borderRadius: 12, padding: '3rem', textAlign: 'center', color: '#949A9E' }}>
           <BookOpen size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
           <div>Chưa có khóa học nào. <button className="btn btn-outline btn-sm" onClick={openCreate} style={{ marginLeft: 8 }}>Tạo ngay</button></div>
         </div>
@@ -127,14 +127,14 @@ export default function TeacherDashboard() {
               {c.thumbnail ? (
                 <img src={`/uploads/courses/${c.thumbnail}`} alt={c.title} style={{ width: '100%', height: 130, objectFit: 'cover' }} />
               ) : (
-                <div style={{ height: 100, background: 'linear-gradient(135deg, #C62828 0%, #1565C0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ height: 100, background: 'linear-gradient(135deg, #1F5C68 0%, #2F6F82 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <BookOpen size={30} color="rgba(255,255,255,0.8)" />
                 </div>
               )}
               <div style={{ padding: '1rem' }}>
-                <h3 style={{ margin: '0 0 6px', fontSize: '0.95rem', fontWeight: 700, color: '#1A1A2E' }}>{c.title}</h3>
-                {c.description && <p style={{ margin: '0 0 10px', fontSize: '0.82rem', color: '#888', lineHeight: 1.4 }}>{c.description}</p>}
-                <div style={{ display: 'flex', gap: 12, fontSize: '0.78rem', color: '#999', borderTop: '1px solid #F5F5F5', paddingTop: 10, marginTop: 10, marginBottom: 10 }}>
+                <h3 style={{ margin: '0 0 6px', fontSize: '0.95rem', fontWeight: 700, color: '#1D2A30' }}>{c.title}</h3>
+                {c.description && <p style={{ margin: '0 0 10px', fontSize: '0.82rem', color: '#7A8287', lineHeight: 1.4 }}>{c.description}</p>}
+                <div style={{ display: 'flex', gap: 12, fontSize: '0.78rem', color: '#949A9E', borderTop: '1px solid #F1EFEA', paddingTop: 10, marginTop: 10, marginBottom: 10 }}>
                   <span><School size={12} style={{ verticalAlign: 'middle', marginRight: 3 }} />{c.class_count || 0} lớp</span>
                   <span><Users size={12} style={{ verticalAlign: 'middle', marginRight: 3 }} />{c.student_count || 0} học sinh</span>
                 </div>
@@ -147,7 +147,7 @@ export default function TeacherDashboard() {
                   <button className="btn btn-ghost btn-sm btn-icon" onClick={(e) => openEdit(c, e)} title="Sửa">
                     <Edit size={14} />
                   </button>
-                  <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} onClick={(e) => deleteCourse(c, e)} title="Xóa">
+                  <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} onClick={(e) => deleteCourse(c, e)} title="Xóa">
                     <Trash2 size={14} />
                   </button>
                 </div>

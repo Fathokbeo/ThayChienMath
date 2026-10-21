@@ -49,9 +49,9 @@ async function req(method, url, { token, json } = {}) {
   r = await req('GET', `/teacher/classes/${classId}`, { token: gvTok });
   log('Lớp con cũng bị xóa theo (404)', r.status === 404, `status ${r.status}`);
 
-  // HS vẫn còn (chỉ gỡ khỏi lớp, không xóa tài khoản)
+  // HS CHỈ học lớp vừa bị xóa → bị xóa hẳn cùng lớp để tiết kiệm dữ liệu (xem services/cascade.js hardDeleteClass)
   r = await req('GET', '/admin/users', { token: adminTok });
-  log('Tài khoản HS vẫn còn (không bị xóa)', r.data.some(u => u.id === hsId), '');
+  log('HS chỉ thuộc lớp bị xóa cũng bị xóa theo', !r.data.some(u => u.id === hsId), '');
 
   // 3. Xóa riêng 1 lớp (cascade)
   const c2 = (await req('POST', '/teacher/courses', { token: gvTok, json: { title: `Khoa2_${ts}` } })).data.id;

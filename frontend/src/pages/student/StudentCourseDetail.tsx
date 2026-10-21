@@ -7,9 +7,9 @@ import { ArrowLeft, School, BookOpen, ChevronRight, Trophy } from 'lucide-react'
 // Màu huy hiệu xếp hạng: top 1 vàng, 2 bạc, 3 đồng, còn lại tím
 function rankStyle(rank: number): { bg: string; color: string } {
   if (rank === 1) return { bg: '#FFF8E1', color: '#F9A825' };
-  if (rank === 2) return { bg: '#F5F5F5', color: '#9E9E9E' };
-  if (rank === 3) return { bg: '#FBE9E7', color: '#D84315' };
-  return { bg: '#F3E5F5', color: '#6A1B9A' };
+  if (rank === 2) return { bg: '#F1EFEA', color: '#999FA2' };
+  if (rank === 3) return { bg: '#F8E6DF', color: '#B04A2A' };
+  return { bg: '#EFEBF5', color: '#6E5A94' };
 }
 
 export default function StudentCourseDetail() {
@@ -24,7 +24,7 @@ export default function StudentCourseDetail() {
   }, [courseId]);
 
   if (!course) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: '#999' }}>Đang tải...</div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: '#949A9E' }}>Đang tải...</div>
   );
 
   const classes: any[] = course.classes || [];
@@ -40,23 +40,23 @@ export default function StudentCourseDetail() {
         {course.thumbnail ? (
           <img src={`/uploads/courses/${course.thumbnail}`} alt={course.title} style={{ width: '100%', height: 180, objectFit: 'cover' }} />
         ) : (
-          <div style={{ height: 140, background: 'linear-gradient(135deg, #C62828 0%, #1565C0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ height: 140, background: 'linear-gradient(135deg, #1F5C68 0%, #2F6F82 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <BookOpen size={40} color="rgba(255,255,255,0.8)" />
           </div>
         )}
         <div style={{ padding: '1.25rem' }}>
-          <h1 style={{ margin: '0 0 6px', fontSize: '1.3rem', fontWeight: 800, color: '#1A1A2E' }}>{course.title}</h1>
-          {course.description && <p style={{ margin: '0 0 12px', color: '#666', fontSize: '0.9rem' }}>{course.description}</p>}
-          <div style={{ display: 'flex', gap: 16, fontSize: '0.83rem', color: '#888' }}>
+          <h1 style={{ margin: '0 0 6px', fontSize: '1.3rem', fontWeight: 800, color: '#1D2A30' }}>{course.title}</h1>
+          {course.description && <p style={{ margin: '0 0 12px', color: '#5E676C', fontSize: '0.9rem' }}>{course.description}</p>}
+          <div style={{ display: 'flex', gap: 16, fontSize: '0.83rem', color: '#7A8287' }}>
             <span><School size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />{classes.length} lớp học của bạn</span>
           </div>
         </div>
       </div>
 
-      <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: '#1A1A2E' }}>Lớp học của bạn trong khóa này</h2>
+      <h2 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: '#1D2A30' }}>Lớp học của bạn trong khóa này</h2>
 
       {classes.length === 0 ? (
-        <div style={{ background: 'white', borderRadius: 12, padding: '3rem', textAlign: 'center', color: '#999' }}>
+        <div style={{ background: 'white', borderRadius: 12, padding: '3rem', textAlign: 'center', color: '#949A9E' }}>
           <School size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
           <div>Bạn chưa có lớp nào trong khóa học này</div>
         </div>
@@ -65,12 +65,12 @@ export default function StudentCourseDetail() {
           {classes.map((cls: any) => (
             <div key={cls.id} className="card" style={{ padding: '1.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 10 }}>
-                <div style={{ width: 38, height: 38, background: '#FFEBEE', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <School size={18} color="#C62828" />
+                <div style={{ width: 38, height: 38, background: '#E4EFF1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <School size={18} color="#1F5C68" />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3 style={{ margin: '0 0 4px', fontSize: '0.95rem', fontWeight: 700, color: '#1A1A2E' }}>{cls.title}</h3>
-                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#888' }}>GV: {cls.teacher_name}</p>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '0.95rem', fontWeight: 700, color: '#1D2A30' }}>{cls.title}</h3>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#7A8287' }}>GV: {cls.teacher_name}</p>
                 </div>
               </div>
               {cls.my_rank ? (
@@ -78,12 +78,12 @@ export default function StudentCourseDetail() {
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.78rem', fontWeight: 700, padding: '3px 9px', borderRadius: 99, ...rankStyle(cls.my_rank) }}>
                     <Trophy size={12} /> Hạng {cls.my_rank}/{cls.rank_total}
                   </span>
-                  <span style={{ fontSize: '0.78rem', color: '#E65100', fontWeight: 700 }}>Điểm TB: {cls.my_avg ?? '—'}</span>
+                  <span style={{ fontSize: '0.78rem', color: '#B8673E', fontWeight: 700 }}>Điểm TB: {cls.my_avg ?? '—'}</span>
                 </div>
               ) : (
-                <div style={{ fontSize: '0.74rem', color: '#bbb', marginBottom: 10 }}>Chưa có điểm tháng này</div>
+                <div style={{ fontSize: '0.74rem', color: '#B6BBBE', marginBottom: 10 }}>Chưa có điểm tháng này</div>
               )}
-              <div style={{ display: 'flex', gap: 12, fontSize: '0.78rem', color: '#888', borderTop: '1px solid #F5F5F5', paddingTop: 10, marginBottom: 12 }}>
+              <div style={{ display: 'flex', gap: 12, fontSize: '0.78rem', color: '#7A8287', borderTop: '1px solid #F1EFEA', paddingTop: 10, marginBottom: 12 }}>
                 <span>{cls.lesson_count} bài giảng</span>
                 <span>{cls.submitted_count}/{cls.homework_count} bài đã nộp</span>
               </div>

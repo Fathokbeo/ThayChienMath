@@ -18,12 +18,12 @@ export default function StructuredAnswerReview({ partsConfig, structuredAnswers 
   const enabled = (k: string) => (cfg as any)[k] && (cfg as any)[k].enabled;
   const cell = (ok: boolean): React.CSSProperties => ({
     padding: '2px 8px', borderRadius: 6, fontWeight: 700, fontSize: '0.78rem',
-    background: ok ? '#E8F5E9' : '#FFEBEE', color: ok ? '#2E7D32' : '#C62828',
+    background: ok ? '#E5F1EA' : '#F8E6DF', color: ok ? '#3A7D5C' : '#B04A2A',
   });
 
   return (
     <div style={{ marginTop: 12 }}>
-      <strong style={{ fontSize: '0.83rem', color: '#1A1A2E' }}>Bài làm có cấu trúc của học sinh:</strong>
+      <strong style={{ fontSize: '0.83rem', color: '#1D2A30' }}>Bài làm có cấu trúc của học sinh:</strong>
 
       {enabled('multiple_choice') && Array.isArray(ans.multiple_choice) && (
         <div style={{ marginTop: 8 }}>
@@ -54,7 +54,7 @@ export default function StructuredAnswerReview({ partsConfig, structuredAnswers 
                     const ok = got && String(got).toUpperCase()[0] === String(keyRow[j]).toUpperCase()[0];
                     return <span key={sub} style={cell(!!ok)}>{sub}) {conv(got)}{ok ? '' : ` (${conv(keyRow[j])})`}</span>;
                   })}
-                  {unset && <span style={{ fontSize: '0.72rem', color: '#888' }}>(AI chấm)</span>}
+                  {unset && <span style={{ fontSize: '0.72rem', color: '#7A8287' }}>(AI chấm)</span>}
                 </div>
               );
             })}
@@ -70,10 +70,10 @@ export default function StructuredAnswerReview({ partsConfig, structuredAnswers 
               const got = ans.short_answer[i] || '—';
               return (
                 <div key={i} style={{ fontSize: '0.8rem' }}>
-                  <strong>Câu {i + 1}:</strong> HS trả lời "<span style={{ color: '#1565C0' }}>{got}</span>"
+                  <strong>Câu {i + 1}:</strong> HS trả lời "<span style={{ color: '#2F6F82' }}>{got}</span>"
                   {keyIsSet('short_answer', key)
-                    ? <> — đáp án: "<span style={{ color: '#2E7D32' }}>{key}</span>"</>
-                    : <span style={{ color: '#888' }}> — (AI chấm theo file đáp án)</span>}
+                    ? <> — đáp án: "<span style={{ color: '#3A7D5C' }}>{key}</span>"</>
+                    : <span style={{ color: '#7A8287' }}> — (AI chấm theo file đáp án)</span>}
                 </div>
               );
             })}
@@ -84,5 +84,5 @@ export default function StructuredAnswerReview({ partsConfig, structuredAnswers 
   );
 }
 
-const subTitle: React.CSSProperties = { fontSize: '0.78rem', fontWeight: 700, color: '#6A1B9A', margin: '2px 0 4px' };
-const neutral: React.CSSProperties = { padding: '2px 8px', borderRadius: 6, fontWeight: 700, fontSize: '0.78rem', background: '#EDE7F6', color: '#5E35B1' };
+const subTitle: React.CSSProperties = { fontSize: '0.78rem', fontWeight: 700, color: '#6E5A94', margin: '2px 0 4px' };
+const neutral: React.CSSProperties = { padding: '2px 8px', borderRadius: 6, fontWeight: 700, fontSize: '0.78rem', background: '#ECE8F3', color: '#5B4C8A' };

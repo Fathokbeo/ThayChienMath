@@ -1,15 +1,18 @@
-# Hướng dẫn cài đặt APLUS Hoàng Mai
+# Hướng dẫn cài đặt Thầy Chiến Math
 
 ## Yêu cầu
-- Node.js v18+ (đã có v25)
-- Anthropic API Key (để dùng chức năng AI chấm bài)
+- Node.js v20.19+ hoặc v22.12+
+- Google Gemini API key (để dùng chức năng AI chấm bài) — lấy tại https://aistudio.google.com/apikey
 
-## Cài đặt API Key
-
-1. Đăng ký tại https://console.anthropic.com
-2. Tạo API key
-3. Mở file `backend/.env`
-4. Thay `your_anthropic_api_key_here` bằng key của bạn
+## Cài đặt lần đầu
+```
+cd backend
+npm install
+cd ../frontend
+npm install
+```
+Tạo file `backend/.env` (xem mẫu `backend/.env.example`) và điền `GEMINI_API_KEY`, `JWT_SECRET`.
+File `.env` không được đưa lên git.
 
 ## Khởi động
 
@@ -17,25 +20,35 @@
 
 ### Cách 2: Terminal riêng
 ```
-# Terminal 1 - Backend:
+# Terminal 1 - Backend (cổng 5100):
 cd backend
 node src/server.js
 
-# Terminal 2 - Frontend:
+# Terminal 2 - Giao diện (cổng 5174):
 cd frontend
 npm run dev
 ```
+Chạy được song song với web AplusHoangMai (cổng 5000/5173).
 
 ## Truy cập
-- Trang chủ: http://localhost:5173
-- Admin: admin / admin123
+- Web: http://localhost:5174
+- Tài khoản mặc định: admin / admin123 (nhớ đổi mật khẩu)
 
-## Tài khoản mặc định
-| Role | Username | Password |
-|------|----------|----------|
-| Admin | admin | admin123 |
+## Kiểm tra (backend phải đang chạy)
+```
+cd backend
+node test-scoring.js     # chấm điểm tự động (không cần server)
+node test-all.js         # toàn bộ API, có chấm AI thật
+node test-features.js    # điểm cao nhất, bài cần làm, file bài tập, xếp hạng
+node test-users.js; node test-classstudents.js; node test-content.js
+node test-multifile.js; node test-newfeatures.js; node test-delete.js; node test-grading.js
+```
+Các test tạo dữ liệu thử trong database. Trước khi dùng thật, xóa `backend/data/mathweb.db`
+(và file trong `backend/uploads/*`) để bắt đầu với database sạch.
 
 ## Tính năng
-- Admin: quản lý tài khoản, khóa học, lớp học, quảng cáo
-- Giáo viên: tạo lớp, bài giảng, bài tập, xem điểm
-- Học sinh: xem bài giảng, nộp bài, xem điểm (AI chấm tức thì)
+- Admin: quản lý tài khoản, khóa học, lớp học, trợ giảng, nội dung trang giới thiệu, quảng cáo
+- Giáo viên: khóa học, lớp, chương, bài giảng, bài tập (trắc nghiệm / đúng-sai / trả lời ngắn / tự luận / HSA),
+  AI chấm bài, nhận xét lớp (xuất PDF / Excel), xếp hạng tháng, trợ giảng
+- Học sinh: bài giảng, bài tập cần làm, làm & nộp bài (nhiều lần — lấy điểm cao nhất), xem điểm,
+  nhận xét, đáp án, video chữa, xếp hạng lớp

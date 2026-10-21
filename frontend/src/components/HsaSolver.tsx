@@ -19,7 +19,7 @@ export default function HsaSolver({ cfg, value, onChange, readOnly = false }: Pr
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       {cfg.questions.map((q, i) => (
-        <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 3, padding: '5px 0', borderBottom: '1px solid #F2F2F2' }}>
+        <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 3, padding: '5px 0', borderBottom: '1px solid #F0EDE7' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
             <span style={qLabel}>Câu {i + 1}</span>
             {q.kind === 'multiple_choice' ? (
@@ -30,7 +30,7 @@ export default function HsaSolver({ cfg, value, onChange, readOnly = false }: Pr
                     <button key={opt} type="button" disabled={readOnly}
                       onClick={() => setAnswer(i, active ? '' : opt)} style={mcOption(readOnly)}>
                       {radio(active)}
-                      <span style={{ fontWeight: 700, fontSize: '0.9rem', color: active ? '#1565C0' : '#444' }}>{opt}</span>
+                      <span style={{ fontWeight: 700, fontSize: '0.9rem', color: active ? '#2F6F82' : '#40494E' }}>{opt}</span>
                     </button>
                   );
                 })}
@@ -40,14 +40,14 @@ export default function HsaSolver({ cfg, value, onChange, readOnly = false }: Pr
                 placeholder="Nhập đáp án..." value={value[i] || ''} onChange={(e) => setAnswer(i, e.target.value)} />
             )}
           </div>
-          {q.note && <div style={{ marginLeft: 62, fontSize: '0.78rem', color: '#B26A00', fontStyle: 'italic' }}>Gợi ý: {q.note}</div>}
+          {q.note && <div style={{ marginLeft: 62, fontSize: '0.78rem', color: '#9C5F33', fontStyle: 'italic' }}>Gợi ý: {q.note}</div>}
         </div>
       ))}
     </div>
   );
 }
 
-const qLabel: React.CSSProperties = { fontSize: '0.85rem', fontWeight: 700, color: '#1A1A2E', minWidth: 52 };
+const qLabel: React.CSSProperties = { fontSize: '0.85rem', fontWeight: 700, color: '#1D2A30', minWidth: 52 };
 
 function mcOption(readOnly: boolean): React.CSSProperties {
   return { display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', padding: '2px 4px', cursor: readOnly ? 'default' : 'pointer' };
@@ -56,8 +56,8 @@ function mcOption(readOnly: boolean): React.CSSProperties {
 function radio(active: boolean): React.ReactNode {
   return (
     <span style={{
-      width: 20, height: 20, borderRadius: '50%', border: `2px solid ${active ? '#1565C0' : '#BBB'}`,
-      background: active ? '#1565C0' : 'white', display: 'inline-flex', flexShrink: 0,
+      width: 20, height: 20, borderRadius: '50%', border: `2px solid ${active ? '#2F6F82' : '#B6BBBE'}`,
+      background: active ? '#2F6F82' : 'white', display: 'inline-flex', flexShrink: 0,
       boxShadow: active ? 'inset 0 0 0 3px white' : 'none',
     }} />
   );

@@ -10,10 +10,10 @@ import { BookOpen, ChevronRight, ChevronDown, Trophy, Users, GraduationCap, Awar
 /* Mỗi mục = 1 ô thống kê ở trên + 1 khối nội dung ngay trên trang chủ.
    Bấm vào ô thống kê sẽ cuộn xuống đúng khối đó (không mở trang khác). */
 const SECTIONS = [
-  { id: 'hoc-sinh', nav: 'Học sinh tiêu biểu', statLabel: 'Học sinh', statKey: 'stats_students', statFallback: '500+', icon: Trophy, color: '#C62828', bg: '#FFEBEE' },
-  { id: 'giao-vien', nav: 'Đội ngũ giáo viên', statLabel: 'Giáo viên', statKey: 'stats_teachers', statFallback: '20+', icon: GraduationCap, color: '#1565C0', bg: '#E3F2FD' },
-  { id: 'khoa-hoc', nav: 'Khóa học tiêu biểu', statLabel: 'Khóa học', statKey: 'stats_courses', statFallback: '15+', icon: BookOpen, color: '#2E7D32', bg: '#E8F5E9' },
-  { id: 'kinh-nghiem', nav: 'Kinh nghiệm', statLabel: 'Năm kinh nghiệm', statKey: 'stats_years', statFallback: '10+', icon: Users, color: '#E65100', bg: '#FFF3E0' },
+  { id: 'hoc-sinh', nav: 'Học sinh tiêu biểu', statLabel: 'Học sinh', statKey: 'stats_students', statFallback: '500+', icon: Trophy, color: '#1F5C68', bg: '#E4EFF1' },
+  { id: 'giao-vien', nav: 'Đội ngũ giáo viên', statLabel: 'Giáo viên', statKey: 'stats_teachers', statFallback: '20+', icon: GraduationCap, color: '#2F6F82', bg: '#E6F0F3' },
+  { id: 'khoa-hoc', nav: 'Khóa học tiêu biểu', statLabel: 'Khóa học', statKey: 'stats_courses', statFallback: '15+', icon: BookOpen, color: '#3A7D5C', bg: '#E5F1EA' },
+  { id: 'kinh-nghiem', nav: 'Kinh nghiệm', statLabel: 'Năm kinh nghiệm', statKey: 'stats_years', statFallback: '10+', icon: Users, color: '#B8673E', bg: '#FBEEE6' },
 ];
 
 const SCROLL_OFFSET = 86; // chừa chỗ cho thanh điều hướng dính ở trên
@@ -31,10 +31,10 @@ function Section({ id, title, subtitle, icon: Icon, color, alt, children }: any)
     <section id={id} style={{ background: alt ? 'white' : 'transparent', scrollMarginTop: SCROLL_OFFSET, padding: '2.25rem 2rem' }}>
       <div style={{ maxWidth: PAGE_MAX, margin: '0 auto' }}>
         <div style={{ marginBottom: '1.5rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#1A1A2E', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#1D2A30', display: 'flex', alignItems: 'center', gap: 10 }}>
             <Icon size={22} color={color} /> {title}
           </h2>
-          {subtitle && <p style={{ margin: '6px 0 0', color: '#888', fontSize: '0.9rem' }}>{subtitle}</p>}
+          {subtitle && <p style={{ margin: '6px 0 0', color: '#7A8287', fontSize: '0.9rem' }}>{subtitle}</p>}
           <div style={{ width: 52, height: 3, background: color, borderRadius: 2, marginTop: 12 }} />
         </div>
         {children}
@@ -44,7 +44,7 @@ function Section({ id, title, subtitle, icon: Icon, color, alt, children }: any)
 }
 
 function Empty({ text }: { text: string }) {
-  return <div style={{ textAlign: 'center', color: '#999', padding: '2.5rem', background: '#FAFAFA', border: '1px dashed #E0E0E0', borderRadius: 12 }}>{text}</div>;
+  return <div style={{ textAlign: 'center', color: '#949A9E', padding: '2.5rem', background: '#FAF9F6', border: '1px dashed #E2DDD4', borderRadius: 12 }}>{text}</div>;
 }
 
 function StaffGrid({ list }: { list: any[] }) {
@@ -55,25 +55,25 @@ function StaffGrid({ list }: { list: any[] }) {
           {s.image ? (
             <img src={`/uploads/staff/${s.image}`} alt={s.name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
           ) : (
-            <div style={{ height: 220, background: 'linear-gradient(135deg, #E3F2FD, #BBDEFB)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <UserCircle size={56} color="#1565C0" />
+            <div style={{ height: 220, background: 'linear-gradient(135deg, #E6F0F3, #CDE1E7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <UserCircle size={56} color="#2F6F82" />
             </div>
           )}
           <div style={{ padding: '1rem' }}>
-            <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1A1A2E' }}>{s.name}</h3>
-            {s.role_title && <div style={{ color: '#1565C0', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>{s.role_title}</div>}
-            {s.description && <p style={{ margin: 0, fontSize: '0.83rem', color: '#777', lineHeight: 1.5 }}>{s.description}</p>}
+            <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1D2A30' }}>{s.name}</h3>
+            {s.role_title && <div style={{ color: '#2F6F82', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>{s.role_title}</div>}
+            {s.description && <p style={{ margin: 0, fontSize: '0.83rem', color: '#6E767B', lineHeight: 1.5 }}>{s.description}</p>}
             {(s.phone || s.facebook_url) && (
               <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
                 {s.phone && (
                   <a href={`tel:${String(s.phone).replace(/[^+\d]/g, '')}`}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E8F5E9', color: '#2E7D32', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E5F1EA', color: '#3A7D5C', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
                     <Phone size={13} /> {s.phone}
                   </a>
                 )}
                 {s.facebook_url && (
                   <a href={s.facebook_url} target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E3F2FD', color: '#1565C0', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E6F0F3', color: '#2F6F82', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
                     <FacebookIcon size={13} /> Facebook
                   </a>
                 )}
@@ -126,17 +126,17 @@ export default function Home() {
           <AdCarousel ads={ads} />
         ) : (
           <div style={{
-            borderRadius: 16, overflow: 'hidden',
-            background: 'linear-gradient(135deg, #1A1A2E, #0F3460)',
+            borderRadius: 18, overflow: 'hidden',
+            background: '#1F5C68',
             height: 380, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column',
             color: 'white', textAlign: 'center', padding: '2rem'
           }}>
-            <img src="/logo.jpg" alt="Logo" style={{ height: 80, borderRadius: 12, marginBottom: 20 }} />
-            <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: '0 0 12px', color: 'white' }}>
-              {settings.hero_title || 'Trung Tâm Giáo Dục APLUS Hoàng Mai'}
+            <img src="/logo.svg" alt="Thầy Chiến Math" style={{ width: 72, height: 72, borderRadius: 18, marginBottom: 20 }} />
+            <h1 style={{ fontSize: '2.4rem', fontWeight: 700, margin: '0 0 12px', color: 'white' }}>
+              {settings.hero_title || 'Thầy Chiến Math'}
             </h1>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1rem', maxWidth: 500 }}>
-              {settings.hero_subtitle || 'Không để ai bỏ lại — Thay đổi việc học các con là thay đổi tương lai số phận'}
+            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.05rem', maxWidth: 520 }}>
+              {settings.hero_subtitle || 'Học Toán vững vàng — tự tin chinh phục mọi kỳ thi'}
             </p>
           </div>
         )}
@@ -156,14 +156,14 @@ export default function Home() {
                 onMouseLeave={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}>
                 <div style={{ padding: '1.15rem 1rem 0.9rem', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.8rem', fontWeight: 800, color }}>{settings[statKey] || statFallback}</div>
-                  <div style={{ fontSize: '0.82rem', color: '#888', marginTop: 4 }}>{statLabel}</div>
+                  <div style={{ fontSize: '0.82rem', color: '#7A8287', marginTop: 4 }}>{statLabel}</div>
                 </div>
-                <div style={{ borderTop: '1px solid #F0F0F0', padding: '0.7rem 0.9rem', display: 'flex', alignItems: 'center', gap: 10, marginTop: 'auto' }}>
+                <div style={{ borderTop: '1px solid #EEEBE5', padding: '0.7rem 0.9rem', display: 'flex', alignItems: 'center', gap: 10, marginTop: 'auto' }}>
                   <div style={{ width: 32, height: 32, background: bg, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Icon size={17} color={color} />
                   </div>
-                  <div style={{ fontWeight: 700, color: '#1A1A2E', fontSize: '0.83rem' }}>{nav}</div>
-                  <ChevronDown size={16} color="#bbb" style={{ marginLeft: 'auto', flexShrink: 0 }} />
+                  <div style={{ fontWeight: 700, color: '#1D2A30', fontSize: '0.83rem' }}>{nav}</div>
+                  <ChevronDown size={16} color="#B6BBBE" style={{ marginLeft: 'auto', flexShrink: 0 }} />
                 </div>
               </div>
             </a>
@@ -172,7 +172,7 @@ export default function Home() {
       </section>
 
       {/* 1. Học sinh tiêu biểu */}
-      <Section id="hoc-sinh" title="Học sinh tiêu biểu" subtitle="Những gương mặt xuất sắc đạt điểm cao trong các kỳ thi" icon={Trophy} color="#C62828">
+      <Section id="hoc-sinh" title="Học sinh tiêu biểu" subtitle="Những gương mặt xuất sắc đạt điểm cao trong các kỳ thi" icon={Trophy} color="#1F5C68">
         {students.length === 0 ? <Empty text="Chưa có thông tin học sinh tiêu biểu" /> : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
             {students.map((s) => (
@@ -180,19 +180,19 @@ export default function Home() {
                 {s.image ? (
                   <img src={`/uploads/featured_students/${s.image}`} alt={s.name} style={{ width: '100%', height: 240, objectFit: 'cover' }} />
                 ) : (
-                  <div style={{ height: 240, background: 'linear-gradient(135deg, #FFEBEE, #FFCDD2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Trophy size={48} color="#C62828" />
+                  <div style={{ height: 240, background: 'linear-gradient(135deg, #E4EFF1, #CFE2E6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Trophy size={48} color="#1F5C68" />
                   </div>
                 )}
                 <div style={{ padding: '1rem' }}>
-                  <h3 style={{ margin: '0 0 6px', fontSize: '1.05rem', fontWeight: 800, color: '#1A1A2E' }}>{s.name}</h3>
+                  <h3 style={{ margin: '0 0 6px', fontSize: '1.05rem', fontWeight: 800, color: '#1D2A30' }}>{s.name}</h3>
                   {s.exam && <span className="badge badge-red" style={{ marginBottom: 8 }}>{s.exam}</span>}
                   {s.achievement && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#C62828', fontWeight: 700, fontSize: '0.95rem', margin: '8px 0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#1F5C68', fontWeight: 700, fontSize: '0.95rem', margin: '8px 0' }}>
                       <Award size={16} /> {s.achievement}
                     </div>
                   )}
-                  {s.description && <p style={{ margin: 0, fontSize: '0.85rem', color: '#777', lineHeight: 1.5 }}>{s.description}</p>}
+                  {s.description && <p style={{ margin: 0, fontSize: '0.85rem', color: '#6E767B', lineHeight: 1.5 }}>{s.description}</p>}
                 </div>
               </div>
             ))}
@@ -201,18 +201,18 @@ export default function Home() {
       </Section>
 
       {/* 2. Đội ngũ giáo viên & trợ giảng */}
-      <Section id="giao-vien" title="Đội ngũ Giáo viên & Trợ giảng" subtitle="Tận tâm, giàu kinh nghiệm, đồng hành cùng học sinh" icon={GraduationCap} color="#1565C0" alt>
+      <Section id="giao-vien" title="Đội ngũ Giáo viên & Trợ giảng" subtitle="Tận tâm, giàu kinh nghiệm, đồng hành cùng học sinh" icon={GraduationCap} color="#2F6F82" alt>
         {staff.length === 0 ? <Empty text="Chưa có thông tin đội ngũ" /> : (
           <>
             {teachers.length > 0 && (
               <>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1A1A2E', margin: '0 0 1rem' }}>Giáo viên</h3>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1D2A30', margin: '0 0 1rem' }}>Giáo viên</h3>
                 <StaffGrid list={teachers} />
               </>
             )}
             {assistants.length > 0 && (
               <>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1A1A2E', margin: '2rem 0 1rem' }}>Trợ giảng</h3>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1D2A30', margin: '2rem 0 1rem' }}>Trợ giảng</h3>
                 <StaffGrid list={assistants} />
               </>
             )}
@@ -221,7 +221,7 @@ export default function Home() {
       </Section>
 
       {/* 3. Khóa học tiêu biểu = chính danh sách khóa học của trung tâm */}
-      <Section id="khoa-hoc" title="Các khóa học" subtitle="Các khóa học đang mở tại trung tâm" icon={BookOpen} color="#2E7D32">
+      <Section id="khoa-hoc" title="Các khóa học" subtitle="Các khóa học đang mở tại trung tâm" icon={BookOpen} color="#3A7D5C">
         {courses.length === 0 ? <Empty text="Chưa có khóa học nào" /> : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
             {courses.map((c: any) => (
@@ -231,19 +231,19 @@ export default function Home() {
                 {c.thumbnail ? (
                   <img src={`/uploads/courses/${c.thumbnail}`} alt={c.title} style={{ width: '100%', height: 160, objectFit: 'cover' }} />
                 ) : (
-                  <div style={{ height: 160, background: 'linear-gradient(135deg, #C62828, #1565C0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ height: 160, background: 'linear-gradient(135deg, #1F5C68, #2F6F82)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <BookOpen size={40} color="rgba(255,255,255,0.7)" />
                   </div>
                 )}
                 <div style={{ padding: '1rem' }}>
-                  <h3 style={{ margin: '0 0 8px', fontSize: '1rem', fontWeight: 700, color: '#1A1A2E' }}>{c.title}</h3>
+                  <h3 style={{ margin: '0 0 8px', fontSize: '1rem', fontWeight: 700, color: '#1D2A30' }}>{c.title}</h3>
                   {c.student_count > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#2E7D32', fontWeight: 700, fontSize: '0.85rem', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#3A7D5C', fontWeight: 700, fontSize: '0.85rem', marginBottom: 8 }}>
                       <Users size={15} /> {c.student_count} học sinh
                     </div>
                   )}
-                  {c.description && <p style={{ margin: '0 0 12px', fontSize: '0.85rem', color: '#888', lineHeight: 1.5 }}>{c.description}</p>}
-                  <Link to={`/courses/${c.id}`} style={{ color: '#C62828', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {c.description && <p style={{ margin: '0 0 12px', fontSize: '0.85rem', color: '#7A8287', lineHeight: 1.5 }}>{c.description}</p>}
+                  <Link to={`/courses/${c.id}`} style={{ color: '#1F5C68', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
                     Xem chi tiết <ChevronRight size={14} />
                   </Link>
                 </div>
@@ -254,13 +254,13 @@ export default function Home() {
       </Section>
 
       {/* 4. Kinh nghiệm & Thành tích */}
-      <Section id="kinh-nghiem" title="Kinh nghiệm & Thành tích" subtitle="Hành trình phát triển của trung tâm qua các năm" icon={Award} color="#E65100" alt>
+      <Section id="kinh-nghiem" title="Kinh nghiệm & Thành tích" subtitle="Hành trình phát triển của trung tâm qua các năm" icon={Award} color="#B8673E" alt>
         {achievements.length === 0 ? <Empty text="Chưa có thông tin thành tích" /> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             {achievements.map((a, i) => (
               <div key={a.id} style={{
                 background: 'white', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-                border: '1px solid #F0F0F0',
+                border: '1px solid #EEEBE5',
                 display: 'flex', flexDirection: i % 2 === 0 ? 'row' : 'row-reverse', flexWrap: 'wrap',
               }}>
                 {a.image && (
@@ -268,12 +268,12 @@ export default function Home() {
                 )}
                 <div style={{ padding: '1.5rem', flex: '1 1 300px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   {a.year && (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#E65100', fontWeight: 800, fontSize: '1.1rem', marginBottom: 8 }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#B8673E', fontWeight: 800, fontSize: '1.1rem', marginBottom: 8 }}>
                       <Calendar size={18} /> {a.year}
                     </div>
                   )}
-                  <h3 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: 800, color: '#1A1A2E' }}>{a.title}</h3>
-                  {a.description && <p style={{ margin: 0, fontSize: '0.9rem', color: '#666', lineHeight: 1.6 }}>{a.description}</p>}
+                  <h3 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: 800, color: '#1D2A30' }}>{a.title}</h3>
+                  {a.description && <p style={{ margin: 0, fontSize: '0.9rem', color: '#5E676C', lineHeight: 1.6 }}>{a.description}</p>}
                 </div>
               </div>
             ))}
@@ -282,9 +282,9 @@ export default function Home() {
       </Section>
 
       {/* Features */}
-      <section style={{ background: '#1A1A2E', padding: '3rem 2rem' }}>
+      <section style={{ background: '#1F5C68', padding: '3rem 2rem' }}>
         <div style={{ maxWidth: PAGE_MAX, margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ color: 'white', fontWeight: 800, fontSize: '1.5rem', marginBottom: '2rem' }}>Tại sao chọn APLUS Hoàng Mai?</h2>
+          <h2 style={{ color: 'white', fontWeight: 800, fontSize: '1.5rem', marginBottom: '2rem' }}>Vì sao chọn Thầy Chiến Math?</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
             {[
               { icon: '🎓', title: 'Giáo viên giỏi', desc: 'Đội ngũ giáo viên giàu kinh nghiệm, nhiệt tình' },

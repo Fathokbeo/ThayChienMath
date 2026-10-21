@@ -165,8 +165,8 @@ export default function SubmitHomeworkView({
     <div style={{
       position: 'sticky', top: 0, zIndex: 5, marginBottom: '1.25rem',
       display: 'flex', alignItems: 'center', gap: 8, padding: '0.6rem 0.9rem', borderRadius: 10,
-      background: examDeadline ? (isLowTime ? '#FFEBEE' : '#FFF3E0') : '#F5F5F5',
-      color: examDeadline ? (isLowTime ? '#C62828' : '#E65100') : '#888',
+      background: examDeadline ? (isLowTime ? '#F8E6DF' : '#FBEEE6') : '#F1EFEA',
+      color: examDeadline ? (isLowTime ? '#B04A2A' : '#B8673E') : '#7A8287',
       fontWeight: 700, fontSize: '0.92rem',
     }}>
       <Timer size={16} />
@@ -190,7 +190,7 @@ export default function SubmitHomeworkView({
           <PartsSolver cfg={cfg} value={studentAnswers} onChange={onAnswersChange} />
         </div>
       )}
-      <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#F5F5F5', borderRadius: 8, fontSize: '0.82rem', color: '#666' }}>
+      <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#F1EFEA', borderRadius: 8, fontSize: '0.82rem', color: '#5E676C' }}>
         {examType === 'hsa'
           ? <>Chọn/điền đáp án các câu ở trên. Hệ thống tự động chấm và cho kết quả ngay sau khi nộp.</>
           : submitObjective
@@ -207,7 +207,7 @@ export default function SubmitHomeworkView({
             <div>
               <Upload size={28} style={{ margin: '0 auto 8px', opacity: 0.5 }} />
               <div style={{ fontWeight: 500 }}>Kéo thả hoặc click để chọn file</div>
-              <div style={{ fontSize: '0.75rem', color: '#aaa', marginTop: 4 }}>PDF, JPG, PNG · chọn được nhiều ảnh · tối đa 20MB/file</div>
+              <div style={{ fontSize: '0.75rem', color: '#A6ABAE', marginTop: 4 }}>PDF, JPG, PNG · chọn được nhiều ảnh · tối đa 20MB/file</div>
             </div>
           </div>
           <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple hidden
@@ -216,15 +216,15 @@ export default function SubmitHomeworkView({
           {submitFiles.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 12 }}>
               {submitFiles.map((f, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.5rem 0.7rem', background: '#F1F8E9', borderRadius: 8 }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.5rem 0.7rem', background: '#EDF5EF', borderRadius: 8 }}>
                   {f.type === 'application/pdf'
-                    ? <FileText size={16} color="#C62828" style={{ flexShrink: 0 }} />
-                    : <CheckCircle size={16} color="#2E7D32" style={{ flexShrink: 0 }} />}
+                    ? <FileText size={16} color="#1F5C68" style={{ flexShrink: 0 }} />
+                    : <CheckCircle size={16} color="#3A7D5C" style={{ flexShrink: 0 }} />}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.83rem', fontWeight: 600, color: '#2E7D32', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#888' }}>{(f.size / 1024 / 1024).toFixed(1)} MB</div>
+                    <div style={{ fontSize: '0.83rem', fontWeight: 600, color: '#3A7D5C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#7A8287' }}>{(f.size / 1024 / 1024).toFixed(1)} MB</div>
                   </div>
-                  <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} onClick={() => onRemoveFile(i)} title="Xóa">
+                  <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} onClick={() => onRemoveFile(i)} title="Xóa">
                     <X size={14} />
                   </button>
                 </div>
@@ -241,7 +241,7 @@ export default function SubmitHomeworkView({
 
   return (
     <div ref={rootRef} style={{ position: 'fixed', inset: 0, background: 'white', zIndex: 1000, display: 'flex', flexDirection: 'column' }} className="fade-in">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: isMobile ? '0.7rem 0.85rem' : '0.85rem 1.5rem', borderBottom: '1px solid #EEE', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: isMobile ? '0.7rem 0.85rem' : '0.85rem 1.5rem', borderBottom: '1px solid #ECE8E1', flexShrink: 0 }}>
         <button className="btn btn-ghost btn-sm btn-icon" onClick={onClose} title="Đóng"><X size={18} /></button>
         <span style={{ fontWeight: 700, fontSize: isMobile ? '0.92rem' : '1.05rem', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</span>
         {isMobile && pdfUrl && (
@@ -256,7 +256,7 @@ export default function SubmitHomeworkView({
         )}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
           {deadlineRemainMs !== null && (
-            <span style={{ fontSize: '0.72rem', fontWeight: 400, color: isDeadlineLow ? '#C62828' : '#888' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 400, color: isDeadlineLow ? '#B04A2A' : '#7A8287' }}>
               {deadlineRemainMs > 0 ? `Thời gian còn lại: ${formatDeadlineRemaining(deadlineRemainMs)}` : 'Đã hết hạn nộp'}
             </span>
           )}
@@ -269,7 +269,7 @@ export default function SubmitHomeworkView({
       {isMobile ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {showDe && pdfUrl && (
-            <div style={{ height: '42vh', flexShrink: 0, borderBottom: '1px solid #EEE', background: '#2A2A35' }}>
+            <div style={{ height: '42vh', flexShrink: 0, borderBottom: '1px solid #ECE8E1', background: '#26343A' }}>
               {dePanel}
             </div>
           )}
@@ -279,11 +279,11 @@ export default function SubmitHomeworkView({
         <div ref={splitRowRef} style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           {pdfUrl && (
             <>
-              <div style={{ width: `${splitPct}%`, background: '#2A2A35', flexShrink: 0 }}>
+              <div style={{ width: `${splitPct}%`, background: '#26343A', flexShrink: 0 }}>
                 {dePanel}
               </div>
               <div onMouseDown={startDrag} title="Kéo để đổi tỉ lệ"
-                style={{ width: 6, flexShrink: 0, cursor: 'col-resize', background: '#EEE', borderLeft: '1px solid #E0E0E0', borderRight: '1px solid #E0E0E0' }} />
+                style={{ width: 6, flexShrink: 0, cursor: 'col-resize', background: '#ECE8E1', borderLeft: '1px solid #E2DDD4', borderRight: '1px solid #E2DDD4' }} />
             </>
           )}
           <div style={{ width: pdfUrl ? `${100 - splitPct}%` : '100%' }}>{answerPanel}</div>
@@ -293,15 +293,15 @@ export default function SubmitHomeworkView({
       {confirmUnanswered.length > 0 && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
           <div className="card" style={{ width: '100%', maxWidth: 440, padding: '1.5rem' }}>
-            <div style={{ fontWeight: 800, fontSize: '1.05rem', marginBottom: 8, color: '#E65100' }}>
+            <div style={{ fontWeight: 800, fontSize: '1.05rem', marginBottom: 8, color: '#B8673E' }}>
               Còn {confirmUnanswered.length} câu chưa làm
             </div>
-            <div style={{ fontSize: '0.88rem', color: '#666', marginBottom: 12 }}>
+            <div style={{ fontSize: '0.88rem', color: '#5E676C', marginBottom: 12 }}>
               Bạn chưa chọn/điền đáp án cho các câu sau. Vẫn muốn nộp bài?
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20, maxHeight: 160, overflowY: 'auto' }}>
               {confirmUnanswered.map((n) => (
-                <span key={n} style={{ fontWeight: 700, fontSize: '0.8rem', color: '#E65100', background: '#FFF3E0', borderRadius: 6, padding: '3px 9px' }}>
+                <span key={n} style={{ fontWeight: 700, fontSize: '0.8rem', color: '#B8673E', background: '#FBEEE6', borderRadius: 6, padding: '3px 9px' }}>
                   Câu {n}
                 </span>
               ))}

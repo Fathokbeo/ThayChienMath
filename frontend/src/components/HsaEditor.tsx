@@ -21,14 +21,14 @@ export default function HsaEditor({ value, onChange }: Props) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div style={{ fontSize: '0.75rem', color: '#888', lineHeight: 1.6 }}>
+      <div style={{ fontSize: '0.75rem', color: '#7A8287', lineHeight: 1.6 }}>
         Mỗi câu tự chọn <strong>Trắc nghiệm</strong> hoặc <strong>Trả lời ngắn</strong>, luôn <strong>1 điểm/câu</strong>.
         Điểm cuối = tổng số câu đúng (không quy đổi thang điểm). Chấm hoàn toàn tự động theo đáp án nhập ở đây
         — cần nhập đủ đáp án cho tất cả các câu (không hỗ trợ AI đọc File đáp án như THPT).
       </div>
 
       <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontSize: '0.8rem', color: '#666' }}>Số câu:</span>
+        <span style={{ fontSize: '0.8rem', color: '#5E676C' }}>Số câu:</span>
         <input className="input" type="number" min={0} max={50} style={{ width: 78, padding: '4px 8px' }}
           value={count} onChange={(e) => setCount(e.target.value)} />
       </label>
@@ -67,28 +67,28 @@ export default function HsaEditor({ value, onChange }: Props) {
         ))}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: '#F3E9FF', borderRadius: 10 }}>
-        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#6A1B9A' }}>Tổng điểm (thang HSA)</span>
-        <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#6A1B9A' }}>{hsaMaxScore(value)} điểm</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: '#EFEBF5', borderRadius: 10 }}>
+        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#6E5A94' }}>Tổng điểm (thang HSA)</span>
+        <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#6E5A94' }}>{hsaMaxScore(value)} điểm</span>
       </div>
     </div>
   );
 }
 
-const qRow: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '6px 0', borderBottom: '1px solid #F2F2F2' };
-const qLabel: React.CSSProperties = { fontSize: '0.8rem', fontWeight: 700, color: '#1A1A2E', minWidth: 48 };
-const unsetHint: React.CSSProperties = { fontSize: '0.72rem', color: '#B26A00', fontStyle: 'italic' };
+const qRow: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '6px 0', borderBottom: '1px solid #F0EDE7' };
+const qLabel: React.CSSProperties = { fontSize: '0.8rem', fontWeight: 700, color: '#1D2A30', minWidth: 48 };
+const unsetHint: React.CSSProperties = { fontSize: '0.72rem', color: '#9C5F33', fontStyle: 'italic' };
 
 function chip(active: boolean): React.CSSProperties {
   return {
-    border: `1px solid ${active ? '#C62828' : '#DDD'}`, background: active ? '#C62828' : 'white',
-    color: active ? 'white' : '#666', borderRadius: 7, padding: '3px 10px', fontSize: '0.8rem', fontWeight: 700,
+    border: `1px solid ${active ? '#1F5C68' : '#DAD5CC'}`, background: active ? '#1F5C68' : 'white',
+    color: active ? 'white' : '#5E676C', borderRadius: 7, padding: '3px 10px', fontSize: '0.8rem', fontWeight: 700,
     cursor: 'pointer', minWidth: 32,
   };
 }
 function kindChip(active: boolean): React.CSSProperties {
   return {
-    border: `1px solid ${active ? '#1565C0' : '#DDD'}`, background: active ? '#1565C0' : 'white',
-    color: active ? 'white' : '#666', borderRadius: 7, padding: '3px 10px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
+    border: `1px solid ${active ? '#2F6F82' : '#DAD5CC'}`, background: active ? '#2F6F82' : 'white',
+    color: active ? 'white' : '#5E676C', borderRadius: 7, padding: '3px 10px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer',
   };
 }

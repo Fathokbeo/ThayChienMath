@@ -123,20 +123,20 @@ export default function AdManagement() {
             </div>
             <div style={{ padding: '0.75rem' }}>
               {a.title && <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: 4 }}>{a.title}</div>}
-              {a.link && <div style={{ fontSize: '0.78rem', color: '#888', marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.link}</div>}
+              {a.link && <div style={{ fontSize: '0.78rem', color: '#7A8287', marginBottom: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.link}</div>}
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <span style={{ fontSize: '0.75rem', color: '#999', flex: 1 }}>Thứ tự: {a.ad_order}</span>
+                <span style={{ fontSize: '0.75rem', color: '#949A9E', flex: 1 }}>Thứ tự: {a.ad_order}</span>
                 <button className="btn btn-ghost btn-sm btn-icon" onClick={() => toggleActive(a)} title={a.active ? 'Ẩn' : 'Hiện'}>
                   {a.active ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
                 <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEdit(a)}><Edit size={14} /></button>
-                <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} onClick={() => deleteAd(a)}><Trash2 size={14} /></button>
+                <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} onClick={() => deleteAd(a)}><Trash2 size={14} /></button>
               </div>
             </div>
           </div>
         ))}
         {ads.length === 0 && (
-          <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#999', padding: '3rem', background: 'white', borderRadius: 12 }}>
+          <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#949A9E', padding: '3rem', background: 'white', borderRadius: 12 }}>
             <Image size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
             <div>Chưa có quảng cáo nào</div>
           </div>

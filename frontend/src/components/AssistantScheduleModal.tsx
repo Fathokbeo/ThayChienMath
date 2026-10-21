@@ -69,11 +69,11 @@ export default function AssistantScheduleModal({ open, onClose, assistant, edita
         <button className="btn btn-ghost" onClick={onClose}>Đóng</button>
       )}
     >
-      <div style={{ fontSize: '0.78rem', color: '#888', marginBottom: 10 }}>
+      <div style={{ fontSize: '0.78rem', color: '#7A8287', marginBottom: 10 }}>
         {editing ? 'Nhập nội dung cho từng ca (để trống nếu trợ giảng không làm việc ca đó).' : 'Ô trống nghĩa là trợ giảng không làm việc ca đó.'}
       </div>
       {editing && (assistant?.class_count || 0) > 1 && (
-        <div style={{ background: '#E3F2FD', color: '#1565C0', borderRadius: 8, padding: '0.6rem 0.75rem', fontSize: '0.8rem', marginBottom: 10 }}>
+        <div style={{ background: '#E6F0F3', color: '#2F6F82', borderRadius: 8, padding: '0.6rem 0.75rem', fontSize: '0.8rem', marginBottom: 10 }}>
           Lịch này dùng chung cho {assistant?.class_count} lớp của trợ giảng, sửa ở đây sẽ đồng bộ sang tất cả các lớp đó.
         </div>
       )}
@@ -89,13 +89,13 @@ export default function AssistantScheduleModal({ open, onClose, assistant, edita
             {PERIOD_ORDER.map((period) => (
               <Fragment key={period}>
                 <tr>
-                  <td colSpan={8} style={{ background: '#F9F9F9', fontWeight: 700, fontSize: '0.78rem', color: '#666', padding: '0.4rem 1rem' }}>
+                  <td colSpan={8} style={{ background: '#F8F7F3', fontWeight: 700, fontSize: '0.78rem', color: '#5E676C', padding: '0.4rem 1rem' }}>
                     {PERIOD_LABELS[period]}
                   </td>
                 </tr>
                 {SHIFTS.filter((s) => s.period === period).map((s) => (
                   <tr key={s.key}>
-                    <td style={{ fontSize: '0.78rem', color: '#888', whiteSpace: 'nowrap' }}>{s.label}</td>
+                    <td style={{ fontSize: '0.78rem', color: '#7A8287', whiteSpace: 'nowrap' }}>{s.label}</td>
                     {DAYS.map((d) => (
                       <td key={d.key} style={{ textAlign: editing ? undefined : 'center' }}>
                         {editing ? (
@@ -107,7 +107,7 @@ export default function AssistantScheduleModal({ open, onClose, assistant, edita
                             placeholder="—"
                           />
                         ) : (
-                          <span style={{ fontSize: '0.82rem', color: draft[d.key][s.key] ? '#1A1A2E' : '#ccc' }}>
+                          <span style={{ fontSize: '0.82rem', color: draft[d.key][s.key] ? '#1D2A30' : '#C8C3BA' }}>
                             {draft[d.key][s.key] || '—'}
                           </span>
                         )}

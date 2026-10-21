@@ -31,8 +31,8 @@ import StudentClassDetail from './pages/student/StudentClassDetail';
 function ProtectedRoute({ children, role }: { children: React.ReactElement; role?: string | string[] }) {
   const { user, loading } = useAuth();
   if (loading) return (
-    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', flexDirection: 'column', gap: 12 }}>
-      <div style={{ width: 36, height: 36, border: '3px solid #F0F0F0', borderTopColor: '#C62828', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7A8287', flexDirection: 'column', gap: 12 }}>
+      <div style={{ width: 36, height: 36, border: '3px solid #EEEBE5', borderTopColor: '#1F5C68', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
       Đang tải...
     </div>
   );

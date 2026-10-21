@@ -33,7 +33,7 @@ export default function ToastContainer() {
 
   const remove = (id: number) => setToasts((t) => t.filter((x) => x.id !== id));
 
-  const colors = { success: '#2E7D32', error: '#C62828', info: '#1565C0' };
+  const colors = { success: '#3A7D5C', error: '#B04A2A', info: '#2F6F82' };
   const icons = { success: CheckCircle, error: XCircle, info: AlertCircle };
 
   return (

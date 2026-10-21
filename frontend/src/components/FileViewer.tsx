@@ -17,15 +17,15 @@ export default function FileViewer({ files, onClose }: { files: string[]; onClos
     <div className="modal-overlay" onClick={onClose}>
       <div style={{ background: 'white', borderRadius: 12, width: '90vw', height: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
         onClick={(e) => e.stopPropagation()}>
-        <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #EEE', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontWeight: 600 }}>Xem tài liệu {multi && <span style={{ color: '#888', fontWeight: 400 }}>({i + 1}/{files.length})</span>}</span>
+        <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #ECE8E1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontWeight: 600 }}>Xem tài liệu {multi && <span style={{ color: '#7A8287', fontWeight: 400 }}>({i + 1}/{files.length})</span>}</span>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <a className="btn btn-ghost btn-sm" href={url} target="_blank" rel="noreferrer"><Download size={13} /> Tải về</a>
             <button className="btn btn-ghost btn-sm" onClick={onClose}>Đóng</button>
           </div>
         </div>
 
-        <div style={{ flex: 1, position: 'relative', overflow: 'auto', background: '#2A2A35', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'auto', background: '#26343A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {isPdf(url)
             ? <iframe src={url} style={{ width: '100%', height: '100%', border: 'none', background: 'white' }} title="PDF" />
             : <img src={url} alt={`Trang ${i + 1}`} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />}
@@ -39,16 +39,16 @@ export default function FileViewer({ files, onClose }: { files: string[]; onClos
         </div>
 
         {multi && (
-          <div style={{ display: 'flex', gap: 6, padding: 8, overflowX: 'auto', borderTop: '1px solid #EEE', background: '#FAFAFA' }}>
+          <div style={{ display: 'flex', gap: 6, padding: 8, overflowX: 'auto', borderTop: '1px solid #ECE8E1', background: '#FAF9F6' }}>
             {files.map((f, k) => (
               <button key={k} onClick={() => setIdx(k)} title={`Trang ${k + 1}`}
                 style={{
                   width: 56, height: 56, flexShrink: 0, borderRadius: 8, overflow: 'hidden', cursor: 'pointer', padding: 0,
-                  border: k === i ? '2px solid #C62828' : '2px solid transparent', background: '#EEE',
+                  border: k === i ? '2px solid #1F5C68' : '2px solid transparent', background: '#ECE8E1',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                 {isPdf(f)
-                  ? <FileText size={20} color="#C62828" />
+                  ? <FileText size={20} color="#1F5C68" />
                   : <img src={f} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
               </button>
             ))}

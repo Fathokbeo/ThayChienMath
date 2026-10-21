@@ -18,17 +18,17 @@ export default function StudentDashboard() {
     <div className="fade-in">
       <div style={{ marginBottom: '1.5rem' }}>
         <h1 className="page-title" style={{ margin: 0 }}>Xin chào, {user?.full_name}!</h1>
-        <p style={{ color: '#888', margin: '4px 0 0', fontSize: '0.88rem' }}>Chào mừng bạn đến với hệ thống học tập APLUS Hoàng Mai</p>
+        <p style={{ color: '#7A8287', margin: '4px 0 0', fontSize: '0.88rem' }}>Chào mừng bạn đến với Thầy Chiến Math</p>
       </div>
 
       {/* Stats */}
       {stats && (
         <div className="stat-grid" style={{ marginBottom: '2rem' }}>
           {[
-            { label: 'Lớp học', value: stats.classCount, icon: School, color: '#C62828', bg: '#FFEBEE' },
-            { label: 'Bài đã nộp', value: stats.submittedCount, icon: ClipboardList, color: '#1565C0', bg: '#E3F2FD' },
-            { label: 'Bài đã chấm', value: stats.gradedCount, icon: CheckCircle, color: '#2E7D32', bg: '#E8F5E9' },
-            { label: 'Điểm TB tháng', value: stats.avgScore ?? '—', icon: Star, color: '#E65100', bg: '#FFF3E0' },
+            { label: 'Lớp học', value: stats.classCount, icon: School, color: '#1F5C68', bg: '#E4EFF1' },
+            { label: 'Bài đã nộp', value: stats.submittedCount, icon: ClipboardList, color: '#2F6F82', bg: '#E6F0F3' },
+            { label: 'Bài đã chấm', value: stats.gradedCount, icon: CheckCircle, color: '#3A7D5C', bg: '#E5F1EA' },
+            { label: 'Điểm TB tháng', value: stats.avgScore ?? '—', icon: Star, color: '#B8673E', bg: '#FBEEE6' },
           ].map(({ label, value, icon: Icon, color, bg }) => (
             <div key={label} className="stat-card">
               <div className="stat-icon" style={{ background: bg }}>
@@ -45,7 +45,7 @@ export default function StudentDashboard() {
 
       <h2 className="section-title">Khóa học của tôi</h2>
       {courses.length === 0 ? (
-        <div style={{ background: 'white', borderRadius: 12, padding: '3rem', textAlign: 'center', color: '#999' }}>
+        <div style={{ background: 'white', borderRadius: 12, padding: '3rem', textAlign: 'center', color: '#949A9E' }}>
           <BookOpen size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
           <div>Bạn chưa được thêm vào lớp học nào</div>
         </div>
@@ -59,14 +59,14 @@ export default function StudentDashboard() {
               {co.thumbnail ? (
                 <img src={`/uploads/courses/${co.thumbnail}`} alt={co.title} style={{ width: '100%', height: 130, objectFit: 'cover' }} />
               ) : (
-                <div style={{ height: 100, background: 'linear-gradient(135deg, #C62828 0%, #1565C0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ height: 100, background: 'linear-gradient(135deg, #1F5C68 0%, #2F6F82 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <BookOpen size={30} color="rgba(255,255,255,0.8)" />
                 </div>
               )}
               <div style={{ padding: '1rem' }}>
-                <h3 style={{ margin: '0 0 6px', fontSize: '0.95rem', fontWeight: 700, color: '#1A1A2E' }}>{co.title}</h3>
-                {co.description && <p style={{ margin: '0 0 10px', fontSize: '0.82rem', color: '#888', lineHeight: 1.4 }}>{co.description}</p>}
-                <div style={{ display: 'flex', gap: 12, fontSize: '0.78rem', color: '#999', borderTop: '1px solid #F5F5F5', paddingTop: 10, marginTop: 10, marginBottom: 10 }}>
+                <h3 style={{ margin: '0 0 6px', fontSize: '0.95rem', fontWeight: 700, color: '#1D2A30' }}>{co.title}</h3>
+                {co.description && <p style={{ margin: '0 0 10px', fontSize: '0.82rem', color: '#7A8287', lineHeight: 1.4 }}>{co.description}</p>}
+                <div style={{ display: 'flex', gap: 12, fontSize: '0.78rem', color: '#949A9E', borderTop: '1px solid #F1EFEA', paddingTop: 10, marginTop: 10, marginBottom: 10 }}>
                   <span><School size={12} style={{ verticalAlign: 'middle', marginRight: 3 }} />{co.class_count || 0} lớp của bạn</span>
                 </div>
                 <Link to={`/student/courses/${co.id}`} style={{ textDecoration: 'none' }}>

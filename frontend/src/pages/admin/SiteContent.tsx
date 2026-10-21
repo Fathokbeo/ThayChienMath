@@ -121,34 +121,34 @@ function CollectionManager({ collection }: { collection: string }) {
             {it.image ? (
               <img src={`/uploads/${cfg.dir}/${it.image}`} alt="" style={{ width: '100%', height: 140, objectFit: 'cover' }} />
             ) : (
-              <div style={{ height: 140, background: '#F0F0F3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <ImageIcon size={32} color="#bbb" />
+              <div style={{ height: 140, background: '#EFEDE8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ImageIcon size={32} color="#B6BBBE" />
               </div>
             )}
             <div style={{ padding: '0.85rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#1A1A2E', flex: 1 }}>{it[cfg.titleKey]}</h4>
+                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#1D2A30', flex: 1 }}>{it[cfg.titleKey]}</h4>
                 {!it.active && <span className="badge badge-gray" style={{ fontSize: '0.68rem' }}>Ẩn</span>}
               </div>
               {it.exam && <span className="badge badge-red" style={{ fontSize: '0.7rem' }}>{it.exam}</span>}
-              {it.role_title && <div style={{ fontSize: '0.8rem', color: '#1565C0', fontWeight: 600 }}>{it.role_title}{it.staff_type === 'assistant' ? ' · Trợ giảng' : ''}</div>}
-              {it.phone && <div style={{ fontSize: '0.78rem', color: '#2E7D32', fontWeight: 600 }}>SĐT: {it.phone}</div>}
-              {it.facebook_url && <div style={{ fontSize: '0.75rem', color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>FB: {it.facebook_url}</div>}
-              {it.student_count && <div style={{ fontSize: '0.8rem', color: '#2E7D32', fontWeight: 600 }}>{it.student_count}</div>}
-              {it.year && <div style={{ fontSize: '0.8rem', color: '#E65100', fontWeight: 700 }}>{it.year}</div>}
-              {it.achievement && <div style={{ fontSize: '0.82rem', color: '#C62828', fontWeight: 600, marginTop: 2 }}>{it.achievement}</div>}
+              {it.role_title && <div style={{ fontSize: '0.8rem', color: '#2F6F82', fontWeight: 600 }}>{it.role_title}{it.staff_type === 'assistant' ? ' · Trợ giảng' : ''}</div>}
+              {it.phone && <div style={{ fontSize: '0.78rem', color: '#3A7D5C', fontWeight: 600 }}>SĐT: {it.phone}</div>}
+              {it.facebook_url && <div style={{ fontSize: '0.75rem', color: '#7A8287', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>FB: {it.facebook_url}</div>}
+              {it.student_count && <div style={{ fontSize: '0.8rem', color: '#3A7D5C', fontWeight: 600 }}>{it.student_count}</div>}
+              {it.year && <div style={{ fontSize: '0.8rem', color: '#B8673E', fontWeight: 700 }}>{it.year}</div>}
+              {it.achievement && <div style={{ fontSize: '0.82rem', color: '#1F5C68', fontWeight: 600, marginTop: 2 }}>{it.achievement}</div>}
               <div style={{ display: 'flex', gap: 4, marginTop: 10 }}>
                 <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => openEdit(it)}><Edit size={13} /> Sửa</button>
                 <button className="btn btn-ghost btn-sm btn-icon" title={it.active ? 'Ẩn' : 'Hiện'} onClick={() => toggleActive(it)}>
                   {it.active ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
-                <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} onClick={() => remove(it)}><Trash2 size={14} /></button>
+                <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} onClick={() => remove(it)}><Trash2 size={14} /></button>
               </div>
             </div>
           </div>
         ))}
         {items.length === 0 && (
-          <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#999', padding: '2.5rem', background: 'white', borderRadius: 12 }}>Chưa có mục nào</div>
+          <div style={{ gridColumn: '1/-1', textAlign: 'center', color: '#949A9E', padding: '2.5rem', background: 'white', borderRadius: 12 }}>Chưa có mục nào</div>
         )}
       </div>
 
@@ -218,7 +218,7 @@ function SettingsForm() {
     <div style={{ maxWidth: 640 }}>
       {areas.map((area) => (
         <div key={area} style={{ background: 'white', borderRadius: 12, padding: '1.25rem', marginBottom: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: '#1A1A2E' }}>{area}</h3>
+          <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: 700, color: '#1D2A30' }}>{area}</h3>
           {SETTING_FIELDS.filter((f) => f.area === area).map((f) => (
             <div className="form-group" key={f.key}>
               <label className="label">{f.label}</label>
@@ -244,14 +244,14 @@ export default function SiteContent() {
   return (
     <div className="fade-in">
       <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Nội dung trang giới thiệu</h1>
-      <p style={{ margin: '0 0 1.25rem', color: '#888', fontSize: '0.86rem' }}>
+      <p style={{ margin: '0 0 1.25rem', color: '#7A8287', fontSize: '0.86rem' }}>
         Mục <b>Khóa học tiêu biểu</b> trên trang chủ lấy thẳng từ <b>Quản lý khóa học</b>, không cần nhập riêng ở đây nữa.
       </p>
 
-      <div style={{ display: 'flex', gap: 4, background: '#F5F5F5', padding: 4, borderRadius: 10, marginBottom: '1.5rem', flexWrap: 'wrap', width: 'fit-content' }}>
+      <div style={{ display: 'flex', gap: 4, background: '#F1EFEA', padding: 4, borderRadius: 10, marginBottom: '1.5rem', flexWrap: 'wrap', width: 'fit-content' }}>
         {TABS.map((t) => (
           <button key={t.key} onClick={() => setTab(t.key)} className="btn"
-            style={{ background: tab === t.key ? 'white' : 'transparent', boxShadow: tab === t.key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: tab === t.key ? '#C62828' : '#888', border: 'none', fontSize: '0.85rem' }}>
+            style={{ background: tab === t.key ? 'white' : 'transparent', boxShadow: tab === t.key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: tab === t.key ? '#1F5C68' : '#7A8287', border: 'none', fontSize: '0.85rem' }}>
             {t.label}
           </button>
         ))}

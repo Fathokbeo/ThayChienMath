@@ -227,8 +227,16 @@ function fileForm(fields, fileField, filePath, mime) {
   console.log('   ⏳ Đang nộp bài + chấm điểm bằng AI (Gemini, có thể mất 10-30s)...');
   r = await req('POST', `/homework/${hwId}/submit`, { token: enrolledStudentTok, form: fileForm({}, 'file', subPdf, 'application/pdf') });
   log('Học sinh nộp bài', r.ok && r.data.submission, JSON.stringify(r.data).slice(0, 120));
-  const submission = r.data?.submission;
+  let submission = r.data?.submission;
   const submissionId = submission?.id;
+  // Bài được chấm NỀN (hàng đợi AI) — chờ tới khi có điểm (tối đa ~5 phút)
+  for (let i = 0; i < 150 && submissionId; i++) {
+    const hwR = await req('GET', `/homework/${hwId}`, { token: teacherTok });
+    const s = (hwR.data?.submissions || []).find((x) => x.id === submissionId);
+    if (s && s.score !== null && s.score !== undefined) { submission = s; break; }
+    if (s && s.grading_status === 'failed') { submission = s; break; }
+    await new Promise((res) => setTimeout(res, 2000));
+  }
   log('AI tự động chấm điểm (có score)', submission && submission.score !== null && submission.score !== undefined, `score=${submission?.score}, feedback=${(submission?.feedback||'').slice(0,60)}`);
 
   // ─── TEACHER: GRADE / REGRADE ───────────────────────────

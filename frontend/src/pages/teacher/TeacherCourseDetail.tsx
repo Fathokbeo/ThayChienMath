@@ -72,7 +72,7 @@ export default function TeacherCourseDetail() {
   };
 
   if (!course) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: '#999' }}>Đang tải...</div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200, color: '#949A9E' }}>Đang tải...</div>
   );
 
   const classes: any[] = course.classes || [];
@@ -89,14 +89,14 @@ export default function TeacherCourseDetail() {
         {course.thumbnail ? (
           <img src={`/uploads/courses/${course.thumbnail}`} alt={course.title} style={{ width: '100%', height: 180, objectFit: 'cover' }} />
         ) : (
-          <div style={{ height: 140, background: 'linear-gradient(135deg, #C62828 0%, #1565C0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ height: 140, background: 'linear-gradient(135deg, #1F5C68 0%, #2F6F82 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <BookOpen size={40} color="rgba(255,255,255,0.8)" />
           </div>
         )}
         <div style={{ padding: '1.25rem' }}>
-          <h1 style={{ margin: '0 0 6px', fontSize: '1.3rem', fontWeight: 800, color: '#1A1A2E' }}>{course.title}</h1>
-          {course.description && <p style={{ margin: '0 0 12px', color: '#666', fontSize: '0.9rem' }}>{course.description}</p>}
-          <div style={{ display: 'flex', gap: 16, fontSize: '0.83rem', color: '#888' }}>
+          <h1 style={{ margin: '0 0 6px', fontSize: '1.3rem', fontWeight: 800, color: '#1D2A30' }}>{course.title}</h1>
+          {course.description && <p style={{ margin: '0 0 12px', color: '#5E676C', fontSize: '0.9rem' }}>{course.description}</p>}
+          <div style={{ display: 'flex', gap: 16, fontSize: '0.83rem', color: '#7A8287' }}>
             <span><School size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />{classes.length} lớp học</span>
             <span><Users size={13} style={{ verticalAlign: 'middle', marginRight: 4 }} />{classes.reduce((s: number, c: any) => s + (c.student_count || 0), 0)} học sinh</span>
           </div>
@@ -105,14 +105,14 @@ export default function TeacherCourseDetail() {
 
       {/* Classes header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1A1A2E' }}>Các lớp học</h2>
+        <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1D2A30' }}>Các lớp học</h2>
         <button className="btn btn-primary btn-sm" onClick={openCreate}>
           <Plus size={14} /> Thêm lớp
         </button>
       </div>
 
       {classes.length === 0 ? (
-        <div style={{ background: 'white', borderRadius: 12, padding: '3rem', textAlign: 'center', color: '#999' }}>
+        <div style={{ background: 'white', borderRadius: 12, padding: '3rem', textAlign: 'center', color: '#949A9E' }}>
           <School size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
           <div style={{ marginBottom: 12 }}>Chưa có lớp học nào trong khóa này</div>
           <button className="btn btn-outline btn-sm" onClick={openCreate}>Tạo lớp đầu tiên</button>
@@ -122,13 +122,13 @@ export default function TeacherCourseDetail() {
           {classes.map((cls: any) => (
             <div key={cls.id} className="card" style={{ padding: '1rem', position: 'relative' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <div style={{ width: 38, height: 38, background: '#FFEBEE', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <School size={18} color="#C62828" />
+                <div style={{ width: 38, height: 38, background: '#E4EFF1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <School size={18} color="#1F5C68" />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3 style={{ margin: '0 0 4px', fontSize: '0.93rem', fontWeight: 700, color: '#1A1A2E' }}>{cls.title}</h3>
-                  {cls.description && <p style={{ margin: '0 0 8px', fontSize: '0.8rem', color: '#888', lineHeight: 1.4 }}>{cls.description}</p>}
-                  <div style={{ display: 'flex', gap: 10, fontSize: '0.76rem', color: '#aaa' }}>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '0.93rem', fontWeight: 700, color: '#1D2A30' }}>{cls.title}</h3>
+                  {cls.description && <p style={{ margin: '0 0 8px', fontSize: '0.8rem', color: '#7A8287', lineHeight: 1.4 }}>{cls.description}</p>}
+                  <div style={{ display: 'flex', gap: 10, fontSize: '0.76rem', color: '#A6ABAE' }}>
                     <span><Users size={11} style={{ verticalAlign: 'middle' }} /> {cls.student_count}</span>
                     <span><BookOpen size={11} style={{ verticalAlign: 'middle' }} /> {cls.lesson_count}</span>
                   </div>
@@ -143,7 +143,7 @@ export default function TeacherCourseDetail() {
                 <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEdit(cls)}>
                   <Edit size={14} />
                 </button>
-                <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} onClick={() => deleteClass(cls)}>
+                <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} onClick={() => deleteClass(cls)}>
                   <Trash2 size={14} />
                 </button>
               </div>

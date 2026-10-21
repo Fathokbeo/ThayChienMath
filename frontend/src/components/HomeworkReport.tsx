@@ -9,10 +9,10 @@ import { toast } from './Toast';
 // nhãn lỗi. Mức điểm tính theo tỉ lệ trên thang của bài (quy về thang 10). Tải được ra file PDF.
 
 const BANDS = [
-  { key: 'good', label: 'Tốt', min: 0.85, color: '#2E7D32', bg: '#E8F5E9' },
-  { key: 'fair', label: 'Khá', min: 0.75, color: '#1565C0', bg: '#E3F2FD' },
-  { key: 'avg', label: 'Trung bình', min: 0.65, color: '#E65100', bg: '#FFF3E0' },
-  { key: 'weak', label: 'Cần cố gắng', min: 0, color: '#C62828', bg: '#FFEBEE' },
+  { key: 'good', label: 'Tốt', min: 0.85, color: '#3A7D5C', bg: '#E5F1EA' },
+  { key: 'fair', label: 'Khá', min: 0.75, color: '#2F6F82', bg: '#E6F0F3' },
+  { key: 'avg', label: 'Trung bình', min: 0.65, color: '#B8673E', bg: '#FBEEE6' },
+  { key: 'weak', label: 'Cần cố gắng', min: 0, color: '#B04A2A', bg: '#F8E6DF' },
 ] as const;
 
 const bandOf = (ratio: number) => BANDS.find((b) => ratio >= b.min)!;
@@ -109,7 +109,7 @@ function ReportCard({ hw, roster, isMobile, forPdf = false, downloading = false,
   return (
     <div className="card" style={{ padding: 0, overflow: 'hidden', ...(forPdf ? { boxShadow: 'none', borderRadius: 0 } : {}) }}>
       {/* Dải tiêu đề */}
-      <div data-pdf-break style={{ background: 'linear-gradient(135deg, #C62828, #8E0000)', color: 'white', padding: isMobile ? '1rem 1.1rem' : '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div data-pdf-break style={{ background: 'linear-gradient(135deg, #1F5C68, #174A55)', color: 'white', padding: isMobile ? '1rem 1.1rem' : '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: 16 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.8, fontWeight: 700 }}>
             Bài tập về nhà{hw.due_date ? ` · hạn ${new Date(hw.due_date).toLocaleDateString('vi-VN')}` : ''}
@@ -130,7 +130,7 @@ function ReportCard({ hw, roster, isMobile, forPdf = false, downloading = false,
           )}
           {!forPdf && onDownload && (
             <button className="btn btn-sm" onClick={onDownload} disabled={downloading} title="Tải phần nhận xét ra file PDF"
-              style={{ background: 'white', color: '#C62828', border: 'none', fontWeight: 700 }}>
+              style={{ background: 'white', color: '#1F5C68', border: 'none', fontWeight: 700 }}>
               {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />} {downloading ? 'Đang tạo...' : 'Tải PDF'}
             </button>
           )}
@@ -141,10 +141,10 @@ function ReportCard({ hw, roster, isMobile, forPdf = false, downloading = false,
         {/* 4 ô tổng quan */}
         <div data-pdf-break style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, minmax(0, 1fr))', gap: 12 }}>
           {stats.map((st) => (
-            <div key={st.label} style={{ border: '1px solid #EEE', borderRadius: 12, padding: '0.85rem 1rem', background: '#FCFCFC' }}>
-              <div style={{ fontSize: '0.78rem', color: '#888' }}>{st.label}</div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#C62828', lineHeight: 1.3 }}>{st.value}</div>
-              <div style={{ fontSize: '0.75rem', color: '#999' }}>{st.sub}</div>
+            <div key={st.label} style={{ border: '1px solid #ECE8E1', borderRadius: 12, padding: '0.85rem 1rem', background: '#FCFBF9' }}>
+              <div style={{ fontSize: '0.78rem', color: '#7A8287' }}>{st.label}</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#1F5C68', lineHeight: 1.3 }}>{st.value}</div>
+              <div style={{ fontSize: '0.75rem', color: '#949A9E' }}>{st.sub}</div>
             </div>
           ))}
         </div>
@@ -153,7 +153,7 @@ function ReportCard({ hw, roster, isMobile, forPdf = false, downloading = false,
         <div data-pdf-break>
           <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: 10 }}>Phổ điểm</div>
           {graded === 0 ? (
-            <div style={{ fontSize: '0.85rem', color: '#aaa' }}>Chưa có học sinh nào có điểm</div>
+            <div style={{ fontSize: '0.85rem', color: '#A6ABAE' }}>Chưa có học sinh nào có điểm</div>
           ) : (
             <>
               <div style={{ display: 'flex', gap: 4, height: 14 }}>
@@ -163,9 +163,9 @@ function ReportCard({ hw, roster, isMobile, forPdf = false, downloading = false,
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, minmax(0, 1fr))', gap: 6, marginTop: 10 }}>
                 {bandCounts.map((b, i) => (
-                  <div key={b.key} style={{ fontSize: '0.8rem', color: '#666', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div key={b.key} style={{ fontSize: '0.8rem', color: '#5E676C', display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ width: 9, height: 9, borderRadius: '50%', background: b.color, flexShrink: 0 }} />
-                    {bandRange(i)}: <strong style={{ color: '#1A1A2E' }}>{b.count} HS</strong>
+                    {bandRange(i)}: <strong style={{ color: '#1D2A30' }}>{b.count} HS</strong>
                   </div>
                 ))}
               </div>
@@ -177,21 +177,21 @@ function ReportCard({ hw, roster, isMobile, forPdf = false, downloading = false,
         <div>
           <div data-pdf-break>
             <div style={{ fontWeight: 800, fontSize: '1rem', marginBottom: 6 }}>Nhận xét từng học sinh</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', fontSize: '0.75rem', color: '#777', marginBottom: 4 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', fontSize: '0.75rem', color: '#6E767B', marginBottom: 4 }}>
               {BANDS.map((b, i) => (
                 <span key={b.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                   <span style={{ width: 14, height: 5, borderRadius: 99, background: b.color }} />{b.label} ({bandRange(i)})
                 </span>
               ))}
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#777', marginBottom: 10 }}>
+            <div style={{ fontSize: '0.75rem', color: '#6E767B', marginBottom: 10 }}>
               <strong>Nhãn lỗi:</strong> {ERROR_TAGS.map((t) => `${t.short} – ${t.label}`).join(' · ')}
             </div>
           </div>
 
-          <div style={{ border: '1px solid #EEE', borderRadius: 12, overflow: 'hidden' }}>
+          <div style={{ border: '1px solid #ECE8E1', borderRadius: 12, overflow: 'hidden' }}>
             {!isMobile && (
-              <div data-pdf-break style={{ display: 'grid', gridTemplateColumns: '44px minmax(130px, 1fr) 140px minmax(0, 3.2fr)', gap: 12, padding: '0.6rem 1rem', background: '#FAFAFA', fontSize: '0.72rem', fontWeight: 700, color: '#888', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              <div data-pdf-break style={{ display: 'grid', gridTemplateColumns: '44px minmax(130px, 1fr) 140px minmax(0, 3.2fr)', gap: 12, padding: '0.6rem 1rem', background: '#FAF9F6', fontSize: '0.72rem', fontWeight: 700, color: '#7A8287', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                 <span>STT</span><span>Họ và tên</span><span>Điểm</span><span>Nhận xét</span>
               </div>
             )}
@@ -200,13 +200,13 @@ function ReportCard({ hw, roster, isMobile, forPdf = false, downloading = false,
               const band = review.kind === 'graded' ? bandOf(review.score / max) : null;
               const scoreCell = review.kind === 'graded' ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ flex: 1, height: 6, background: '#F0F0F0', borderRadius: 99, overflow: 'hidden', maxWidth: 80 }}>
+                  <div style={{ flex: 1, height: 6, background: '#EEEBE5', borderRadius: 99, overflow: 'hidden', maxWidth: 80 }}>
                     <div style={{ width: `${Math.min(100, (review.score / max) * 100)}%`, height: '100%', background: band!.color, borderRadius: 99 }} />
                   </div>
                   <strong style={{ fontSize: '0.88rem', minWidth: 34, textAlign: 'right' }}>{fmt(review.score)}</strong>
                 </div>
               ) : missing ? (
-                <span style={{ background: '#C62828', color: 'white', borderRadius: 99, padding: '2px 10px', fontSize: '0.75rem', fontWeight: 700 }}>Chưa nộp bài</span>
+                <span style={{ background: '#B04A2A', color: 'white', borderRadius: 99, padding: '2px 10px', fontSize: '0.75rem', fontWeight: 700 }}>Chưa nộp bài</span>
               ) : (
                 <span className="badge badge-gray">{review.kind === 'pending' ? 'Chưa có điểm' : 'Chưa nộp'}</span>
               );
@@ -215,41 +215,41 @@ function ReportCard({ hw, roster, isMobile, forPdf = false, downloading = false,
               const essayLine = essayOn && review.kind === 'graded' ? summarizeEssayFeedback(s, hw) : '';
               const comment = (
                 <div>
-                  <div style={{ fontSize: '0.84rem', lineHeight: 1.55, whiteSpace: 'pre-line', color: missing ? '#C62828' : review.kind === 'graded' ? '#333' : '#999' }}>{detailed}</div>
+                  <div style={{ fontSize: '0.84rem', lineHeight: 1.55, whiteSpace: 'pre-line', color: missing ? '#B04A2A' : review.kind === 'graded' ? '#2E383D' : '#949A9E' }}>{detailed}</div>
                   {essayLine && (
-                    <div style={{ fontSize: '0.82rem', lineHeight: 1.5, color: '#333', marginTop: 4, paddingLeft: 8, borderLeft: '3px solid #C62828' }}>
-                      <strong style={{ color: '#C62828' }}>Tự luận:</strong> {essayLine}
+                    <div style={{ fontSize: '0.82rem', lineHeight: 1.5, color: '#2E383D', marginTop: 4, paddingLeft: 8, borderLeft: '3px solid #1F5C68' }}>
+                      <strong style={{ color: '#1F5C68' }}>Tự luận:</strong> {essayLine}
                     </div>
                   )}
                   {review.tags.length > 0 && (
                     <div style={{ display: 'flex', gap: 4, marginTop: 5, flexWrap: 'wrap' }}>
                       {review.tags.map((t) => (
-                        <span key={t} style={{ fontSize: '0.68rem', fontWeight: 700, color: '#555', border: '1px solid #DDD', borderRadius: 5, padding: '0 6px', background: 'white' }}>{TAG_SHORT[t]}</span>
+                        <span key={t} style={{ fontSize: '0.68rem', fontWeight: 700, color: '#525A5F', border: '1px solid #DAD5CC', borderRadius: 5, padding: '0 6px', background: 'white' }}>{TAG_SHORT[t]}</span>
                       ))}
                     </div>
                   )}
                 </div>
               );
-              const rowBg = missing ? '#FFF5F5' : i % 2 ? '#FCFCFC' : 'white';
+              const rowBg = missing ? '#FBF1EC' : i % 2 ? '#FCFBF9' : 'white';
               return isMobile ? (
-                <div key={s.student_id} data-pdf-break style={{ padding: '0.75rem 0.9rem', borderTop: i ? '1px solid #F2F2F2' : 'none', background: rowBg }}>
+                <div key={s.student_id} data-pdf-break style={{ padding: '0.75rem 0.9rem', borderTop: i ? '1px solid #F0EDE7' : 'none', background: rowBg }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                    <span style={{ fontSize: '0.78rem', color: '#999', width: 20 }}>{i + 1}</span>
+                    <span style={{ fontSize: '0.78rem', color: '#949A9E', width: 20 }}>{i + 1}</span>
                     <strong style={{ flex: 1, fontSize: '0.9rem' }}>{s.full_name}</strong>
                     <div style={{ width: 120 }}>{scoreCell}</div>
                   </div>
                   {comment}
                 </div>
               ) : (
-                <div key={s.student_id} data-pdf-break style={{ display: 'grid', gridTemplateColumns: '44px minmax(130px, 1fr) 140px minmax(0, 3.2fr)', gap: 12, alignItems: 'center', padding: '0.7rem 1rem', borderTop: '1px solid #F2F2F2', background: rowBg }}>
-                  <span style={{ fontSize: '0.85rem', color: '#999' }}>{i + 1}</span>
+                <div key={s.student_id} data-pdf-break style={{ display: 'grid', gridTemplateColumns: '44px minmax(130px, 1fr) 140px minmax(0, 3.2fr)', gap: 12, alignItems: 'center', padding: '0.7rem 1rem', borderTop: '1px solid #F0EDE7', background: rowBg }}>
+                  <span style={{ fontSize: '0.85rem', color: '#949A9E' }}>{i + 1}</span>
                   <strong style={{ fontSize: '0.9rem' }}>{s.full_name}</strong>
                   <div>{scoreCell}</div>
                   {comment}
                 </div>
               );
             })}
-            {rows.length === 0 && <div style={{ padding: '1.5rem', textAlign: 'center', color: '#999' }}>Lớp chưa có học sinh</div>}
+            {rows.length === 0 && <div style={{ padding: '1.5rem', textAlign: 'center', color: '#949A9E' }}>Lớp chưa có học sinh</div>}
           </div>
         </div>
       </div>

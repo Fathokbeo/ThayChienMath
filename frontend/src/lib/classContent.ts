@@ -21,9 +21,9 @@ export type ContentSection = {
   groups: ChapterGroup[];
 };
 
-const ALGEBRA_COLOR = '#1565C0';
-const GEOMETRY_COLOR = '#6A1B9A';
-export const OTHER_COLOR = '#E65100';
+const ALGEBRA_COLOR = '#2F6F82';
+const GEOMETRY_COLOR = '#6E5A94';
+export const OTHER_COLOR = '#B8673E';
 
 // Chương cũ chưa có cột subject thì coi như Đại số.
 export const chapterSubject = (ch: any): ChapterSubject =>

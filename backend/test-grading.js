@@ -53,7 +53,7 @@ function pdfForm(fields, fileField, filePath) {
 
   // Tạo bài tập kèm đáp án + GHI CHÚ AI
   const note = 'Chấm cả 3 câu. Mỗi câu đúng được điểm, câu sai giải thích rõ sai ở đâu.';
-  let r = await req('POST', `/classes/${classId}/homework`, { token: gvTok, form: pdfForm({ title: 'BT Grade', max_score: '10', grading_note: note }, 'answer_file', ans) });
+  let r = await req('POST', `/classes/${classId}/homework`, { token: gvTok, form: pdfForm({ title: 'BT Grade', max_score: '10', grading_note: note, answer_visible_date: new Date(Date.now() - 60000).toISOString() }, 'answer_file', ans) });
   const hwId = r.data.id;
   log('Tạo bài tập kèm ghi chú AI', r.ok && hwId, JSON.stringify(r.data));
 
@@ -65,7 +65,14 @@ function pdfForm(fields, fileField, filePath) {
   console.log('   ⏳ Đang nộp + AI chấm (10-30s)...');
   r = await req('POST', `/homework/${hwId}/submit`, { token: hsTok, form: pdfForm({}, 'file', sub) });
   log('Học sinh nộp bài', r.ok && r.data.submission, JSON.stringify(r.data).slice(0, 80));
-  const submission = r.data.submission;
+  let submission = r.data.submission;
+  // Bài được chấm NỀN (hàng đợi AI) — chờ tới khi có điểm (tối đa ~5 phút)
+  for (let i = 0; i < 150 && submission?.id; i++) {
+    const hwR = await req('GET', `/homework/${hwId}`, { token: gvTok });
+    const s = (hwR.data?.submissions || []).find((x) => x.id === submission.id);
+    if (s && (s.score !== null || s.grading_status === 'failed')) { submission = s; break; }
+    await new Promise((res) => setTimeout(res, 2000));
+  }
   log('AI chấm có điểm', submission && submission.score !== null, `score=${submission?.score}`);
 
   // grading_details là JSON mảng có phần tử

@@ -15,7 +15,7 @@ function formatMonth(ym: string): string {
 
 const MEDALS = [
   { rank: 1, medal: '🥇', label: 'Hạng Nhất', color: '#F9A825', bg: '#FFF8E1', border: '#FFE082' },
-  { rank: 2, medal: '🥈', label: 'Hạng Nhì', color: '#757575', bg: '#F5F5F5', border: '#E0E0E0' },
+  { rank: 2, medal: '🥈', label: 'Hạng Nhì', color: '#6E767B', bg: '#F1EFEA', border: '#E2DDD4' },
   { rank: 3, medal: '🥉', label: 'Hạng Ba', color: '#8D6E63', bg: '#EFEBE9', border: '#D7CCC8' },
 ];
 
@@ -49,7 +49,7 @@ export default function RankingBoard({ url }: { url: string }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-        <div style={{ fontSize: '0.82rem', color: '#888', lineHeight: 1.5 }}>
+        <div style={{ fontSize: '0.82rem', color: '#7A8287', lineHeight: 1.5 }}>
           Xếp hạng theo <strong>điểm TB các bài tập trong tháng</strong> (quá hạn không nộp = 0 điểm). Sang tháng mới bảng tự reset — chọn tháng để xem lại.
         </div>
         <select className="input" style={{ width: 'auto', minWidth: 160 }} value={month || ranking?.month || ''}
@@ -61,7 +61,7 @@ export default function RankingBoard({ url }: { url: string }) {
       </div>
 
       {loading && !ranking ? (
-        <div style={{ padding: '2rem', color: '#999', textAlign: 'center' }}>Đang tải...</div>
+        <div style={{ padding: '2rem', color: '#949A9E', textAlign: 'center' }}>Đang tải...</div>
       ) : (
         <>
           {/* Podium top 3 */}
@@ -73,12 +73,12 @@ export default function RankingBoard({ url }: { url: string }) {
                   <span style={{ fontWeight: 800, color: g.color, fontSize: '0.95rem' }}>{g.label}</span>
                 </div>
                 {g.students.length === 0 ? (
-                  <div style={{ fontSize: '0.82rem', color: '#aaa' }}>Chưa có</div>
+                  <div style={{ fontSize: '0.82rem', color: '#A6ABAE' }}>Chưa có</div>
                 ) : g.students.map((s: any) => (
                   <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '4px 0' }}>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{s.full_name}{s.is_me && <MeBadge />}</div>
-                      {s.username && <div style={{ fontSize: '0.75rem', color: '#999' }}>{s.username}</div>}
+                      {s.username && <div style={{ fontSize: '0.75rem', color: '#949A9E' }}>{s.username}</div>}
                     </div>
                     <span style={{ fontWeight: 800, color: g.color, fontSize: '1.05rem' }}>{s.avg}</span>
                   </div>
@@ -101,30 +101,30 @@ export default function RankingBoard({ url }: { url: string }) {
               </thead>
               <tbody>
                 {students.map((s: any) => (
-                  <tr key={s.id} style={s.is_me ? { background: '#FFF5F5' } : undefined}>
+                  <tr key={s.id} style={s.is_me ? { background: '#EEF5F6' } : undefined}>
                     <td>
                       {s.rank ? (
                         <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>
                           {s.rank <= 3 ? <span style={{ marginRight: 4 }}>{s.rank === 1 ? '🥇' : s.rank === 2 ? '🥈' : '🥉'}</span> : null}
                           {s.rank}
                         </span>
-                      ) : <span style={{ color: '#ccc' }}>—</span>}
+                      ) : <span style={{ color: '#C8C3BA' }}>—</span>}
                     </td>
                     <td>
                       <strong>{s.full_name}</strong>{s.is_me && <MeBadge />}
-                      {s.username && <div style={{ fontSize: '0.78rem', color: '#999' }}>{s.username}</div>}
+                      {s.username && <div style={{ fontSize: '0.78rem', color: '#949A9E' }}>{s.username}</div>}
                     </td>
                     <td>
                       {s.avg !== null
-                        ? <span style={{ fontWeight: 700, color: s.avg >= 8 ? '#2E7D32' : s.avg >= 5 ? '#E65100' : '#C62828' }}>{s.avg}/10</span>
-                        : <span style={{ color: '#ccc' }}>Chưa có</span>}
+                        ? <span style={{ fontWeight: 700, color: s.avg >= 8 ? '#3A7D5C' : s.avg >= 5 ? '#B8673E' : '#B04A2A' }}>{s.avg}/10</span>
+                        : <span style={{ color: '#C8C3BA' }}>Chưa có</span>}
                     </td>
-                    <td style={{ color: '#888' }}>{s.counted}</td>
-                    <td style={{ color: '#888' }}>{s.graded}</td>
+                    <td style={{ color: '#7A8287' }}>{s.counted}</td>
+                    <td style={{ color: '#7A8287' }}>{s.graded}</td>
                   </tr>
                 ))}
                 {students.length === 0 && (
-                  <tr><td colSpan={5} style={{ textAlign: 'center', color: '#999', padding: '2rem' }}>Lớp chưa có học sinh</td></tr>
+                  <tr><td colSpan={5} style={{ textAlign: 'center', color: '#949A9E', padding: '2rem' }}>Lớp chưa có học sinh</td></tr>
                 )}
               </tbody>
             </table>

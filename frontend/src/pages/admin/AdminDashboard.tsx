@@ -11,12 +11,12 @@ export default function AdminDashboard() {
   }, []);
 
   const cards = stats ? [
-    { label: 'Học sinh', value: stats.totalStudents, icon: Users, color: '#C62828', bg: '#FFEBEE', link: '/admin/users?role=student' },
-    { label: 'Giáo viên', value: stats.totalTeachers, icon: Users, color: '#1565C0', bg: '#E3F2FD', link: '/admin/users?role=teacher' },
-    { label: 'Khóa học', value: stats.totalCourses, icon: BookOpen, color: '#2E7D32', bg: '#E8F5E9', link: '/admin/courses' },
-    { label: 'Lớp học', value: stats.totalClasses, icon: School, color: '#E65100', bg: '#FFF3E0', link: '/admin/classes' },
-    { label: 'Bài tập', value: stats.totalHomework, icon: ClipboardList, color: '#6A1B9A', bg: '#F3E5F5', link: '#' },
-    { label: 'Bài nộp', value: stats.totalSubmissions, icon: FileCheck, color: '#00695C', bg: '#E0F2F1', link: '#' },
+    { label: 'Học sinh', value: stats.totalStudents, icon: Users, color: '#1F5C68', bg: '#E4EFF1', link: '/admin/users?role=student' },
+    { label: 'Giáo viên', value: stats.totalTeachers, icon: Users, color: '#2F6F82', bg: '#E6F0F3', link: '/admin/users?role=teacher' },
+    { label: 'Khóa học', value: stats.totalCourses, icon: BookOpen, color: '#3A7D5C', bg: '#E5F1EA', link: '/admin/courses' },
+    { label: 'Lớp học', value: stats.totalClasses, icon: School, color: '#B8673E', bg: '#FBEEE6', link: '/admin/classes' },
+    { label: 'Bài tập', value: stats.totalHomework, icon: ClipboardList, color: '#6E5A94', bg: '#EFEBF5', link: '#' },
+    { label: 'Bài nộp', value: stats.totalSubmissions, icon: FileCheck, color: '#2E6B60', bg: '#E2EFEC', link: '#' },
   ] : [];
 
   return (
