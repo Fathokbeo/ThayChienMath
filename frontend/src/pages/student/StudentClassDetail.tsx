@@ -1,0 +1,723 @@
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import api from '../../lib/api';
+import { buildContentSections } from '../../lib/classContent';
+import VideoPlayer from '../../components/VideoPlayer';
+import Modal from '../../components/Modal';
+import GradingDetails from '../../components/GradingDetails';
+import FileViewer from '../../components/FileViewer';
+import SubmitHomeworkView from '../../components/SubmitHomeworkView';
+import { type StudentAnswers } from '../../components/PartsSolver';
+import useIsMobile from '../../lib/useIsMobile';
+import { toast } from '../../components/Toast';
+import { parsePartsConfig, hasObjectiveParts, hasEssay, emptyStudentAnswers, PART_LABELS, PART_ORDER, type PartKey, parseHsaConfig, emptyHsaStudentAnswers, type HsaConfig, formatRemainingMs, formatDeadlineRemaining } from '../../lib/homeworkParts';
+import { parseAttachments, isViewableFile } from '../../lib/attachments';
+import AssistantScheduleModal from '../../components/AssistantScheduleModal';
+import RankingBoard from '../../components/RankingBoard';
+import FacebookIcon from '../../components/FacebookIcon';
+import {
+  ChevronLeft, Play, ClipboardList, BookOpen, Upload, CheckCircle, Clock, Eye, Bot, Lock, FileText, Layers, Video,
+  ChevronDown, ChevronRight, ChevronUp, Trophy, Star, Paperclip, Download, UserCog, Phone, Calendar, Timer
+} from 'lucide-react';
+
+// Khóa lưu tạm đáp án đang làm dở của 1 bài, để không mất khi lỡ thoát ra giữa chừng.
+const draftKey = (hwId: number) => `homework_draft_${hwId}`;
+
+// Danh sách URL các file đã nộp (hỗ trợ cũ: 1 file, mới: nhiều file dạng JSON)
+function submittedFileUrls(hw: any): string[] {
+  let names: string[] = [];
+  if (hw.submitted_files) { try { const a = JSON.parse(hw.submitted_files); if (Array.isArray(a)) names = a; } catch { /* ignore */ } }
+  if (names.length === 0 && hw.submitted_file) names = [hw.submitted_file];
+  return names.map((n: string) => `/uploads/submissions/${n}`);
+}
+
+export default function StudentClassDetail() {
+  const { id } = useParams();
+  const [cls, setCls] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'content' | 'todo' | 'assistants' | 'ranking'>('content');
+  const [scheduleAssistantId, setScheduleAssistantId] = useState<number | null>(null);
+  const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
+  // Danh sách bài giảng/bài tập nào (theo key "<chương>-lessons"/"-homework") đang được bung ra trong 1 chương —
+  // mặc định thu gọn, chỉ hiện khi bấm mở.
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [viewLessonModal, setViewLessonModal] = useState(false);
+  const [viewingLesson, setViewingLesson] = useState<any>(null);
+  const [solutionVideo, setSolutionVideo] = useState<{ title: string; url: string } | null>(null);
+  const [submitModal, setSubmitModal] = useState(false);
+  const [submitting, setSubmitting] = useState<any>(null);
+  const [submitFiles, setSubmitFiles] = useState<File[]>([]);
+  const [studentAnswers, setStudentAnswers] = useState<StudentAnswers>({ multiple_choice: [], true_false: [], short_answer: [] });
+  const [hsaAnswers, setHsaAnswers] = useState<string[]>([]);
+  // Hạn "hết giờ" của lượt làm bài HSA hiện tại (epoch ms) — null = không giới hạn / bài không phải HSA
+  const [examDeadline, setExamDeadline] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [viewFiles, setViewFiles] = useState<string[] | null>(null);
+  // Bài tập nào đang mở "Chi tiết" điểm (nhận xét + kết quả từng câu); mặc định ẩn hết
+  const [openGradeDetails, setOpenGradeDetails] = useState<Set<number>>(new Set());
+  // Đồng hồ dùng để đếm ngược thời gian còn lại NGOÀI danh sách bài tập (lượt làm HSA đang dở, chưa nộp,
+  // học sinh đã thoát ra khỏi giao diện làm bài) — chỉ chạy khi thật sự có lượt làm đang dở.
+  const [outsideTick, setOutsideTick] = useState(() => Date.now());
+  const isMobile = useIsMobile();
+
+  useEffect(() => { fetchClass(); }, [id]);
+
+  // Bài chưa phân chương hiện thẳng ngoài, không có khung chương để bấm mở — mở sẵn 2 mục cho dễ thấy.
+  useEffect(() => {
+    if (!cls) return;
+    setExpandedSections((prev) => new Set(prev).add('orphan-lessons').add('orphan-homework'));
+  }, [cls?.id]);
+
+  // Tự làm mới khi có bài vừa nộp đang được AI chấm nền, để cập nhật điểm
+  useEffect(() => {
+    const pending = cls?.homework?.some((hw: any) => hw.submission_id && (hw.score === null || hw.showing_best) && (hw.grading_status === 'pending' || hw.grading_status === 'grading'));
+    if (!pending) return;
+    const t = setInterval(fetchClass, 8000);
+    return () => clearInterval(t);
+  }, [cls]);
+
+  useEffect(() => {
+    const needsTick = cls?.homework?.some((hw: any) => (hw.attempt_started_at && hw.time_limit_minutes) || (hw.can_submit && hw.due_date));
+    if (!needsTick) return;
+    setOutsideTick(Date.now());
+    const t = setInterval(() => setOutsideTick(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [cls]);
+
+  // Khi mở lớp: lớp chưa dùng chương thì mở sẵn nhóm "Chưa phân chương", còn lại để thu gọn
+  useEffect(() => {
+    if (cls) setExpandedChapters(new Set((cls.chapters?.length || 0) === 0 ? ['orphan'] : []));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cls?.id]);
+
+  const fetchClass = async () => {
+    const { data } = await api.get(`/student/my-classes/${id}`);
+    setCls(data);
+  };
+
+  const openSubmit = (hw: any) => {
+    setSubmitting(hw);
+    setSubmitFiles([]);
+    // Đáp án đã nộp trước đó (nếu nộp lại) — dùng chung cho cả 2 kiểu bài, hình dạng khác nhau theo exam_type
+    let prev: any = null;
+    if (hw.structured_answers) { try { prev = JSON.parse(hw.structured_answers); } catch { /* ignore */ } }
+    // Ưu tiên đáp án đang làm dở lưu tạm trên máy (nếu có) — tránh mất bài khi lỡ thoát ra
+    let draft: any = null;
+    const draftRaw = localStorage.getItem(draftKey(hw.id));
+    if (draftRaw) { try { draft = JSON.parse(draftRaw); } catch { /* ignore */ } }
+
+    if (hw.exam_type === 'hsa') {
+      const cfg = parseHsaConfig(hw.hsa_config);
+      const empty = emptyHsaStudentAnswers(cfg);
+      setHsaAnswers((Array.isArray(draft?.hsa) && draft.hsa) || (Array.isArray(prev?.hsa) && prev.hsa) || empty);
+    } else {
+      const cfg = parsePartsConfig(hw.parts_config);
+      const empty = emptyStudentAnswers(cfg);
+      setStudentAnswers({
+        multiple_choice: draft?.multiple_choice || prev?.multiple_choice || empty.multiple_choice,
+        true_false: draft?.true_false || prev?.true_false || empty.true_false,
+        short_answer: draft?.short_answer || prev?.short_answer || empty.short_answer,
+      });
+    }
+    setSubmitModal(true);
+  };
+
+  // Bấm "Làm bài" (chỉ bài HSA): ghi/nhận thời điểm bắt đầu ở server rồi tính hạn "hết giờ" =
+  // started_at + thời gian làm bài. Gọi lại nhiều lần (vd tải lại trang) khi lượt làm chưa nộp sẽ
+  // nhận đúng started_at cũ (không làm mới đồng hồ đếm ngược).
+  const startExam = async (hw: any) => {
+    try {
+      const { data } = await api.post(`/homework/${hw.id}/start`);
+      setExamDeadline(data.time_limit_minutes ? new Date(data.started_at).getTime() + data.time_limit_minutes * 60000 : null);
+      openSubmit(hw);
+      // Cập nhật lại danh sách bài tập để ghi nhận lượt làm mới (attempt_started_at) ngay lập tức —
+      // nếu không, lỡ thoát ra mà chưa nộp thì nút ngoài danh sách vẫn hiện "Làm lại" như cũ (dữ liệu cũ
+      // từ lần tải trang trước, chưa biết đã có lượt làm đang dở) thay vì "Tiếp tục làm bài".
+      fetchClass();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Không thể bắt đầu làm bài');
+      fetchClass();
+    }
+  };
+
+  // Tự lưu tạm đáp án đang điền để không mất khi lỡ thoát ra giữa chừng
+  useEffect(() => {
+    if (!submitModal || !submitting) return;
+    const draft = submitting.exam_type === 'hsa' ? { hsa: hsaAnswers } : studentAnswers;
+    localStorage.setItem(draftKey(submitting.id), JSON.stringify(draft));
+  }, [studentAnswers, hsaAnswers, submitModal, submitting]);
+
+  // Thêm file vào danh sách (gộp với file đã chọn, loại trùng tên+kích thước)
+  const addFiles = (incoming: FileList | File[]) => {
+    const arr = Array.from(incoming);
+    setSubmitFiles((prev) => {
+      const merged = [...prev];
+      arr.forEach((f) => { if (!merged.some((x) => x.name === f.name && x.size === f.size)) merged.push(f); });
+      return merged.slice(0, 20);
+    });
+  };
+
+  const removeFile = (idx: number) => setSubmitFiles((prev) => prev.filter((_, i) => i !== idx));
+
+  const doSubmit = async () => {
+    const isHsa = submitting?.exam_type === 'hsa';
+    const cfg = isHsa ? null : parsePartsConfig(submitting?.parts_config);
+    const objective = isHsa ? true : hasObjectiveParts(cfg);
+    // Phải có bài làm: đáp án objective đã điền HOẶC ít nhất một file (cho phần tự luận / bài cũ)
+    if (!isHsa && submitFiles.length === 0 && !objective) { toast.error('Chọn ít nhất một file bài làm'); return; }
+    setLoading(true);
+    try {
+      const body = new FormData();
+      submitFiles.forEach((f) => body.append('files', f));
+      if (isHsa) body.append('structured_answers', JSON.stringify({ hsa: hsaAnswers }));
+      else if (objective) body.append('structured_answers', JSON.stringify(studentAnswers));
+      const { data } = await api.post(`/homework/${submitting.id}/submit`, body);
+      toast.success(data.message);
+      localStorage.removeItem(draftKey(submitting.id));
+      setSubmitModal(false);
+      fetchClass();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Lỗi nộp bài');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!cls) return <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>Đang tải...</div>;
+
+  const chapters: any[] = cls.chapters || [];
+
+  // Nội dung lớp gom theo chương: Đại số → Hình học → các phần "Khác" do giáo viên đặt tên.
+  // Phần nào không có chương thì không hiện. Bài chưa gán chương: học sinh KHÔNG thấy khung
+  // "Chưa phân chương" như bên giáo viên, mà thấy thẳng bài giảng & bài tập ở cuối trang.
+  const lessonsAll: any[] = cls.lessons || [];
+  const homeworkAll: any[] = cls.homework || [];
+  const { sections: contentSections, orphan: orphanGroup } = buildContentSections(chapters, lessonsAll, homeworkAll);
+  // Bài tập cần làm: có hạn nộp, còn hạn/còn lượt và học sinh CHƯA nộp — hạn gần nhất lên đầu
+  const todoHomework = homeworkAll
+    .filter((hw) => hw.due_date && hw.can_submit && !hw.submission_id)
+    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+  const scheduleAssistant = (cls.assistants || []).find((a: any) => a.id === scheduleAssistantId) || null;
+
+  const toggleChapter = (key: string) => setExpandedChapters((prev) => {
+    const next = new Set(prev);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    return next;
+  });
+
+  const toggleSection = (key: string) => setExpandedSections((prev) => {
+    const next = new Set(prev);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    return next;
+  });
+
+  const renderLessonCard = (l: any, i: number) => {
+    const atts = parseAttachments(l.attachments);
+    const docCount = atts.filter((a) => a.kind !== 'answer').length;
+    const ansCount = atts.filter((a) => a.kind === 'answer').length;
+    return (
+      <div key={l.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '1rem 1.25rem' }}>
+        <div style={{ width: 36, height: 36, background: '#E3F2FD', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ fontWeight: 700, color: '#1565C0', fontSize: '0.9rem' }}>{i + 1}</span>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{l.title}</div>
+          {l.description && <div style={{ fontSize: '0.8rem', color: '#888', marginTop: 2 }}>{l.description}</div>}
+          {(l.video_url || atts.length > 0) && (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+              {l.video_url && <span className="badge badge-blue"><Play size={10} style={{ marginRight: 3 }} />Video</span>}
+              {docCount > 0 && <span className="badge badge-orange"><Paperclip size={10} style={{ marginRight: 3 }} />Tài liệu ×{docCount}</span>}
+              {ansCount > 0 && <span className="badge badge-green"><FileText size={10} style={{ marginRight: 3 }} />Đáp án BT ×{ansCount}</span>}
+            </div>
+          )}
+        </div>
+        {(l.video_url || atts.length > 0) ? (
+          <button className="btn btn-primary btn-sm" onClick={() => { setViewingLesson(l); setViewLessonModal(true); }}>
+            <Play size={13} /> Xem bài
+          </button>
+        ) : <span style={{ fontSize: '0.78rem', color: '#ccc' }}>Chưa có nội dung</span>}
+      </div>
+    );
+  };
+
+  const renderHomeworkCard = (hw: any, i: number) => {
+    const isSubmitted = !!hw.submission_id;
+    const hasGrade = hw.score !== null;
+    const canSubmit = hw.can_submit;
+    const isOverdue = hw.due_date ? new Date() > new Date(hw.due_date) : false;
+    // attempts_left: null/undefined = không giới hạn số lần nộp
+    const hasAttemptLimit = hw.attempts_left !== null && hw.attempts_left !== undefined;
+    const attemptsExhausted = hasAttemptLimit && hw.attempts_left <= 0;
+
+    return (
+      <div key={hw.id} className="card" style={{ padding: '1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flexDirection: isMobile ? 'column' : 'row' }}>
+          <div style={{ display: 'flex', gap: 12, flex: 1, minWidth: 0, width: isMobile ? '100%' : 'auto' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: isSubmitted ? '#E8F5E9' : '#F3E5F5' }}>
+            {isSubmitted ? <CheckCircle size={18} color="#2E7D32" /> : <ClipboardList size={18} color="#6A1B9A" />}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontWeight: 700, fontSize: '0.72rem', color: '#6A1B9A', background: '#F3E5F5', borderRadius: 6, padding: '2px 7px', flexShrink: 0 }}>{i + 1}</span>
+              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{hw.title}</span>
+              {isSubmitted && <span className="badge badge-green">Đã nộp</span>}
+              {!canSubmit && !isSubmitted && <span className="badge badge-gray">Hết hạn</span>}
+              {!canSubmit && isSubmitted && !isOverdue && attemptsExhausted && <span className="badge badge-gray">Hết lượt nộp</span>}
+            </div>
+            {hw.description && <p style={{ margin: '0 0 8px', fontSize: '0.82rem', color: '#888', lineHeight: 1.5 }}>{hw.description}</p>}
+
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.78rem', color: '#888' }}>
+              <span>Thang điểm: {hw.max_score}</span>
+              {hw.due_date && <span><Clock size={11} style={{ verticalAlign: 'middle' }} /> HH: {new Date(hw.due_date).toLocaleString('vi-VN')}</span>}
+              {hasAttemptLimit && <span><Upload size={11} style={{ verticalAlign: 'middle' }} /> Lượt nộp: {hw.max_attempts - hw.attempts_left}/{hw.max_attempts}</span>}
+            </div>
+            {hw.exam_type === 'hsa' ? (() => {
+              const cfg = parseHsaConfig(hw.hsa_config);
+              if (!cfg) return null;
+              const mcCount = cfg.questions.filter((q) => q.kind === 'multiple_choice').length;
+              const saCount = cfg.questions.length - mcCount;
+              return (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                  <span className="badge badge-purple">HSA</span>
+                  {mcCount > 0 && <span className="badge badge-purple">Trắc nghiệm ×{mcCount}</span>}
+                  {saCount > 0 && <span className="badge badge-purple">Trả lời ngắn ×{saCount}</span>}
+                </div>
+              );
+            })() : (() => {
+              const cfg = parsePartsConfig(hw.parts_config);
+              if (!cfg) return null;
+              const active = PART_ORDER.filter((k: PartKey) => (k === 'essay' ? cfg.essay.enabled : (cfg as any)[k].enabled));
+              if (active.length === 0) return null;
+              return (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                  {active.map((k) => {
+                    const count = k === 'essay' ? null : (cfg as any)[k].count;
+                    return <span key={k} className="badge badge-purple">{PART_LABELS[k]}{count ? ` ×${count}` : ''}</span>;
+                  })}
+                </div>
+              );
+            })()}
+
+            {/* Grade display */}
+            {hasGrade && (
+              <div style={{ marginTop: 12, background: '#F9F9F9', borderRadius: 10, padding: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.1rem', background: hw.score / hw.max_score >= 0.8 ? '#E8F5E9' : hw.score / hw.max_score >= 0.5 ? '#FFF3E0' : '#FFEBEE', color: hw.score / hw.max_score >= 0.8 ? '#2E7D32' : hw.score / hw.max_score >= 0.5 ? '#E65100' : '#C62828' }}>
+                    {hw.score}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.78rem', color: '#888' }}>Điểm đạt được</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{hw.score}/{hw.max_score}</div>
+                  </div>
+                  {/* Góc trên bên phải: nhãn AI chấm + nút Chi tiết (mở/đóng nhận xét & từng câu) */}
+                  <div style={{ marginLeft: 'auto', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {/* !! ép cờ 0/1 từ CSDL về true/false — không thì số 0 bị in ra màn hình */}
+                    {!!hw.graded_by_ai && <span className="badge badge-purple"><Bot size={10} style={{ marginRight: 4 }} />AI chấm</span>}
+                    {!!hw.can_see_answer && !!(hw.feedback || hw.grading_details) && (
+                      <button className="btn btn-ghost btn-sm" onClick={() => setOpenGradeDetails((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(hw.id)) next.delete(hw.id); else next.add(hw.id);
+                        return next;
+                      })}>
+                        {openGradeDetails.has(hw.id) ? <ChevronUp size={13} /> : <ChevronDown size={13} />} Chi tiết
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {/* Nhận xét + chi tiết sai câu nào: chỉ hiện sau khi mở đáp án (theo "Thời gian xem đáp án")
+                    VÀ học sinh bấm nút "Chi tiết" — mặc định ẩn cho gọn */}
+                {hw.can_see_answer ? (
+                  openGradeDetails.has(hw.id) && (
+                  <>
+                    {hw.feedback && (
+                      <div style={{ fontSize: '0.83rem', color: '#555', lineHeight: 1.6, borderTop: '1px solid #EEE', paddingTop: 8, marginTop: 8 }}>
+                        <strong>Nhận xét:</strong> {hw.feedback}
+                      </div>
+                    )}
+                    <GradingDetails details={hw.grading_details} />
+                  </>
+                  )
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: '#999', borderTop: '1px solid #EEE', paddingTop: 8, marginTop: 8 }}>
+                    <Lock size={12} />
+                    Nhận xét &amp; chi tiết từng câu sẽ hiển thị cùng lúc với đáp án
+                    {hw.answer_visible_date ? ` (lúc ${new Date(hw.answer_visible_date).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })})` : ''}.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Nộp lại, lần mới đang chờ chấm → đang hiện điểm cao nhất của lần trước */}
+            {!!hw.showing_best && (
+              <div style={{ marginTop: 8, fontSize: '0.78rem', color: '#1565C0' }}>
+                Đang hiện điểm cao nhất các lần nộp trước — lần nộp mới đang chờ chấm, chỉ thay nếu điểm cao hơn.
+              </div>
+            )}
+
+            {/* Đã nộp nhưng chưa có điểm: cho biết hệ thống đang chấm tự động */}
+            {isSubmitted && !hasGrade && (hw.grading_status === 'pending' || hw.grading_status === 'grading') && (
+              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', color: '#1565C0', background: '#E3F2FD', borderRadius: 8, padding: '0.6rem 0.8rem' }}>
+                <Bot size={15} /> Đã nhận bài — hệ thống đang tự động chấm, kết quả sẽ hiển thị sau ít phút.
+              </div>
+            )}
+            {isSubmitted && !hasGrade && hw.grading_status === 'failed' && (
+              <div style={{ marginTop: 12, fontSize: '0.82rem', color: '#888', background: '#F5F5F5', borderRadius: 8, padding: '0.6rem 0.8rem' }}>
+                Đã nhận bài. Giáo viên sẽ chấm và trả điểm sớm.
+              </div>
+            )}
+            {/* Quá hạn mà chưa nộp → tính 0 điểm vào điểm trung bình */}
+            {!isSubmitted && !canSubmit && (
+              <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', color: '#C62828', background: '#FFEBEE', borderRadius: 8, padding: '0.6rem 0.8rem' }}>
+                <Lock size={14} /> Quá hạn, không nộp bài — tính <strong>0 điểm</strong> vào điểm trung bình.
+              </div>
+            )}
+          </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', flexWrap: 'wrap', gap: 6, alignItems: 'center', justifyContent: isMobile ? 'flex-start' : 'flex-end', flexShrink: 0, width: isMobile ? '100%' : 'auto' }}>
+            {hw.pdf_file && (
+              <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([`/uploads/homework/${hw.pdf_file}`])}>
+                <FileText size={13} /> Xem đề
+              </button>
+            )}
+            {isSubmitted && submittedFileUrls(hw).length > 0 && (
+              <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles(submittedFileUrls(hw))}>
+                <Eye size={13} /> Bài đã nộp ({submittedFileUrls(hw).length})
+              </button>
+            )}
+            {!!hw.can_see_answer && !!hw.answer_file && (
+              <button className="btn btn-success btn-sm" onClick={() => setViewFiles([`/uploads/homework/${hw.answer_file}`])}>
+                <Eye size={13} /> Đáp án
+              </button>
+            )}
+            {!!hw.can_see_answer && !!hw.solution_video_url && (
+              <button className="btn btn-secondary btn-sm" onClick={() => setSolutionVideo({ title: hw.title, url: hw.solution_video_url })}>
+                <Video size={13} /> Video chữa
+              </button>
+            )}
+            {!hw.can_see_answer && hw.answer_visible_date && (
+              <span style={{ fontSize: '0.72rem', color: '#999', display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Lock size={11} /> Đáp án mở lúc {new Date(hw.answer_visible_date).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
+              </span>
+            )}
+            {canSubmit ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                {hw.exam_type === 'hsa' ? (
+                  <button className="btn btn-primary btn-sm" onClick={() => startExam(hw)}>
+                    <Timer size={13} /> {hw.attempt_started_at ? 'Tiếp tục làm bài' : isSubmitted ? 'Làm lại' : 'Làm bài'}
+                  </button>
+                ) : (
+                  <button className="btn btn-primary btn-sm" onClick={() => { setExamDeadline(null); openSubmit(hw); }}>
+                    <Upload size={13} /> {isSubmitted ? 'Nộp lại' : 'Nộp bài'}
+                  </button>
+                )}
+                {hw.due_date && (() => {
+                  const deadlineRemainMs = new Date(hw.due_date).getTime() - outsideTick;
+                  const isDeadlineLow = deadlineRemainMs <= 60 * 60 * 1000;
+                  return (
+                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: isDeadlineLow ? '#C62828' : '#E65100', display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <Timer size={11} /> {deadlineRemainMs > 0 ? `Còn ${formatDeadlineRemaining(deadlineRemainMs)}` : 'Đã hết hạn'}
+                    </span>
+                  );
+                })()}
+                {hasAttemptLimit && (
+                  <span style={{ fontSize: '0.72rem', color: '#999' }}>Giới hạn (còn {hw.attempts_left} lần nộp)</span>
+                )}
+                {hw.exam_type === 'hsa' && hw.time_limit_minutes && (
+                  hw.attempt_started_at ? (() => {
+                    const remainMs = new Date(hw.attempt_started_at).getTime() + hw.time_limit_minutes * 60000 - outsideTick;
+                    const low = remainMs <= 5 * 60 * 1000;
+                    return (
+                      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: low ? '#C62828' : '#E65100', display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <Timer size={11} /> {remainMs > 0 ? `Còn ${formatRemainingMs(remainMs)}` : 'Đã hết giờ'}
+                      </span>
+                    );
+                  })() : (
+                    <span style={{ fontSize: '0.72rem', color: '#999' }}>Thời gian làm bài: {hw.time_limit_minutes} phút</span>
+                  )
+                )}
+              </div>
+            ) : !isSubmitted ? (
+              <span style={{ fontSize: '0.78rem', color: '#C62828' }}>Hết hạn</span>
+            ) : !isOverdue && attemptsExhausted && (
+              <span style={{ fontSize: '0.78rem', color: '#C62828' }}>Đã hết lượt nộp lại (tối đa {hw.max_attempts} lần)</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Một chương dạng accordion: bấm để mở/đóng, mở ra mới thấy bài giảng & bài tập
+  // Ruột một nhóm: danh sách bài giảng & bài tập. standalone = hiện thẳng (bài chưa phân chương),
+  // không nằm trong khung chương nên không cần đường kẻ trên và có đệm trên đầy đủ.
+  const renderGroupBody = (group: any, standalone = false) => {
+    const lc = group.lessons.length, hc = group.homework.length;
+    const lessonsKey = `${group.key}-lessons`, hwKey = `${group.key}-homework`;
+    const lessonsOpen = expandedSections.has(lessonsKey), hwOpen = expandedSections.has(hwKey);
+    return (
+      <div style={{ padding: standalone ? '1.25rem' : '0 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 16, borderTop: standalone ? 'none' : '1px solid #F0F0F0' }}>
+        <div style={{ marginTop: standalone ? 0 : 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, cursor: lc > 0 ? 'pointer' : 'default' }} onClick={() => lc > 0 && toggleSection(lessonsKey)}>
+            {lc > 0 && (lessonsOpen ? <ChevronDown size={14} color="#aaa" /> : <ChevronRight size={14} color="#aaa" />)}
+            <BookOpen size={14} color="#1565C0" /><span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Bài giảng ({lc})</span>
+          </div>
+          {lc === 0 ? <div style={{ fontSize: '0.8rem', color: '#aaa' }}>Chưa có bài giảng</div> : lessonsOpen && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{group.lessons.map((l: any, i: number) => renderLessonCard(l, i))}</div>
+          )}
+        </div>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, cursor: hc > 0 ? 'pointer' : 'default' }} onClick={() => hc > 0 && toggleSection(hwKey)}>
+            {hc > 0 && (hwOpen ? <ChevronDown size={14} color="#aaa" /> : <ChevronRight size={14} color="#aaa" />)}
+            <ClipboardList size={14} color="#6A1B9A" /><span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Bài tập ({hc})</span>
+          </div>
+          {hc === 0 ? <div style={{ fontSize: '0.8rem', color: '#aaa' }}>Chưa có bài tập</div> : hwOpen && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{group.homework.map((hw: any, i: number) => renderHomeworkCard(hw, i))}</div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderChapterAccordion = (group: any, idx: number) => {
+    const open = expandedChapters.has(group.key);
+    const lc = group.lessons.length, hc = group.homework.length;
+    return (
+      <div key={group.key} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div onClick={() => toggleChapter(group.key)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '1rem 1.25rem', cursor: 'pointer' }}>
+          {open ? <ChevronDown size={18} color="#888" /> : <ChevronRight size={18} color="#888" />}
+          <div style={{ width: 36, height: 36, background: '#E3F2FD', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontWeight: 700, color: '#1565C0', fontSize: '0.9rem' }}>{idx + 1}</span>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1A1A2E' }}>{group.chapter.title}</div>
+            <div style={{ fontSize: '0.78rem', color: '#888', marginTop: 2 }}>{lc} bài giảng · {hc} bài tập</div>
+          </div>
+        </div>
+        {open && renderGroupBody(group)}
+      </div>
+    );
+  };
+
+  // Cấu hình các phần của bài đang nộp (cho modal làm bài)
+  const isHsaSubmit = submitting?.exam_type === 'hsa';
+  const hsaCfg: HsaConfig | null = isHsaSubmit ? parseHsaConfig(submitting?.hsa_config) : null;
+  const submitCfg = isHsaSubmit ? null : parsePartsConfig(submitting?.parts_config);
+  const submitObjective = isHsaSubmit ? true : hasObjectiveParts(submitCfg);
+  const submitEssay = isHsaSubmit ? false : (hasEssay(submitCfg) || !submitCfg); // bài cũ (không cfg) coi như chỉ tự luận
+  const canDoSubmit = isHsaSubmit ? true : (submitObjective || submitFiles.length > 0);
+
+  return (
+    <div className="fade-in">
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: '1.5rem' }}>
+        <Link to="/student" style={{ color: '#888', textDecoration: 'none', marginTop: 4 }}>
+          <ChevronLeft size={18} />
+        </Link>
+        <div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+            {cls.course_title && <span className="badge badge-blue">{cls.course_title}</span>}
+          </div>
+          <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>{cls.title}</h1>
+          <p style={{ color: '#888', margin: '4px 0 0', fontSize: '0.88rem' }}>Giáo viên: <strong>{cls.teacher_name}</strong></p>
+        </div>
+      </div>
+
+      {/* Điểm TB + xếp hạng THÁNG NÀY (reset theo tháng; bài quá hạn chưa nộp tính 0 điểm) */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        <div className="card" style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', gap: 12, padding: '0.9rem 1.1rem' }}>
+          <div style={{ width: 42, height: 42, borderRadius: 10, background: '#FFF3E0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Star size={20} color="#E65100" />
+          </div>
+          <div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#E65100', lineHeight: 1.1 }}>{cls.my_avg ?? '—'}<span style={{ fontSize: '0.8rem', color: '#bbb', fontWeight: 600 }}>/10</span></div>
+            <div style={{ fontSize: '0.76rem', color: '#888' }}>Điểm TB tháng này</div>
+          </div>
+        </div>
+        <div className="card" style={{ flex: '1 1 180px', display: 'flex', alignItems: 'center', gap: 12, padding: '0.9rem 1.1rem' }}>
+          <div style={{ width: 42, height: 42, borderRadius: 10, background: '#F3E5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Trophy size={20} color="#6A1B9A" />
+          </div>
+          <div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#6A1B9A', lineHeight: 1.1 }}>
+              {cls.my_rank ? <>Hạng {cls.my_rank}<span style={{ fontSize: '0.8rem', color: '#bbb', fontWeight: 600 }}>/{cls.rank_total}</span></> : '—'}
+            </div>
+            <div style={{ fontSize: '0.76rem', color: '#888' }}>Xếp hạng tháng này</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs: Nội dung / Bài tập cần làm / Trợ giảng / Xếp hạng */}
+      <div style={{ display: 'flex', gap: 4, background: '#F5F5F5', padding: 4, borderRadius: 10, marginBottom: '1.25rem', width: isMobile ? '100%' : 'fit-content', flexWrap: 'wrap' }}>
+        {[
+          { key: 'content' as const, label: 'Nội dung', icon: Layers },
+          { key: 'todo' as const, label: `Bài tập cần làm (${todoHomework.length})`, icon: ClipboardList },
+          { key: 'assistants' as const, label: `Trợ giảng (${cls.assistants?.length || 0})`, icon: UserCog },
+          { key: 'ranking' as const, label: 'Xếp hạng', icon: Trophy },
+        ].map(({ key, label, icon: Icon }) => (
+          <button key={key} onClick={() => setActiveTab(key)} className="btn"
+            style={{ background: activeTab === key ? 'white' : 'transparent', boxShadow: activeTab === key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: activeTab === key ? '#C62828' : '#888', border: 'none', gap: 6 }}>
+            <Icon size={15} />{label}
+          </button>
+        ))}
+      </div>
+
+      {/* Danh sách chương → mở chương ra mới thấy bài giảng & bài tập. Đại số trước, Hình học sau. */}
+      {activeTab === 'content' && (
+        contentSections.length === 0 && !orphanGroup ? (
+          <div style={{ textAlign: 'center', color: '#999', padding: '2rem', background: 'white', borderRadius: 12 }}>Chưa có nội dung</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+            {contentSections.map((sec) => (
+              <div key={sec.key}>
+                <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1A1A2E', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: '50%', background: sec.color, display: 'inline-block' }} /> {sec.label}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {sec.groups.map((g, i) => renderChapterAccordion(g, i))}
+                </div>
+              </div>
+            ))}
+            {/* Bài chưa phân chương: hiện thẳng bài giảng & bài tập, không có khung "Chưa phân chương" */}
+            {orphanGroup && (
+              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                {renderGroupBody(orphanGroup, true)}
+              </div>
+            )}
+          </div>
+        )
+      )}
+
+      {/* Bài tập cần làm: chỉ bài có hạn & chưa nộp, nộp bài ngay tại đây (dùng chung thẻ bài tập) */}
+      {activeTab === 'todo' && (
+        todoHomework.length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#999', padding: '2rem', background: 'white', borderRadius: 12 }}>
+            <CheckCircle size={36} color="#2E7D32" style={{ margin: '0 auto 12px', opacity: 0.5 }} />
+            <div>Không có bài tập nào cần nộp</div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {todoHomework.map((hw, i) => renderHomeworkCard(hw, i))}
+          </div>
+        )
+      )}
+
+      {/* Xếp hạng cả lớp theo tháng (giống giáo viên, ẩn tên đăng nhập của các bạn, tô dòng của mình) */}
+      {activeTab === 'ranking' && <RankingBoard url={`/student/my-classes/${id}/ranking`} />}
+
+      {/* Trợ giảng: chỉ xem thông tin liên hệ + lịch làm việc, không sửa được */}
+      {activeTab === 'assistants' && (
+        (cls.assistants || []).length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#999', padding: '2rem', background: 'white', borderRadius: 12 }}>
+            <UserCog size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
+            <div>Lớp chưa có trợ giảng</div>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20 }}>
+            {cls.assistants.map((a: any) => (
+              <div key={a.id} style={{ background: 'white', borderRadius: 14, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', textAlign: 'center' }}>
+                {a.photo ? (
+                  <img src={`/uploads/assistants/${a.photo}`} alt={a.full_name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ height: 220, background: 'linear-gradient(135deg, #F3E5F5, #E1BEE7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <UserCog size={56} color="#6A1B9A" />
+                  </div>
+                )}
+                <div style={{ padding: '1rem' }}>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1A1A2E' }}>{a.full_name}</h3>
+                  <div style={{ color: '#6A1B9A', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>Trợ giảng</div>
+                  {(a.phone || a.facebook_url) && (
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 4, marginBottom: 12, flexWrap: 'wrap' }}>
+                      {a.phone && (
+                        <a href={`tel:${String(a.phone).replace(/[^+\d]/g, '')}`}
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E8F5E9', color: '#2E7D32', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
+                          <Phone size={13} /> {a.phone}
+                        </a>
+                      )}
+                      {a.facebook_url && (
+                        <a href={a.facebook_url} target="_blank" rel="noopener noreferrer"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E3F2FD', color: '#1565C0', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
+                          <FacebookIcon size={13} /> Facebook
+                        </a>
+                      )}
+                    </div>
+                  )}
+                  <button className="btn btn-outline btn-sm" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setScheduleAssistantId(a.id)}>
+                    <Calendar size={13} /> Xem lịch làm việc
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      )}
+
+      {/* View Lesson Modal */}
+      <Modal open={viewLessonModal} onClose={() => setViewLessonModal(false)} title={viewingLesson?.title || ''} size="xl">
+        {viewingLesson?.video_url && <VideoPlayer url={viewingLesson.video_url} type={viewingLesson.video_type} />}
+        {viewingLesson?.description && <p style={{ color: '#555', marginTop: 12, lineHeight: 1.6 }}>{viewingLesson.description}</p>}
+        {viewingLesson && parseAttachments(viewingLesson.attachments).length > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Paperclip size={14} /> Tài liệu đính kèm
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {parseAttachments(viewingLesson.attachments).map((a) => (
+                <div key={a.file} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', background: '#FAFAFA', border: '1px solid #EEE', borderRadius: 8, padding: '0.5rem 0.75rem' }}>
+                  <FileText size={15} color={a.kind === 'answer' ? '#2E7D32' : '#E65100'} style={{ flexShrink: 0 }} />
+                  <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {a.name} <span className={`badge ${a.kind === 'answer' ? 'badge-green' : 'badge-orange'}`} style={{ marginLeft: 6 }}>{a.kind === 'answer' ? 'Đáp án BT trên lớp' : 'Tài liệu bài giảng'}</span>
+                  </span>
+                  {isViewableFile(a.file) && (
+                    <button className="btn btn-secondary btn-sm" onClick={() => setViewFiles([`/uploads/lessons/${a.file}`])}><Eye size={13} /> Xem</button>
+                  )}
+                  <a className="btn btn-ghost btn-sm" href={`/uploads/lessons/${a.file}`} download={a.name}><Download size={13} /> Tải về</a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Solution Video Modal */}
+      <Modal open={!!solutionVideo} onClose={() => setSolutionVideo(null)} title={solutionVideo ? `Video chữa: ${solutionVideo.title}` : ''} size="xl">
+        {solutionVideo && <VideoPlayer url={solutionVideo.url} type="youtube" />}
+      </Modal>
+
+      {/* Submit Homework — toàn màn hình, chia đôi đề/bài làm trên máy tính */}
+      <SubmitHomeworkView
+        open={submitModal}
+        onClose={() => setSubmitModal(false)}
+        title={`Làm bài: ${submitting?.title || ''}`}
+        pdfUrl={submitting?.pdf_file ? `/uploads/homework/${submitting.pdf_file}` : null}
+        submitObjective={submitObjective}
+        submitEssay={submitEssay}
+        cfg={submitCfg}
+        studentAnswers={studentAnswers}
+        onAnswersChange={setStudentAnswers}
+        examType={submitting?.exam_type === 'hsa' ? 'hsa' : 'thpt'}
+        hsaCfg={hsaCfg}
+        hsaAnswers={hsaAnswers}
+        onHsaAnswersChange={setHsaAnswers}
+        submitFiles={submitFiles}
+        onAddFiles={addFiles}
+        onRemoveFile={removeFile}
+        loading={loading}
+        canDoSubmit={canDoSubmit}
+        onSubmit={doSubmit}
+        examDeadline={examDeadline}
+        dueDate={submitting?.due_date || null}
+      />
+
+      {/* File Viewer */}
+      {viewFiles && <FileViewer files={viewFiles} onClose={() => setViewFiles(null)} />}
+
+      <AssistantScheduleModal
+        open={scheduleAssistantId !== null}
+        onClose={() => setScheduleAssistantId(null)}
+        assistant={scheduleAssistant}
+        editable={false}
+      />
+    </div>
+  );
+}

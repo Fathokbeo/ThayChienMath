@@ -1,0 +1,1683 @@
+import { useState, useEffect, useRef } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import api from '../../lib/api';
+import { buildContentSections, chapterSubject, existingSectionTitles, sectionKey, type ChapterSubject } from '../../lib/classContent';
+import Modal from '../../components/Modal';
+import VideoPlayer from '../../components/VideoPlayer';
+import FileViewer from '../../components/FileViewer';
+import RankingBoard from '../../components/RankingBoard';
+import PartsEditor from '../../components/PartsEditor';
+import HsaEditor from '../../components/HsaEditor';
+import useIsMobile from '../../lib/useIsMobile';
+import { toast } from '../../components/Toast';
+import { sortByVietnameseName, matchesNameSearch, normalizeVietnamese } from '../../lib/vietnameseName';
+import { parseAttachments, isViewableFile } from '../../lib/attachments';
+import { emptyPartsConfig, normalizePartsConfig, computeMaxScore, anyPartEnabled, type PartsConfig, PART_LABELS, PART_ORDER, type PartKey, emptyHsaConfig, parseHsaConfig, hsaMaxScore, type HsaConfig, type ExamType } from '../../lib/homeworkParts';
+import type { AssistantSchedule } from '../../lib/assistantSchedule';
+import AssistantScheduleModal from '../../components/AssistantScheduleModal';
+import FacebookIcon from '../../components/FacebookIcon';
+import {
+  Users, BookOpen, ClipboardList, Edit, Trash2,
+  UserPlus, UserMinus, Play, File, ChevronLeft, Upload, Clock, Eye, EyeOff, Layers, Video, Search,
+  ChevronDown, ChevronRight, Trophy, FileSpreadsheet, Download, Paperclip, FileText, X, Plus, GripVertical,
+  UserCog, Phone, Camera, Calendar, Repeat
+} from 'lucide-react';
+
+// Giờ nhập ở ô datetime-local là GIỜ ĐỊA PHƯƠNG. Lưu dạng ISO (UTC) để khi so "đến hạn"
+// (đáp án/video mở, hạn nộp) khớp đúng múi giờ, không bị lệch.
+function localInputToISO(v: string): string {
+  if (!v) return '';
+  const d = new Date(v); // chuỗi datetime-local được hiểu theo giờ địa phương trình duyệt
+  return isNaN(d.getTime()) ? v : d.toISOString();
+}
+// Đổi ngược giá trị đã lưu (ISO mới, hoặc chuỗi giờ-địa-phương cũ) về giá trị cho ô datetime-local.
+function isoToLocalInput(v: string | null | undefined): string {
+  if (!v) return '';
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return String(v).slice(0, 16);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// SĐT từ Excel: bỏ ký tự lạ; Excel hay cắt số 0 đầu của ô dạng số → tự thêm lại
+function normalizePhone(v: any): string {
+  let s = String(v ?? '').replace(/[^\d+]/g, '');
+  if (/^\d{9}$/.test(s) && !s.startsWith('0')) s = '0' + s;
+  return s;
+}
+
+// Badge hiển thị các phần đã bật của một bài tập (từ parts_config)
+function partBadges(raw: any) {
+  const cfg = normalizePartsConfig(raw);
+  const active = PART_ORDER.filter((k: PartKey) => (k === 'essay' ? cfg.essay.enabled : (cfg as any)[k].enabled));
+  if (active.length === 0) return null;
+  return active.map((k) => {
+    const count = k === 'essay' ? null : (cfg as any)[k].count;
+    return <span key={k} className="badge badge-purple">{PART_LABELS[k]}{count ? ` ×${count}` : ''}</span>;
+  });
+}
+
+export default function ClassDetail() {
+  const { id } = useParams();
+  const [cls, setCls] = useState<any>(null);
+  const [allStudents, setAllStudents] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'students' | 'content' | 'assistants' | 'ranking'>('content');
+  const [lessonModal, setLessonModal] = useState(false);
+  const [editingLesson, setEditingLesson] = useState<any>(null);
+  const [hwModal, setHwModal] = useState(false);
+  const [editingHw, setEditingHw] = useState<any>(null);
+  const [chapterModal, setChapterModal] = useState(false);
+  const [editingChapter, setEditingChapter] = useState<any>(null);
+  const [addStudentModal, setAddStudentModal] = useState(false);
+  const [viewLessonModal, setViewLessonModal] = useState(false);
+  const [viewingLesson, setViewingLesson] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [lessonForm, setLessonForm] = useState({ title: '', description: '', video_url: '', video_type: 'youtube', lesson_order: '0', chapter_id: '' });
+  const [hwForm, setHwForm] = useState({ title: '', description: '', due_date: '', answer_visible_date: '', max_score: '10', grading_note: '', chapter_id: '', solution_video_url: '', hw_order: '0', max_attempts: '', exam_type: 'thpt' as ExamType, time_limit_minutes: '' });
+  const [hwParts, setHwParts] = useState<PartsConfig>(emptyPartsConfig());
+  const [hsaConfig, setHsaConfig] = useState<HsaConfig>(emptyHsaConfig());
+  const [hwFiles, setHwFiles] = useState<{ pdf?: File; answer?: File }>({});
+  const [chapterForm, setChapterForm] = useState({ title: '', chapter_order: '0', subject: 'algebra' as ChapterSubject, section_title: '' });
+  const [studentSearch, setStudentSearch] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  // Xem mật khẩu học sinh: bật "Hiện mật khẩu" để lộ hết, hoặc bấm mắt từng dòng
+  const [showStudentPw, setShowStudentPw] = useState(false);
+  const [revealedStudentPw, setRevealedStudentPw] = useState<Set<number>>(new Set());
+  const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
+  // Danh sách bài giảng/bài tập nào (theo key "<chương>-lessons"/"-homework") đang được bung ra trong 1 chương —
+  // mặc định thu gọn, chỉ hiện khi bấm mở.
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [selectedStudent, setSelectedStudent] = useState('');
+  const [existingSearch, setExistingSearch] = useState('');
+  const [addMode, setAddMode] = useState<'new' | 'existing'>('new');
+  const [newStudent, setNewStudent] = useState({ username: '', password: '', full_name: '', parent_phone: '' });
+  const pdfRef = useRef<HTMLInputElement>(null);
+  const answerRef = useRef<HTMLInputElement>(null);
+  const draggedStudentId = useRef<number | null>(null);
+  // File đính kèm bài giảng (chọn mới, chờ upload khi lưu)
+  const [lessonFiles, setLessonFiles] = useState<{ doc: File[]; answer: File[] }>({ doc: [], answer: [] });
+  const lessonDocRef = useRef<HTMLInputElement>(null);
+  const lessonAnswerRef = useRef<HTMLInputElement>(null);
+  const [viewFiles, setViewFiles] = useState<string[] | null>(null);
+  // Nhập Excel tạo tài khoản hàng loạt
+  const [excelModal, setExcelModal] = useState(false);
+  const [excelRows, setExcelRows] = useState<any[]>([]);
+  const [excelName, setExcelName] = useState('');
+  const [excelResult, setExcelResult] = useState<any>(null);
+  const excelRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
+  // Trợ giảng: thông tin liên hệ + lịch làm việc trong tuần
+  const [assistantModal, setAssistantModal] = useState(false);
+  const [editingAssistant, setEditingAssistant] = useState<any>(null);
+  const [assistantForm, setAssistantForm] = useState({ full_name: '', phone: '', facebook_url: '' });
+  const [assistantPhoto, setAssistantPhoto] = useState<File | null>(null);
+  const [assistantPhotoPreview, setAssistantPhotoPreview] = useState('');
+  const assistantPhotoRef = useRef<HTMLInputElement>(null);
+  const [scheduleAssistantId, setScheduleAssistantId] = useState<number | null>(null);
+  // Thêm trợ giảng đã có sẵn (từng tạo ở lớp khác) thay vì nhập lại từ đầu
+  const [assistantAddMode, setAssistantAddMode] = useState<'new' | 'existing'>('new');
+  const [allAssistants, setAllAssistants] = useState<any[]>([]);
+  const [existingAssistantSearch, setExistingAssistantSearch] = useState('');
+  const [selectedAssistantId, setSelectedAssistantId] = useState('');
+  useEffect(() => { fetchClass(); }, [id]);
+
+  // Khi mở lớp: nếu lớp chưa dùng chương thì mở sẵn nhóm "Chưa phân chương", còn lại để thu gọn
+  useEffect(() => {
+    if (cls) setExpandedChapters(new Set((cls.chapters?.length || 0) === 0 ? ['orphan'] : []));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cls?.id]);
+
+  const fetchClass = async () => {
+    const { data } = await api.get(`/teacher/classes/${id}`);
+    setCls(data);
+    setSelectedIds(new Set()); // bỏ chọn sau mỗi lần tải lại
+  };
+
+  const fetchAllStudents = async () => {
+    const { data } = await api.get('/teacher/all-students');
+    setAllStudents(data);
+  };
+
+  const fetchAllAssistants = async () => {
+    const { data } = await api.get('/teacher/all-assistants', { params: { exclude_class_id: id } });
+    setAllAssistants(data);
+  };
+
+  // Add/remove student
+  const openAddStudent = () => {
+    setAddMode('new');
+    setNewStudent({ username: '', password: '', full_name: '', parent_phone: '' });
+    setSelectedStudent('');
+    setExistingSearch('');
+    fetchAllStudents();
+    setAddStudentModal(true);
+  };
+
+  const addStudent = async () => {
+    setLoading(true);
+    try {
+      if (addMode === 'new') {
+        if (!newStudent.username || !newStudent.password || !newStudent.full_name) {
+          toast.error('Điền đủ họ tên, tên đăng nhập và mật khẩu'); setLoading(false); return;
+        }
+        await api.post(`/teacher/classes/${id}/students`, newStudent);
+      } else {
+        if (!selectedStudent) { toast.error('Chọn học sinh'); setLoading(false); return; }
+        await api.post(`/teacher/classes/${id}/students`, { student_id: selectedStudent });
+      }
+      toast.success('Đã thêm học sinh vào lớp');
+      setAddStudentModal(false);
+      setSelectedStudent('');
+      setNewStudent({ username: '', password: '', full_name: '', parent_phone: '' });
+      fetchClass();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Lỗi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeStudent = async (studentId: number, name: string) => {
+    if (!confirm(`Xóa học sinh "${name}" khỏi lớp?`)) return;
+    await api.delete(`/teacher/classes/${id}/students/${studentId}`);
+    toast.success('Đã xóa học sinh');
+    fetchClass();
+  };
+
+  const toggleRevealStudentPw = (sid: number) => setRevealedStudentPw((prev) => {
+    const next = new Set(prev);
+    next.has(sid) ? next.delete(sid) : next.add(sid);
+    return next;
+  });
+
+  const toggleStudentSelect = (sid: number) => setSelectedIds((prev) => {
+    const next = new Set(prev);
+    next.has(sid) ? next.delete(sid) : next.add(sid);
+    return next;
+  });
+
+  // Kéo thả để đổi thứ tự học sinh trong lớp — cập nhật lạc quan rồi lưu lên server.
+  const reorderStudents = async (draggedId: number, targetId: number) => {
+    if (draggedId === targetId) return;
+    const list = [...(cls.students || [])];
+    const fromIdx = list.findIndex((s: any) => s.id === draggedId);
+    const toIdx = list.findIndex((s: any) => s.id === targetId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const [moved] = list.splice(fromIdx, 1);
+    list.splice(toIdx, 0, moved);
+    setCls((prev: any) => ({ ...prev, students: list }));
+    try {
+      await api.put(`/teacher/classes/${id}/students/reorder`, { student_ids: list.map((s: any) => s.id) });
+    } catch {
+      toast.error('Lỗi lưu thứ tự, đang tải lại danh sách');
+      fetchClass();
+    }
+  };
+
+  // Xóa hàng loạt: HS chỉ thuộc lớp này bị xóa hẳn (tài khoản + dữ liệu); HS còn lớp khác chỉ gỡ khỏi lớp.
+  const bulkDeleteStudents = async () => {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+    if (!confirm(
+      `Xóa ${ids.length} học sinh đã chọn khỏi lớp?\n\n` +
+      `• Học sinh CHỈ thuộc lớp này sẽ bị XÓA VĨNH VIỄN: tài khoản + toàn bộ bài nộp/dữ liệu (để tiết kiệm dữ liệu).\n` +
+      `• Học sinh còn học lớp khác chỉ bị gỡ khỏi lớp này.\n\nKhông thể khôi phục.`
+    )) return;
+    try {
+      const { data } = await api.post(`/teacher/classes/${id}/students/bulk-delete`, { student_ids: ids });
+      toast.success(data.message || 'Đã xóa');
+      fetchClass();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Lỗi');
+    }
+  };
+
+  // ── Nhập Excel tạo tài khoản hàng loạt ──────────────────────────────
+  const openExcelModal = () => {
+    setExcelRows([]); setExcelName(''); setExcelResult(null);
+    setExcelModal(true);
+  };
+
+  // Tải file Excel mẫu: Họ và tên, Tên đăng nhập, Mật khẩu, Số điện thoại
+  const downloadTemplate = async () => {
+    const XLSX = await import('xlsx');
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['Họ và tên', 'Tên đăng nhập', 'Mật khẩu', 'Số điện thoại'],
+      ['Nguyễn Văn An', 'nguyenvanan', '123456', '0912345678'],
+      ['Trần Thị Bình', 'tranthibinh', 'abc123', ''],
+    ]);
+    ws['!cols'] = [{ wch: 26 }, { wch: 18 }, { wch: 14 }, { wch: 16 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Danh sách');
+    XLSX.writeFile(wb, 'Mau danh sach hoc sinh.xlsx');
+  };
+
+  // Đọc file Excel: tìm dòng tiêu đề, nhận diện cột theo tên (không phân biệt hoa thường/dấu)
+  const handleExcelFile = async (file: File) => {
+    try {
+      const XLSX = await import('xlsx');
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf);
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const aoa: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
+
+      const norm = (s: any) => normalizeVietnamese(String(s ?? ''));
+      const headerIdx = aoa.findIndex((r) => r.some((c) => norm(c).includes('ten dang nhap')));
+      if (headerIdx < 0) {
+        toast.error('Không tìm thấy dòng tiêu đề chứa cột "Tên đăng nhập". Hãy dùng file mẫu.');
+        return;
+      }
+      const header = aoa[headerIdx].map(norm);
+      const col = (...keys: string[]) => header.findIndex((h) => keys.some((k) => h.includes(k)));
+      const iName = col('ho va ten', 'ho ten');
+      const iUser = col('ten dang nhap');
+      const iPass = col('mat khau');
+      const iPhone = col('so dien thoai', 'sdt', 'dien thoai');
+
+      const rows: any[] = aoa.slice(headerIdx + 1)
+        .map((r, k) => ({
+          row: headerIdx + 2 + k, // số dòng thật trong file Excel (1-based)
+          full_name: String(iName >= 0 ? r[iName] ?? '' : '').trim(),
+          username: String(iUser >= 0 ? r[iUser] ?? '' : '').trim(),
+          password: String(iPass >= 0 ? r[iPass] ?? '' : '').trim(),
+          parent_phone: normalizePhone(iPhone >= 0 ? r[iPhone] : ''),
+        }))
+        .filter((r) => r.full_name || r.username || r.password);
+
+      if (rows.length === 0) { toast.error('File không có dòng dữ liệu nào'); return; }
+
+      // Đánh dấu lỗi thấy được ngay (thiếu thông tin, trùng trong file); trùng hệ thống do server kiểm tra khi tạo
+      const seen = new Set<string>();
+      rows.forEach((r) => {
+        if (!r.full_name || !r.username || !r.password) r.error = 'Thiếu họ tên / tên đăng nhập / mật khẩu';
+        else if (seen.has(r.username)) r.error = 'Trùng tên đăng nhập trong file';
+        if (r.username) seen.add(r.username);
+      });
+
+      setExcelRows(rows);
+      setExcelName(file.name);
+      setExcelResult(null);
+    } catch {
+      toast.error('Không đọc được file. Hãy chọn file Excel (.xlsx, .xls)');
+    }
+  };
+
+  const importExcel = async () => {
+    const valid = excelRows.filter((r) => !r.error);
+    if (valid.length === 0) { toast.error('Không có dòng hợp lệ để tạo'); return; }
+    setLoading(true);
+    try {
+      const { data } = await api.post(`/teacher/classes/${id}/students/bulk`, {
+        students: valid.map(({ row, full_name, username, password, parent_phone }) => ({ row, full_name, username, password, parent_phone })),
+      });
+      setExcelResult(data);
+      toast.success(data.message);
+      fetchClass();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Lỗi nhập danh sách');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Số thứ tự mặc định kế tiếp: chương đầu = 1, sau đó nối tiếp tăng dần (vẫn sửa tay được).
+  const nextOrder = (items: any[] | undefined, field: string) =>
+    ((items && items.length) ? Math.max(0, ...items.map((x: any) => Number(x[field]) || 0)) : 0) + 1;
+
+  // Số thứ tự chương kế tiếp, TÍNH RIÊNG theo từng phần (Đại số / Hình học / mỗi tên phần trong mục Khác
+  // đều đánh số độc lập nhau). excludeId: bỏ qua chính chương đang sửa khi đổi phần, để không tự cộng thêm nó vào phép đếm.
+  const nextChapterOrder = (chaptersList: any[] | undefined, subject: ChapterSubject, sectionTitle: string, excludeId?: number) =>
+    nextOrder((chaptersList || []).filter((c: any) => chapterSubject(c) === subject && c.id !== excludeId
+      && (subject !== 'other' || sectionKey(c.section_title) === sectionKey(sectionTitle))), 'chapter_order');
+
+  // Bài giảng/bài tập CÙNG một chương (chapterId null/'' = nhóm "Chưa phân chương"). Dùng để đánh số
+  // ĐỘC LẬP theo từng chương — bài giảng và bài tập cũng đánh số riêng, không liên quan nhau.
+  const chapterScoped = (items: any[] | undefined, chapterId: any) => {
+    const norm = (v: any) => (v === undefined || v === null || v === '' ? null : Number(v));
+    const cid = norm(chapterId);
+    return (items || []).filter((x: any) => norm(x.chapter_id) === cid);
+  };
+  // Số thứ tự mặc định cho bài MỚI trong chương (= số bài hiện có trong chương đó + 1).
+  const nextOrderInChapter = (items: any[] | undefined, chapterId: any) => chapterScoped(items, chapterId).length + 1;
+  // Vị trí hiện tại của một bài trong danh sách CÙNG CHƯƠNG — luôn khớp đúng số hiển thị trên thẻ
+  // ngoài giao diện (thẻ đánh số theo vị trí trong danh sách, không theo giá trị lưu trong CSDL).
+  const positionInChapter = (items: any[] | undefined, chapterId: any, itemId: number) => {
+    const scoped = chapterScoped(items, chapterId);
+    const idx = scoped.findIndex((x: any) => x.id === itemId);
+    return idx >= 0 ? idx + 1 : scoped.length + 1;
+  };
+
+  // Chapter CRUD
+  const openCreateChapter = () => {
+    setEditingChapter(null);
+    setChapterForm({ title: '', chapter_order: String(nextChapterOrder(cls?.chapters, 'algebra', '')), subject: 'algebra', section_title: '' });
+    setChapterModal(true);
+  };
+
+  const openEditChapter = (ch: any) => {
+    setEditingChapter(ch);
+    setChapterForm({ title: ch.title, chapter_order: String(ch.chapter_order), subject: chapterSubject(ch), section_title: ch.section_title || '' });
+    setChapterModal(true);
+  };
+
+  const saveChapter = async () => {
+    if (!chapterForm.title) { toast.error('Cần tên chương'); return; }
+    setLoading(true);
+    try {
+      if (editingChapter) {
+        await api.put(`/teacher/chapters/${editingChapter.id}`, chapterForm);
+        toast.success('Đã cập nhật chương');
+      } else {
+        await api.post(`/teacher/classes/${id}/chapters`, chapterForm);
+        toast.success('Đã thêm chương');
+      }
+      setChapterModal(false);
+      fetchClass();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Lỗi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteChapter = async (chapterId: number) => {
+    if (!confirm('Xóa chương này? Bài giảng và bài tập trong chương sẽ chuyển về "Chưa phân chương" (không bị xóa).')) return;
+    await api.delete(`/teacher/chapters/${chapterId}`);
+    toast.success('Đã xóa chương');
+    fetchClass();
+  };
+
+  // Trợ giảng CRUD
+  const openCreateAssistant = () => {
+    setEditingAssistant(null);
+    setAssistantForm({ full_name: '', phone: '', facebook_url: '' });
+    setAssistantPhoto(null);
+    setAssistantPhotoPreview('');
+    setAssistantAddMode('new');
+    setSelectedAssistantId('');
+    setExistingAssistantSearch('');
+    fetchAllAssistants();
+    setAssistantModal(true);
+  };
+
+  const openEditAssistant = (a: any) => {
+    setEditingAssistant(a);
+    setAssistantForm({ full_name: a.full_name, phone: a.phone || '', facebook_url: a.facebook_url || '' });
+    setAssistantPhoto(null);
+    setAssistantPhotoPreview(a.photo ? `/uploads/assistants/${a.photo}` : '');
+    setAssistantModal(true);
+  };
+
+  const saveAssistant = async () => {
+    if (!editingAssistant && assistantAddMode === 'existing') {
+      if (!selectedAssistantId) { toast.error('Chọn trợ giảng'); return; }
+      setLoading(true);
+      try {
+        await api.post(`/teacher/classes/${id}/assistants/reuse`, { source_id: selectedAssistantId });
+        toast.success('Đã thêm trợ giảng');
+        setAssistantModal(false);
+        fetchClass();
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'Lỗi');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    if (!assistantForm.full_name) { toast.error('Cần họ tên trợ giảng'); return; }
+    setLoading(true);
+    try {
+      let assistantId: number;
+      if (editingAssistant) {
+        await api.put(`/teacher/assistants/${editingAssistant.id}`, assistantForm);
+        assistantId = editingAssistant.id;
+        toast.success('Đã cập nhật trợ giảng');
+      } else {
+        const { data } = await api.post(`/teacher/classes/${id}/assistants`, assistantForm);
+        assistantId = data.id;
+        toast.success('Đã thêm trợ giảng');
+      }
+      if (assistantPhoto) {
+        const fd = new FormData();
+        fd.append('photo', assistantPhoto);
+        await api.post(`/teacher/assistants/${assistantId}/photo`, fd);
+      }
+      setAssistantModal(false);
+      fetchClass();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Lỗi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteAssistant = async (a: any) => {
+    if (!confirm(
+      `Gỡ trợ giảng "${a.full_name}" khỏi lớp này?\n\n` +
+      `Các lớp khác của trợ giảng này không bị ảnh hưởng. ` +
+      `Nếu họ không còn dạy lớp nào khác thì hồ sơ (ảnh, thông tin, lịch làm việc) sẽ bị xóa hẳn.`
+    )) return;
+    await api.delete(`/teacher/classes/${id}/assistants/${a.id}`);
+    toast.success('Đã gỡ trợ giảng khỏi lớp');
+    fetchClass();
+  };
+
+  const saveAssistantSchedule = async (assistantId: number, schedule: AssistantSchedule) => {
+    await api.put(`/teacher/assistants/${assistantId}/schedule`, { schedule });
+    fetchClass();
+  };
+
+  // Lesson CRUD — truyền chapterId để form chọn sẵn chương (nút + ở từng chương)
+  const openCreateLesson = (chapterId?: number) => {
+    setEditingLesson(null);
+    setLessonForm({ title: '', description: '', video_url: '', video_type: 'youtube', lesson_order: String(nextOrderInChapter(cls?.lessons, chapterId ?? null)), chapter_id: chapterId ? String(chapterId) : '' });
+    setLessonFiles({ doc: [], answer: [] });
+    setLessonModal(true);
+  };
+
+  const openEditLesson = (l: any) => {
+    setEditingLesson(l);
+    setLessonForm({ title: l.title, description: l.description || '', video_url: l.video_url || '', video_type: l.video_type || 'youtube', lesson_order: String(positionInChapter(cls?.lessons, l.chapter_id, l.id)), chapter_id: l.chapter_id ? String(l.chapter_id) : '' });
+    setLessonFiles({ doc: [], answer: [] });
+    setLessonModal(true);
+  };
+
+  // Upload các file đính kèm đã chọn (tài liệu bài giảng / đáp án BT trên lớp) cho một bài giảng
+  const uploadLessonAttachments = async (lessonId: number) => {
+    for (const kind of ['doc', 'answer'] as const) {
+      const files = lessonFiles[kind];
+      if (files.length === 0) continue;
+      const body = new FormData();
+      files.forEach((f) => body.append('files', f));
+      body.append('kind', kind);
+      await api.post(`/teacher/lessons/${lessonId}/attachments`, body);
+    }
+  };
+
+  const saveLesson = async () => {
+    if (!lessonForm.title) { toast.error('Cần tiêu đề bài giảng'); return; }
+    setLoading(true);
+    try {
+      if (editingLesson) {
+        await api.put(`/teacher/lessons/${editingLesson.id}`, lessonForm);
+        await uploadLessonAttachments(editingLesson.id);
+        toast.success('Đã cập nhật');
+      } else {
+        const { data } = await api.post(`/teacher/classes/${id}/lessons`, lessonForm);
+        await uploadLessonAttachments(data.id);
+        toast.success('Đã thêm bài giảng');
+      }
+      setLessonModal(false);
+      fetchClass();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Lỗi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Xóa một file đính kèm đã lưu của bài giảng đang sửa
+  const deleteAttachment = async (file: string) => {
+    if (!editingLesson) return;
+    try {
+      const { data } = await api.delete(`/teacher/lessons/${editingLesson.id}/attachments/${file}`);
+      setEditingLesson({ ...editingLesson, attachments: JSON.stringify(data.attachments) });
+      fetchClass();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Lỗi xóa file');
+    }
+  };
+
+  // Xóa file đề / file đáp án đã lưu của bài tập đang sửa
+  const deleteHwFile = async (kind: 'pdf' | 'answer') => {
+    if (!editingHw) return;
+    try {
+      await api.delete(`/homework/${editingHw.id}/files/${kind}`);
+      setEditingHw(kind === 'pdf' ? { ...editingHw, pdf_file: null, pdf_name: null } : { ...editingHw, answer_file: null, answer_name: null });
+      fetchClass();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Lỗi xóa file');
+    }
+  };
+
+  // Thêm file vào danh sách chờ upload của bài giảng (gộp, loại trùng tên+kích thước)
+  const addLessonFiles = (kind: 'doc' | 'answer', incoming: FileList) => {
+    const arr = Array.from(incoming);
+    setLessonFiles((prev) => {
+      const merged = [...prev[kind]];
+      arr.forEach((f) => { if (!merged.some((x) => x.name === f.name && x.size === f.size)) merged.push(f); });
+      return { ...prev, [kind]: merged.slice(0, 10) };
+    });
+  };
+
+  const deleteLesson = async (lessonId: number) => {
+    if (!confirm('Xóa bài giảng này?')) return;
+    await api.delete(`/teacher/lessons/${lessonId}`);
+    toast.success('Đã xóa');
+    fetchClass();
+  };
+
+  // Homework CRUD — truyền chapterId để form chọn sẵn chương (nút + ở từng chương)
+  const openCreateHw = (chapterId?: number) => {
+    setEditingHw(null);
+    setHwForm({
+      title: '', description: '', due_date: '', answer_visible_date: '', max_score: '10', grading_note: '',
+      chapter_id: chapterId ? String(chapterId) : '', solution_video_url: '', max_attempts: '',
+      hw_order: String(nextOrderInChapter(cls?.homework, chapterId ?? null)), exam_type: 'thpt', time_limit_minutes: '',
+    });
+    setHwParts(emptyPartsConfig());
+    setHsaConfig(emptyHsaConfig());
+    setHwFiles({});
+    setHwModal(true);
+  };
+
+  const openEditHw = (h: any) => {
+    setEditingHw(h);
+    setHwForm({
+      title: h.title, description: h.description || '',
+      due_date: isoToLocalInput(h.due_date),
+      answer_visible_date: isoToLocalInput(h.answer_visible_date),
+      max_score: String(h.max_score),
+      grading_note: h.grading_note || '',
+      chapter_id: h.chapter_id ? String(h.chapter_id) : '',
+      solution_video_url: h.solution_video_url || '',
+      max_attempts: h.max_attempts ? String(h.max_attempts) : '',
+      hw_order: String(positionInChapter(cls?.homework, h.chapter_id, h.id)),
+      exam_type: h.exam_type === 'hsa' ? 'hsa' : 'thpt',
+      time_limit_minutes: h.time_limit_minutes ? String(h.time_limit_minutes) : '',
+    });
+    setHwParts(normalizePartsConfig(h.parts_config));
+    setHsaConfig(parseHsaConfig(h.hsa_config) || emptyHsaConfig());
+    setHwFiles({});
+    setHwModal(true);
+  };
+
+  const saveHw = async () => {
+    if (!hwForm.title) { toast.error('Cần tiêu đề bài tập'); return; }
+    setLoading(true);
+    try {
+      const body = new FormData();
+      // Thang điểm = thang giáo viên chọn (để quy đổi, chỉ áp dụng THPT). Mặc định bám theo tổng điểm các câu.
+      // Mốc thời gian: đổi giờ địa phương -> ISO để so "đến hạn" đúng múi giờ.
+      Object.entries(hwForm).forEach(([k, v]) =>
+        body.append(k, (k === 'due_date' || k === 'answer_visible_date') ? localInputToISO(v) : v));
+      body.append('parts_config', JSON.stringify(hwParts));
+      body.append('hsa_config', JSON.stringify(hsaConfig));
+      if (hwFiles.pdf) body.append('pdf_file', hwFiles.pdf);
+      if (hwFiles.answer) body.append('answer_file', hwFiles.answer);
+
+      if (editingHw) {
+        await api.put(`/homework/${editingHw.id}`, body);
+        toast.success('Đã cập nhật');
+      } else {
+        await api.post(`/classes/${id}/homework`, body);
+        toast.success('Đã thêm bài tập');
+      }
+      setHwModal(false);
+      fetchClass();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Lỗi');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteHw = async (hwId: number) => {
+    if (!confirm('Xóa bài tập này?')) return;
+    await api.delete(`/homework/${hwId}`);
+    toast.success('Đã xóa');
+    fetchClass();
+  };
+
+  if (!cls) return <div style={{ padding: '2rem', color: '#999', textAlign: 'center' }}>Đang tải...</div>;
+
+  const chapters: any[] = cls.chapters || [];
+
+  // Học sinh: giữ thứ tự lớp đã lưu (kéo thả), lọc theo ô tìm kiếm
+  const orderedStudents = cls.students || [];
+  const visibleStudents = orderedStudents.filter((s: any) => matchesNameSearch(s.full_name || '', studentSearch));
+  const allVisibleSelected = visibleStudents.length > 0 && visibleStudents.every((s: any) => selectedIds.has(s.id));
+  const toggleSelectAllStudents = () => setSelectedIds(allVisibleSelected ? new Set() : new Set(visibleStudents.map((s: any) => s.id)));
+
+  // Học sinh có thể thêm vào lớp (chưa trong lớp), xếp theo tên riêng rồi lọc theo ô tìm kiếm trong modal thêm
+  const availableStudents = sortByVietnameseName(
+    (allStudents || []).filter((s: any) => !cls.students?.find((x: any) => x.id === s.id) && matchesNameSearch(s.full_name || '', existingSearch)),
+    (s: any) => s.full_name || ''
+  );
+
+  // Trợ giảng đã có ở lớp khác, có thể gán thêm vào lớp này (server đã loại người đã có trong lớp)
+  const availableAssistants = sortByVietnameseName(
+    (allAssistants || []).filter((a: any) => matchesNameSearch(a.full_name || '', existingAssistantSearch)),
+    (a: any) => a.full_name || ''
+  );
+
+  // Nội dung lớp gom theo chương: Đại số → Hình học → các phần "Khác" do giáo viên tự đặt tên.
+  // Phần nào không có chương nào thì không hiện. Cuối cùng là nhóm "Chưa phân chương" nếu có bài lẻ
+  // chưa gán chương — nhóm này chỉ giáo viên thấy, học sinh chỉ thấy thẳng bài giảng & bài tập bên trong.
+  const lessonsAll: any[] = cls.lessons || [];
+  const homeworkAll: any[] = cls.homework || [];
+  const { sections: contentSections, orphan: orphanGroup } = buildContentSections(chapters, lessonsAll, homeworkAll);
+  const sectionTitleSuggestions = existingSectionTitles(chapters);
+  // Ô chọn chương (khi thêm bài giảng/bài tập): kèm tên phần để khỏi nhầm chương trùng tên giữa các phần.
+  const chapterOptions = contentSections.flatMap((sec) =>
+    sec.groups.map((g: any) => <option key={g.chapter.id} value={g.chapter.id}>{sec.label} · {g.chapter.title}</option>)
+  );
+
+  const toggleChapter = (key: string) => setExpandedChapters((prev) => {
+    const next = new Set(prev);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    return next;
+  });
+
+  const toggleSection = (key: string) => setExpandedSections((prev) => {
+    const next = new Set(prev);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    return next;
+  });
+
+  const renderLessonCard = (l: any, i: number) => {
+    const atts = parseAttachments(l.attachments);
+    const docCount = atts.filter((a) => a.kind !== 'answer').length;
+    const ansCount = atts.filter((a) => a.kind === 'answer').length;
+    return (
+      <div key={l.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '1rem 1.25rem' }}>
+        <div style={{ width: 36, height: 36, background: '#E3F2FD', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ fontWeight: 700, color: '#1565C0', fontSize: '0.9rem' }}>{i + 1}</span>
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{l.title}</div>
+          {l.description && <div style={{ fontSize: '0.8rem', color: '#888', marginTop: 2 }}>{l.description}</div>}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+            {l.video_url && (
+              <span className="badge badge-blue">
+                <Play size={10} style={{ marginRight: 4 }} />
+                {l.video_type === 'youtube' ? 'YouTube' : l.video_type === 'local' ? 'Video nội bộ' : 'Video URL'}
+              </span>
+            )}
+            {docCount > 0 && <span className="badge badge-orange"><Paperclip size={10} style={{ marginRight: 3 }} />Tài liệu ×{docCount}</span>}
+            {ansCount > 0 && <span className="badge badge-green"><FileText size={10} style={{ marginRight: 3 }} />Đáp án BT ×{ansCount}</span>}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {(l.video_url || atts.length > 0) && (
+            <button className="btn btn-secondary btn-sm" onClick={() => { setViewingLesson(l); setViewLessonModal(true); }}>
+              <Eye size={13} /> Xem
+            </button>
+          )}
+          <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEditLesson(l)}><Edit size={14} /></button>
+          <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} onClick={() => deleteLesson(l.id)}><Trash2 size={14} /></button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderHomeworkCard = (h: any, i: number) => (
+    <div key={h.id} className="card" style={{ padding: '1rem 1.25rem' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{ width: 36, height: 36, background: '#F3E5F5', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <span style={{ fontWeight: 700, color: '#6A1B9A', fontSize: '0.9rem' }}>{i + 1}</span>
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 4 }}>{h.title}</div>
+          {h.description && <div style={{ fontSize: '0.82rem', color: '#888', marginBottom: 8 }}>{h.description}</div>}
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.78rem', color: '#888' }}>
+            <span>Thang điểm: <strong style={{ color: '#1A1A2E' }}>{h.max_score}</strong></span>
+            {h.due_date && <span><Clock size={11} style={{ verticalAlign: 'middle' }} /> HH: {new Date(h.due_date).toLocaleString('vi-VN')}</span>}
+            {h.pdf_file && <span className="badge badge-orange"><File size={10} style={{ marginRight: 3 }} />Có đề</span>}
+            {h.answer_file && <span className="badge badge-green"><Eye size={10} style={{ marginRight: 3 }} />Có đáp án</span>}
+            {h.solution_video_url && <span className="badge badge-red"><Video size={10} style={{ marginRight: 3 }} />Video chữa</span>}
+            {h.max_attempts && <span className="badge badge-gray"><Repeat size={10} style={{ marginRight: 3 }} />Tối đa {h.max_attempts} lần nộp</span>}
+            {partBadges(h.parts_config)}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <Link to={`/teacher/homework/${h.id}`} className="btn btn-secondary btn-sm"><Eye size={13} /> Xem bài</Link>
+          <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEditHw(h)}><Edit size={14} /></button>
+          <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} onClick={() => deleteHw(h.id)}><Trash2 size={14} /></button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Một chương dạng accordion: bấm để mở/đóng, mở ra mới thấy bài giảng & bài tập
+  const renderChapterAccordion = (group: any, idx: number) => {
+    const open = expandedChapters.has(group.key);
+    const lc = group.lessons.length, hc = group.homework.length;
+    return (
+      <div key={group.key} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div onClick={() => toggleChapter(group.key)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '1rem 1.25rem', cursor: 'pointer' }}>
+          {open ? <ChevronDown size={18} color="#888" /> : <ChevronRight size={18} color="#888" />}
+          <div style={{ width: 36, height: 36, background: group.chapter ? '#E3F2FD' : '#F5F5F5', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {group.chapter ? <span style={{ fontWeight: 700, color: '#1565C0', fontSize: '0.9rem' }}>{idx + 1}</span> : <Layers size={16} color="#999" />}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: group.chapter ? '#1A1A2E' : '#777' }}>{group.chapter ? group.chapter.title : 'Chưa phân chương'}</div>
+            <div style={{ fontSize: '0.78rem', color: '#888', marginTop: 2 }}>{lc} bài giảng · {hc} bài tập</div>
+          </div>
+          {group.chapter && (
+            <div style={{ display: 'flex', gap: 6 }} onClick={(e) => e.stopPropagation()}>
+              <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEditChapter(group.chapter)}><Edit size={14} /></button>
+              <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} onClick={() => deleteChapter(group.chapter.id)}><Trash2 size={14} /></button>
+            </div>
+          )}
+        </div>
+        {open && (() => {
+          const lessonsKey = `${group.key}-lessons`, hwKey = `${group.key}-homework`;
+          const lessonsOpen = expandedSections.has(lessonsKey), hwOpen = expandedSections.has(hwKey);
+          return (
+          <div style={{ padding: '0 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 16, borderTop: '1px solid #F0F0F0' }}>
+            <div style={{ marginTop: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, cursor: lc > 0 ? 'pointer' : 'default' }} onClick={() => lc > 0 && toggleSection(lessonsKey)}>
+                {lc > 0 && (lessonsOpen ? <ChevronDown size={14} color="#aaa" /> : <ChevronRight size={14} color="#aaa" />)}
+                <BookOpen size={14} color="#1565C0" /><span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Bài giảng ({lc})</span>
+                <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#1565C0', border: '1px dashed #90CAF9' }}
+                  title={group.chapter ? `Thêm bài giảng vào "${group.chapter.title}"` : 'Thêm bài giảng (chưa phân chương)'}
+                  onClick={(e) => { e.stopPropagation(); openCreateLesson(group.chapter?.id); }}>
+                  <Plus size={14} />
+                </button>
+              </div>
+              {lc === 0 ? <div style={{ fontSize: '0.8rem', color: '#aaa' }}>Chưa có bài giảng</div> : lessonsOpen && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{group.lessons.map((l: any, i: number) => renderLessonCard(l, i))}</div>
+              )}
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, cursor: hc > 0 ? 'pointer' : 'default' }} onClick={() => hc > 0 && toggleSection(hwKey)}>
+                {hc > 0 && (hwOpen ? <ChevronDown size={14} color="#aaa" /> : <ChevronRight size={14} color="#aaa" />)}
+                <ClipboardList size={14} color="#6A1B9A" /><span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Bài tập ({hc})</span>
+                <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#6A1B9A', border: '1px dashed #CE93D8' }}
+                  title={group.chapter ? `Thêm bài tập vào "${group.chapter.title}"` : 'Thêm bài tập (chưa phân chương)'}
+                  onClick={(e) => { e.stopPropagation(); openCreateHw(group.chapter?.id); }}>
+                  <Plus size={14} />
+                </button>
+              </div>
+              {hc === 0 ? <div style={{ fontSize: '0.8rem', color: '#aaa' }}>Chưa có bài tập</div> : hwOpen && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{group.homework.map((h: any, i: number) => renderHomeworkCard(h, i))}</div>
+              )}
+            </div>
+          </div>
+          );
+        })()}
+      </div>
+    );
+  };
+
+  const tabs = [
+    { key: 'students', label: `Học sinh (${cls.students?.length || 0})`, icon: Users },
+    { key: 'content', label: `Nội dung (${chapters.length} chương)`, icon: Layers },
+    { key: 'assistants', label: `Trợ giảng (${cls.assistants?.length || 0})`, icon: UserCog },
+    { key: 'ranking', label: 'Xếp hạng', icon: Trophy },
+  ];
+
+  const scheduleAssistant = (cls.assistants || []).find((a: any) => a.id === scheduleAssistantId) || null;
+
+
+  return (
+    <div className="fade-in">
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: '1.5rem' }}>
+        <Link to={cls.course_id_ref ? `/teacher/courses/${cls.course_id_ref}` : '/teacher'} style={{ color: '#888', textDecoration: 'none', display: 'flex', alignItems: 'center', marginTop: 4 }}>
+          <ChevronLeft size={18} />
+        </Link>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            {cls.course_title && <span className="badge badge-blue">{cls.course_title}</span>}
+          </div>
+          <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>{cls.title}</h1>
+          {cls.description && <p style={{ color: '#888', margin: '4px 0 0', fontSize: '0.88rem' }}>{cls.description}</p>}
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: 4, background: '#F5F5F5', padding: 4, borderRadius: 10, marginBottom: '1.5rem', width: isMobile ? '100%' : 'fit-content', flexWrap: 'wrap' }}>
+        {tabs.map(({ key, label, icon: Icon }) => (
+          <button key={key} onClick={() => setActiveTab(key as any)} className="btn"
+            style={{ background: activeTab === key ? 'white' : 'transparent', boxShadow: activeTab === key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: activeTab === key ? '#C62828' : '#888', border: 'none', gap: 6 }}>
+            <Icon size={15} />{label}
+          </button>
+        ))}
+      </div>
+
+      {/* Students tab */}
+      {activeTab === 'students' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative', flex: 1, minWidth: 200, maxWidth: 360 }}>
+              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+              <input
+                className="input"
+                style={{ paddingLeft: 32 }}
+                placeholder="Tìm học sinh (tên đệm, tên riêng...)"
+                value={studentSearch}
+                onChange={(e) => setStudentSearch(e.target.value)}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button className="btn btn-outline btn-sm" onClick={() => setShowStudentPw(!showStudentPw)} title={showStudentPw ? 'Ẩn tất cả mật khẩu' : 'Hiện tất cả mật khẩu'}>
+                {showStudentPw ? <EyeOff size={15} /> : <Eye size={15} />} {showStudentPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+              </button>
+              <button className="btn btn-secondary" onClick={openExcelModal} title="Tạo tài khoản hàng loạt từ file Excel">
+                <FileSpreadsheet size={15} /> Nhập Excel
+              </button>
+              <button className="btn btn-primary" onClick={openAddStudent}><UserPlus size={15} /> Thêm học sinh</button>
+            </div>
+          </div>
+
+          <div style={{ fontSize: '0.72rem', color: '#aaa', marginTop: -6, marginBottom: 12 }}>
+            {studentSearch ? 'Xóa ô tìm kiếm để kéo thả sắp xếp lại thứ tự học sinh.' : 'Kéo biểu tượng ⠿ ở đầu mỗi dòng để sắp xếp lại thứ tự học sinh.'}
+          </div>
+
+          {/* Thanh thao tác hàng loạt */}
+          {selectedIds.size > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFEBEE', border: '1px solid #FFCDD2', borderRadius: 10, padding: '0.6rem 1rem', marginBottom: 12 }}>
+              <span style={{ fontSize: '0.88rem', color: '#C62828', fontWeight: 600 }}>Đã chọn {selectedIds.size} học sinh</span>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-ghost btn-sm" onClick={() => setSelectedIds(new Set())}>Bỏ chọn</button>
+                <button className="btn btn-primary btn-sm" style={{ background: '#C62828' }} onClick={bulkDeleteStudents}>
+                  <Trash2 size={14} /> Xóa {selectedIds.size} học sinh
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="table-wrap">
+            <table>
+              <thead><tr>
+                <th style={{ width: 28 }}></th>
+                <th style={{ width: 40 }}>
+                  <input type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAllStudents} style={{ cursor: 'pointer', width: 16, height: 16 }} />
+                </th>
+                <th>#</th><th>Họ tên</th><th>Tên đăng nhập</th><th>Mật khẩu</th><th>Số điện thoại</th><th></th>
+              </tr></thead>
+              <tbody>
+                {visibleStudents.map((s: any, i: number) => {
+                  const pwRevealed = showStudentPw || revealedStudentPw.has(s.id);
+                  return (
+                  <tr key={s.id}
+                    draggable={!studentSearch}
+                    onDragStart={() => { draggedStudentId.current = s.id; }}
+                    onDragOver={(e) => { if (!studentSearch) e.preventDefault(); }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (draggedStudentId.current != null) reorderStudents(draggedStudentId.current, s.id);
+                      draggedStudentId.current = null;
+                    }}
+                    style={selectedIds.has(s.id) ? { background: '#FFF8F8' } : undefined}>
+                    <td style={{ textAlign: 'center', cursor: studentSearch ? 'default' : 'grab' }}
+                      title={studentSearch ? 'Xóa ô tìm kiếm để kéo thả sắp xếp' : 'Kéo để đổi vị trí'}>
+                      <GripVertical size={14} color={studentSearch ? '#e0e0e0' : '#bbb'} />
+                    </td>
+                    <td>
+                      <input type="checkbox" checked={selectedIds.has(s.id)} onChange={() => toggleStudentSelect(s.id)} style={{ cursor: 'pointer', width: 16, height: 16 }} />
+                    </td>
+                    <td style={{ color: '#999' }}>{i + 1}</td>
+                    <td><strong>{s.full_name}</strong></td>
+                    <td style={{ color: '#888', fontFamily: 'monospace' }}>{s.username}</td>
+                    <td style={{ fontFamily: 'monospace', color: '#555' }}>
+                      {s.plain_password ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          <span>{pwRevealed ? s.plain_password : '••••••'}</span>
+                          {!showStudentPw && (
+                            <button className="btn btn-ghost btn-sm btn-icon" style={{ padding: 2 }} onClick={() => toggleRevealStudentPw(s.id)} title={pwRevealed ? 'Ẩn' : 'Hiện'}>
+                              {pwRevealed ? <EyeOff size={13} /> : <Eye size={13} />}
+                            </button>
+                          )}
+                        </span>
+                      ) : <span style={{ color: '#bbb' }}>—</span>}
+                    </td>
+                    <td style={{ color: '#888' }}>{s.parent_phone || '—'}</td>
+                    <td>
+                      <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} title="Gỡ khỏi lớp" onClick={() => removeStudent(s.id, s.full_name)}>
+                        <UserMinus size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                  );
+                })}
+                {(!cls.students || cls.students.length === 0) && (
+                  <tr><td colSpan={8} style={{ textAlign: 'center', color: '#999', padding: '2rem' }}>Chưa có học sinh</td></tr>
+                )}
+                {cls.students?.length > 0 && visibleStudents.length === 0 && (
+                  <tr><td colSpan={8} style={{ textAlign: 'center', color: '#999', padding: '2rem' }}>Không tìm thấy học sinh phù hợp</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Content tab: danh sách chương → mở chương ra mới thấy bài giảng & bài tập */}
+      {activeTab === 'content' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <button className="btn btn-secondary" onClick={openCreateChapter}><Layers size={15} /> Thêm chương</button>
+            <button className="btn btn-secondary" onClick={() => openCreateLesson()}><BookOpen size={15} /> Thêm bài giảng</button>
+            <button className="btn btn-primary" onClick={() => openCreateHw()}><ClipboardList size={15} /> Thêm bài tập</button>
+          </div>
+          {contentSections.length === 0 && !orphanGroup ? (
+            <div style={{ textAlign: 'center', color: '#999', padding: '2rem', background: 'white', borderRadius: 12 }}>
+              Chưa có nội dung. Hãy thêm chương, bài giảng hoặc bài tập.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+              {contentSections.map((sec) => (
+                <div key={sec.key}>
+                  <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#1A1A2E', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <span style={{ width: 9, height: 9, borderRadius: '50%', background: sec.color, display: 'inline-block' }} /> {sec.label}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {sec.groups.map((g, i) => renderChapterAccordion(g, i))}
+                  </div>
+                </div>
+              ))}
+              {orphanGroup && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {renderChapterAccordion(orphanGroup, 0)}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Assistants tab: trợ giảng của lớp — thông tin liên hệ + lịch làm việc trong tuần */}
+      {activeTab === 'assistants' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+            <button className="btn btn-primary" onClick={openCreateAssistant}><Plus size={15} /> Thêm trợ giảng</button>
+          </div>
+          {(cls.assistants || []).length === 0 ? (
+            <div style={{ textAlign: 'center', color: '#999', padding: '2rem', background: 'white', borderRadius: 12 }}>
+              <UserCog size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
+              <div>Chưa có trợ giảng nào</div>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20 }}>
+              {cls.assistants.map((a: any) => (
+                <div key={a.id} style={{ background: 'white', borderRadius: 14, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', textAlign: 'center', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 4, zIndex: 1 }}>
+                    <button onClick={() => openEditAssistant(a)} title="Sửa"
+                      style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}>
+                      <Edit size={13} color="#555" />
+                    </button>
+                    <button onClick={() => deleteAssistant(a)} title="Xóa"
+                      style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}>
+                      <Trash2 size={13} color="#C62828" />
+                    </button>
+                  </div>
+                  {a.photo ? (
+                    <img src={`/uploads/assistants/${a.photo}`} alt={a.full_name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ height: 220, background: 'linear-gradient(135deg, #F3E5F5, #E1BEE7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <UserCog size={56} color="#6A1B9A" />
+                    </div>
+                  )}
+                  <div style={{ padding: '1rem' }}>
+                    <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1A1A2E' }}>{a.full_name}</h3>
+                    <div style={{ color: '#6A1B9A', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>Trợ giảng</div>
+                    {(a.phone || a.facebook_url) && (
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 4, marginBottom: 12, flexWrap: 'wrap' }}>
+                        {a.phone && (
+                          <a href={`tel:${String(a.phone).replace(/[^+\d]/g, '')}`}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E8F5E9', color: '#2E7D32', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
+                            <Phone size={13} /> {a.phone}
+                          </a>
+                        )}
+                        {a.facebook_url && (
+                          <a href={a.facebook_url} target="_blank" rel="noopener noreferrer"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E3F2FD', color: '#1565C0', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
+                            <FacebookIcon size={13} /> Facebook
+                          </a>
+                        )}
+                      </div>
+                    )}
+                    <button className="btn btn-outline btn-sm" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setScheduleAssistantId(a.id)}>
+                      <Calendar size={13} /> Xem lịch làm việc
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Ranking tab: xếp hạng theo tháng, top 3 gắn huy chương vàng/bạc/đồng */}
+      {activeTab === 'ranking' && <RankingBoard url={`/teacher/classes/${id}/ranking`} />}
+
+      {/* Add Student Modal */}
+      <Modal open={addStudentModal} onClose={() => setAddStudentModal(false)} title="Thêm học sinh vào lớp"
+        footer={<><button className="btn btn-ghost" onClick={() => setAddStudentModal(false)}>Hủy</button><button className="btn btn-primary" onClick={addStudent} disabled={loading}>{loading ? 'Đang lưu...' : addMode === 'new' ? 'Tạo & thêm vào lớp' : 'Thêm vào lớp'}</button></>}>
+        {/* Toggle chế độ */}
+        <div style={{ display: 'flex', gap: 4, background: '#F5F5F5', padding: 4, borderRadius: 10, marginBottom: '1rem' }}>
+          <button className="btn" style={{ flex: 1, background: addMode === 'new' ? 'white' : 'transparent', boxShadow: addMode === 'new' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: addMode === 'new' ? '#C62828' : '#888', border: 'none' }} onClick={() => setAddMode('new')}>
+            <UserPlus size={14} /> Tạo tài khoản mới
+          </button>
+          <button className="btn" style={{ flex: 1, background: addMode === 'existing' ? 'white' : 'transparent', boxShadow: addMode === 'existing' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: addMode === 'existing' ? '#C62828' : '#888', border: 'none' }} onClick={() => setAddMode('existing')}>
+            <Users size={14} /> Chọn có sẵn
+          </button>
+        </div>
+
+        {addMode === 'new' ? (
+          <>
+            <div className="form-group">
+              <label className="label">Họ và tên *</label>
+              <input className="input" placeholder="Nguyễn Văn A" value={newStudent.full_name} onChange={(e) => setNewStudent({ ...newStudent, full_name: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="label">Tên đăng nhập *</label>
+              <input className="input" placeholder="nguyenvana" value={newStudent.username} onChange={(e) => setNewStudent({ ...newStudent, username: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="label">Mật khẩu *</label>
+              <input className="input" type="text" placeholder="Mật khẩu" value={newStudent.password} onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="label">Số điện thoại</label>
+              <input className="input" type="tel" placeholder="vd: 0912 345 678 (tùy chọn)" value={newStudent.parent_phone} onChange={(e) => setNewStudent({ ...newStudent, parent_phone: e.target.value })} />
+            </div>
+          </>
+        ) : (
+          <div className="form-group">
+            <label className="label">Chọn học sinh đã có</label>
+            <div style={{ position: 'relative', marginBottom: 8 }}>
+              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+              <input
+                className="input"
+                style={{ paddingLeft: 32 }}
+                placeholder="Gõ tên để tìm học sinh..."
+                value={existingSearch}
+                onChange={(e) => setExistingSearch(e.target.value)}
+              />
+            </div>
+            <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid #eee', borderRadius: 8 }}>
+              {availableStudents.map((s: any) => (
+                <div key={s.id}
+                  onClick={() => setSelectedStudent(String(s.id))}
+                  style={{
+                    padding: '0.5rem 0.75rem', cursor: 'pointer',
+                    background: selectedStudent === String(s.id) ? '#FFEBEE' : 'transparent',
+                    borderBottom: '1px solid #f5f5f5',
+                  }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{s.full_name}</div>
+                  <div style={{ fontSize: '0.76rem', color: '#999' }}>{s.username}</div>
+                </div>
+              ))}
+              {availableStudents.length === 0 && (
+                <div style={{ padding: '0.75rem', textAlign: 'center', color: '#999', fontSize: '0.85rem' }}>Không tìm thấy học sinh</div>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Chapter Modal */}
+      <Modal open={chapterModal} onClose={() => setChapterModal(false)} title={editingChapter ? 'Sửa chương' : 'Thêm chương'}
+        footer={<><button className="btn btn-ghost" onClick={() => setChapterModal(false)}>Hủy</button><button className="btn btn-primary" onClick={saveChapter} disabled={loading}>{loading ? 'Đang lưu...' : 'Lưu'}</button></>}>
+        <div className="form-group">
+          <label className="label">Tên chương *</label>
+          <input className="input" placeholder="vd: Chương 1 — Hàm số bậc nhất" value={chapterForm.title} onChange={(e) => setChapterForm({ ...chapterForm, title: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label className="label">Phân môn</label>
+          <div style={{ display: 'flex', gap: 4, background: '#F5F5F5', padding: 4, borderRadius: 10 }}>
+            {(['algebra', 'geometry', 'other'] as const).map((subj) => (
+              <button key={subj} type="button" className="btn"
+                style={{
+                  flex: 1, border: 'none',
+                  background: chapterForm.subject === subj ? 'white' : 'transparent',
+                  boxShadow: chapterForm.subject === subj ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
+                  color: chapterForm.subject === subj ? '#C62828' : '#888',
+                }}
+                onClick={() => setChapterForm({
+                  ...chapterForm, subject: subj,
+                  chapter_order: String(nextChapterOrder(cls?.chapters, subj, chapterForm.section_title, editingChapter?.id)),
+                })}>
+                {subj === 'algebra' ? 'Đại số' : subj === 'geometry' ? 'Hình học' : 'Khác'}
+              </button>
+            ))}
+          </div>
+        </div>
+        {chapterForm.subject === 'other' && (
+          <div className="form-group">
+            <label className="label">Tên phần</label>
+            <input className="input" list="chapter-section-titles" placeholder="vd: Ôn thi HSA, Chuyên đề nâng cao..."
+              value={chapterForm.section_title}
+              onChange={(e) => setChapterForm({
+                ...chapterForm, section_title: e.target.value,
+                chapter_order: String(nextChapterOrder(cls?.chapters, 'other', e.target.value, editingChapter?.id)),
+              })} />
+            <datalist id="chapter-section-titles">
+              {sectionTitleSuggestions.map((t) => <option key={t} value={t} />)}
+            </datalist>
+            <div style={{ fontSize: '0.75rem', color: '#888', marginTop: 4 }}>
+              Các chương cùng tên phần sẽ gom chung một mục mang tên đó. Để trống thì mục hiện tên là “Khác”.
+            </div>
+          </div>
+        )}
+        <div className="form-group">
+          <label className="label">Thứ tự</label>
+          <input className="input" type="number" min={0} value={chapterForm.chapter_order} onChange={(e) => setChapterForm({ ...chapterForm, chapter_order: e.target.value })} />
+          <div style={{ fontSize: '0.75rem', color: '#888', marginTop: 4 }}>Số nhỏ hiển thị trước. Mỗi phần (Đại số, Hình học, và từng tên phần trong mục Khác) đánh số độc lập với nhau.</div>
+        </div>
+      </Modal>
+
+      {/* Assistant Modal */}
+      <Modal open={assistantModal} onClose={() => setAssistantModal(false)} title={editingAssistant ? 'Sửa trợ giảng' : 'Thêm trợ giảng'}
+        footer={<><button className="btn btn-ghost" onClick={() => setAssistantModal(false)}>Hủy</button><button className="btn btn-primary" onClick={saveAssistant} disabled={loading}>{loading ? 'Đang lưu...' : assistantAddMode === 'existing' && !editingAssistant ? 'Thêm vào lớp' : 'Lưu'}</button></>}>
+        {!editingAssistant && (
+          <div style={{ display: 'flex', gap: 4, background: '#F5F5F5', padding: 4, borderRadius: 10, marginBottom: '1rem' }}>
+            <button className="btn" style={{ flex: 1, background: assistantAddMode === 'new' ? 'white' : 'transparent', boxShadow: assistantAddMode === 'new' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: assistantAddMode === 'new' ? '#C62828' : '#888', border: 'none' }} onClick={() => setAssistantAddMode('new')}>
+              <UserPlus size={14} /> Trợ giảng mới
+            </button>
+            <button className="btn" style={{ flex: 1, background: assistantAddMode === 'existing' ? 'white' : 'transparent', boxShadow: assistantAddMode === 'existing' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: assistantAddMode === 'existing' ? '#C62828' : '#888', border: 'none' }} onClick={() => setAssistantAddMode('existing')}>
+              <UserCog size={14} /> Chọn có sẵn
+            </button>
+          </div>
+        )}
+
+        {editingAssistant && editingAssistant.class_count > 1 && (
+          <div style={{ background: '#E3F2FD', color: '#1565C0', borderRadius: 8, padding: '0.6rem 0.75rem', fontSize: '0.8rem', marginBottom: '1rem' }}>
+            Trợ giảng này đang dạy {editingAssistant.class_count} lớp. Thông tin và lịch làm việc dùng chung nên thay đổi sẽ áp dụng cho tất cả các lớp đó.
+          </div>
+        )}
+
+        {!editingAssistant && assistantAddMode === 'existing' ? (
+          <div className="form-group">
+            <label className="label">Chọn trợ giảng đã tạo ở lớp khác</label>
+            <div style={{ position: 'relative', marginBottom: 8 }}>
+              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+              <input
+                className="input"
+                style={{ paddingLeft: 32 }}
+                placeholder="Gõ tên để tìm trợ giảng..."
+                value={existingAssistantSearch}
+                onChange={(e) => setExistingAssistantSearch(e.target.value)}
+              />
+            </div>
+            <div style={{ maxHeight: 260, overflowY: 'auto', border: '1px solid #eee', borderRadius: 8 }}>
+              {availableAssistants.map((a: any) => (
+                <div key={a.id}
+                  onClick={() => setSelectedAssistantId(String(a.id))}
+                  style={{
+                    padding: '0.5rem 0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
+                    background: selectedAssistantId === String(a.id) ? '#FFEBEE' : 'transparent',
+                    borderBottom: '1px solid #f5f5f5',
+                  }}>
+                  {a.photo ? (
+                    <img src={`/uploads/assistants/${a.photo}`} alt={a.full_name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                  ) : (
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#F3E5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <UserCog size={16} color="#6A1B9A" />
+                    </div>
+                  )}
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{a.full_name}</div>
+                    <div style={{ fontSize: '0.76rem', color: '#999' }}>Đang dạy: {a.class_titles || '—'}{a.phone ? ` · ${a.phone}` : ''}</div>
+                  </div>
+                </div>
+              ))}
+              {availableAssistants.length === 0 && (
+                <div style={{ padding: '0.75rem', textAlign: 'center', color: '#999', fontSize: '0.85rem' }}>Không tìm thấy trợ giảng nào khác</div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="form-group">
+              <label className="label">Họ và tên *</label>
+              <input className="input" placeholder="Nguyễn Văn A" value={assistantForm.full_name} onChange={(e) => setAssistantForm({ ...assistantForm, full_name: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="label">Số điện thoại</label>
+              <input className="input" type="tel" placeholder="vd: 0912 345 678" value={assistantForm.phone} onChange={(e) => setAssistantForm({ ...assistantForm, phone: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="label">Link Facebook</label>
+              <input className="input" placeholder="https://facebook.com/..." value={assistantForm.facebook_url} onChange={(e) => setAssistantForm({ ...assistantForm, facebook_url: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="label">Ảnh đại diện</label>
+              <div className="dropzone" onClick={() => assistantPhotoRef.current?.click()}>
+                {assistantPhotoPreview ? (
+                  <img src={assistantPhotoPreview} alt="preview" style={{ maxHeight: 120, borderRadius: '50%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ fontSize: '0.88rem' }}><Camera size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} />Click để chọn ảnh</div>
+                )}
+              </div>
+              <input ref={assistantPhotoRef} type="file" accept="image/*" hidden onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) { setAssistantPhoto(f); setAssistantPhotoPreview(URL.createObjectURL(f)); }
+              }} />
+            </div>
+          </>
+        )}
+      </Modal>
+
+      <AssistantScheduleModal
+        open={scheduleAssistantId !== null}
+        onClose={() => setScheduleAssistantId(null)}
+        assistant={scheduleAssistant}
+        editable
+        onSave={(schedule) => saveAssistantSchedule(scheduleAssistantId as number, schedule)}
+      />
+
+      {/* Lesson Modal */}
+      <Modal open={lessonModal} onClose={() => setLessonModal(false)} title={editingLesson ? 'Sửa bài giảng' : 'Thêm bài giảng'} size="lg"
+        footer={<><button className="btn btn-ghost" onClick={() => setLessonModal(false)}>Hủy</button><button className="btn btn-primary" onClick={saveLesson} disabled={loading}>{loading ? 'Đang lưu...' : 'Lưu'}</button></>}>
+        <div className="form-group">
+          <label className="label">Tiêu đề *</label>
+          <input className="input" placeholder="Tên bài giảng" value={lessonForm.title} onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label className="label">Chương</label>
+          <select className="input" value={lessonForm.chapter_id} onChange={(e) => setLessonForm({ ...lessonForm, chapter_id: e.target.value })}>
+            <option value="">— Chưa phân chương —</option>
+            {chapterOptions}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="label">Mô tả</label>
+          <textarea className="input" rows={2} value={lessonForm.description} onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(0, 2fr)', gap: 12 }}>
+          <div className="form-group">
+            <label className="label">Loại video</label>
+            <select className="input" value={lessonForm.video_type} onChange={(e) => setLessonForm({ ...lessonForm, video_type: e.target.value, video_url: '' })}>
+              <option value="youtube">YouTube</option>
+              <option value="url">URL trực tiếp</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="label">Link video (tùy chọn)</label>
+            <input className="input" placeholder={lessonForm.video_type === 'youtube' ? 'https://youtube.com/watch?v=... (không bắt buộc)' : 'https://... (không bắt buộc)'} value={lessonForm.video_url} onChange={(e) => setLessonForm({ ...lessonForm, video_url: e.target.value })} />
+          </div>
+        </div>
+        {lessonForm.video_url && (
+          <div style={{ marginBottom: '1rem', borderRadius: 8, overflow: 'hidden' }}>
+            <VideoPlayer url={lessonForm.video_url} type={lessonForm.video_type as any} />
+          </div>
+        )}
+
+        {/* File đính kèm: tài liệu bài giảng & đáp án bài tập trên lớp (không cần video vẫn đăng được) */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12 }}>
+          {([
+            { kind: 'doc' as const, label: 'File bài giảng / tài liệu', ref: lessonDocRef, hint: 'PDF, ảnh, Word, PowerPoint...' },
+            { kind: 'answer' as const, label: 'Đáp án bài tập trên lớp', ref: lessonAnswerRef, hint: 'PDF, ảnh, Word...' },
+          ]).map(({ kind, label, ref, hint }) => (
+            <div className="form-group" key={kind}>
+              <label className="label">{label}</label>
+              <div className="dropzone" style={{ padding: '1rem' }} onClick={() => ref.current?.click()}>
+                {lessonFiles[kind].length > 0
+                  ? <span style={{ color: '#2E7D32', fontSize: '0.85rem' }}>✓ {lessonFiles[kind].length === 1 ? lessonFiles[kind][0].name : `Đã chọn ${lessonFiles[kind].length} file`}</span>
+                  : <span style={{ fontSize: '0.82rem' }}><Upload size={16} style={{ verticalAlign: 'middle' }} /> Chọn file</span>}
+              </div>
+              <input ref={ref} type="file" multiple hidden
+                accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+                onChange={(e) => { if (e.target.files?.length) addLessonFiles(kind, e.target.files); e.target.value = ''; }} />
+              <div style={{ fontSize: '0.75rem', color: '#888', marginTop: 4 }}>{hint} — chọn được nhiều file</div>
+              {lessonFiles[kind].length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 8 }}>
+                  {lessonFiles[kind].map((f, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.8rem', background: '#F1F8E9', borderRadius: 6, padding: '0.35rem 0.55rem' }}>
+                      <FileText size={13} color="#2E7D32" style={{ flexShrink: 0 }} />
+                      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#2E7D32', fontWeight: 600 }}>{f.name}</span>
+                      <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} title="Bỏ file này"
+                        onClick={() => setLessonFiles((prev) => ({ ...prev, [kind]: prev[kind].filter((_, k) => k !== i) }))}>
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* File đã lưu của bài giảng (khi sửa): xem / tải / xóa */}
+        {editingLesson && parseAttachments(editingLesson.attachments).length > 0 && (
+          <div className="form-group">
+            <label className="label">File đã đính kèm</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {parseAttachments(editingLesson.attachments).map((a) => (
+                <div key={a.file} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', background: '#FAFAFA', border: '1px solid #EEE', borderRadius: 6, padding: '0.4rem 0.6rem' }}>
+                  <Paperclip size={13} color={a.kind === 'answer' ? '#2E7D32' : '#E65100'} style={{ flexShrink: 0 }} />
+                  <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {a.name} <span className={`badge ${a.kind === 'answer' ? 'badge-green' : 'badge-orange'}`} style={{ marginLeft: 6 }}>{a.kind === 'answer' ? 'Đáp án BT' : 'Tài liệu'}</span>
+                  </span>
+                  {isViewableFile(a.file)
+                    ? <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([`/uploads/lessons/${a.file}`])}><Eye size={13} /> Xem</button>
+                    : <a className="btn btn-ghost btn-sm" href={`/uploads/lessons/${a.file}`} download={a.name}><Download size={13} /> Tải</a>}
+                  <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} title="Xóa file"
+                    onClick={() => { if (confirm(`Xóa file "${a.name}"?`)) deleteAttachment(a.file); }}>
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="form-group">
+          <label className="label">Thứ tự</label>
+          <input className="input" type="number" min={0} value={lessonForm.lesson_order} onChange={(e) => setLessonForm({ ...lessonForm, lesson_order: e.target.value })} />
+        </div>
+      </Modal>
+
+      {/* View Lesson Modal */}
+      <Modal open={viewLessonModal} onClose={() => setViewLessonModal(false)} title={viewingLesson?.title || ''} size="xl">
+        {viewingLesson?.video_url && <VideoPlayer url={viewingLesson.video_url} type={viewingLesson.video_type} />}
+        {viewingLesson?.description && <p style={{ color: '#555', marginTop: 12, lineHeight: 1.6 }}>{viewingLesson.description}</p>}
+        {viewingLesson && parseAttachments(viewingLesson.attachments).length > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Paperclip size={14} /> Tài liệu đính kèm
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {parseAttachments(viewingLesson.attachments).map((a) => (
+                <div key={a.file} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.85rem', background: '#FAFAFA', border: '1px solid #EEE', borderRadius: 8, padding: '0.5rem 0.75rem' }}>
+                  <FileText size={15} color={a.kind === 'answer' ? '#2E7D32' : '#E65100'} style={{ flexShrink: 0 }} />
+                  <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {a.name} <span className={`badge ${a.kind === 'answer' ? 'badge-green' : 'badge-orange'}`} style={{ marginLeft: 6 }}>{a.kind === 'answer' ? 'Đáp án BT trên lớp' : 'Tài liệu bài giảng'}</span>
+                  </span>
+                  {isViewableFile(a.file) && (
+                    <button className="btn btn-secondary btn-sm" onClick={() => setViewFiles([`/uploads/lessons/${a.file}`])}><Eye size={13} /> Xem</button>
+                  )}
+                  <a className="btn btn-ghost btn-sm" href={`/uploads/lessons/${a.file}`} download={a.name}><Download size={13} /> Tải về</a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Homework Modal */}
+      <Modal open={hwModal} onClose={() => setHwModal(false)} title={editingHw ? 'Sửa bài tập' : 'Thêm bài tập về nhà'} size="lg"
+        footer={<><button className="btn btn-ghost" onClick={() => setHwModal(false)}>Hủy</button><button className="btn btn-primary" onClick={saveHw} disabled={loading}>{loading ? 'Đang lưu...' : 'Lưu'}</button></>}>
+        <div className="form-group">
+          <label className="label">Tiêu đề *</label>
+          <input className="input" placeholder="Tên bài tập" value={hwForm.title} onChange={(e) => setHwForm({ ...hwForm, title: e.target.value })} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 2fr) minmax(0, 1fr)', gap: 12 }}>
+          <div className="form-group">
+            <label className="label">Chương</label>
+            <select className="input" value={hwForm.chapter_id} onChange={(e) => setHwForm({ ...hwForm, chapter_id: e.target.value })}>
+              <option value="">— Chưa phân chương —</option>
+              {chapterOptions}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="label">Thứ tự</label>
+            <input className="input" type="number" min={0} value={hwForm.hw_order} onChange={(e) => setHwForm({ ...hwForm, hw_order: e.target.value })} />
+          </div>
+        </div>
+        <div className="form-group">
+          <label className="label">Mô tả / Hướng dẫn</label>
+          <textarea className="input" rows={3} value={hwForm.description} onChange={(e) => setHwForm({ ...hwForm, description: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label className="label">Kiểu bài</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {([
+              { key: 'thpt' as ExamType, title: 'Lựa chọn 1 — THPT (mặc định)', desc: 'Nộp bài như hiện tại: Trắc nghiệm / Đúng-Sai / Trả lời ngắn / Tự luận, điểm quy đổi về Thang điểm.' },
+              { key: 'hsa' as ExamType, title: 'Lựa chọn 2 — HSA', desc: 'Mỗi câu tự chọn Trắc nghiệm hoặc Trả lời ngắn, luôn 1 điểm/câu. Điểm cuối = tổng điểm đạt được, không quy đổi.' },
+            ]).map((o) => {
+              const active = hwForm.exam_type === o.key;
+              return (
+                <button key={o.key} type="button" onClick={() => setHwForm({ ...hwForm, exam_type: o.key })}
+                  style={{
+                    textAlign: 'left', flex: '1 1 260px', minWidth: 220, cursor: 'pointer',
+                    border: `1.5px solid ${active ? '#C62828' : '#DDD'}`, background: active ? '#FFF4F4' : 'white',
+                    borderRadius: 10, padding: '8px 12px',
+                  }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1A1A2E' }}>{o.title}</div>
+                  <div style={{ fontSize: '0.74rem', color: '#777', marginTop: 4, lineHeight: 1.5 }}>{o.desc}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        {hwForm.exam_type === 'hsa' ? (
+          <>
+            <div className="form-group">
+              <label className="label">Cấu hình câu hỏi (HSA)</label>
+              <HsaEditor value={hsaConfig} onChange={setHsaConfig} />
+            </div>
+            <div className="form-group">
+              <label className="label">Thời gian làm bài (phút)</label>
+              <input className="input" type="number" min={1} step={1} placeholder="Không giới hạn thời gian"
+                value={hwForm.time_limit_minutes} onChange={(e) => setHwForm({ ...hwForm, time_limit_minutes: e.target.value })} />
+              <div style={{ fontSize: '0.72rem', color: '#888', marginTop: 4, lineHeight: 1.5 }}>
+                Học sinh bấm <strong>"Làm bài"</strong> mới bắt đầu tính giờ — hết thời gian này mà chưa nộp sẽ{' '}
+                <strong>tự động nộp bài</strong>, không phụ thuộc "Hạn nộp bài" chung ở dưới. Để trống = không giới hạn thời gian làm bài.
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="form-group">
+            <label className="label">Kiểu nộp bài</label>
+            <div style={{ fontSize: '0.75rem', color: '#888', margin: '2px 0 10px', lineHeight: 1.6 }}>
+              Chọn các phần học sinh sẽ làm. Thứ tự khi làm bài: Trắc nghiệm → Đúng/Sai → Trả lời ngắn → Tự luận.
+              Trắc nghiệm/Đúng-Sai/Trả lời ngắn được <strong>chấm tự động</strong> theo đáp án &amp; điểm bạn đặt.
+              Câu nào <strong>để trống đáp án</strong> → AI tự đọc từ <strong>File đáp án (PDF)</strong> bên dưới để chấm. Phần tự luận do AI chấm theo file đáp án.
+            </div>
+            <PartsEditor value={hwParts} onChange={setHwParts}
+              gradingNote={hwForm.grading_note} onGradingNoteChange={(v) => setHwForm({ ...hwForm, grading_note: v })} />
+          </div>
+        )}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12 }}>
+          <div className="form-group">
+            <label className="label">Thang điểm{hwForm.exam_type === 'thpt' && anyPartEnabled(hwParts) ? ' (quy đổi về)' : ''}</label>
+            {hwForm.exam_type === 'hsa' ? (
+              <div className="input" style={{ background: '#F5F5F5', color: '#666', display: 'flex', alignItems: 'center' }}>
+                {hsaMaxScore(hsaConfig)} điểm (tự động = số câu, không quy đổi)
+              </div>
+            ) : (
+            <input className="input" type="number" min={1} step={0.5}
+              value={hwForm.max_score}
+              onChange={(e) => setHwForm({ ...hwForm, max_score: e.target.value })} />
+            )}
+            {hwForm.exam_type === 'thpt' && anyPartEnabled(hwParts) && (
+              <div style={{ fontSize: '0.72rem', color: '#888', marginTop: 4, lineHeight: 1.5 }}>
+                Tổng điểm các câu: <strong>{computeMaxScore(hwParts)}</strong>. Điểm cuối = (điểm đạt ÷ tổng) × thang điểm.{' '}
+                {computeMaxScore(hwParts) > 0 && String(computeMaxScore(hwParts)) !== String(hwForm.max_score) && (
+                  <button type="button" className="btn btn-ghost btn-sm" style={{ padding: '0 6px', height: 'auto' }}
+                    onClick={() => setHwForm({ ...hwForm, max_score: String(computeMaxScore(hwParts)) })}>
+                    Đặt = {computeMaxScore(hwParts)} (không quy đổi)
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="form-group">
+            <label className="label">Hạn nộp bài</label>
+            <input className="input" type="datetime-local" value={hwForm.due_date} onChange={(e) => setHwForm({ ...hwForm, due_date: e.target.value })} />
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12 }}>
+          <div className="form-group">
+            <label className="label">Thời gian xem đáp án</label>
+            <input className="input" type="datetime-local" value={hwForm.answer_visible_date} onChange={(e) => setHwForm({ ...hwForm, answer_visible_date: e.target.value })} />
+          </div>
+          <div className="form-group">
+            <label className="label">Số lần nộp tối đa</label>
+            <input className="input" type="number" min={1} step={1} placeholder="Không giới hạn"
+              value={hwForm.max_attempts} onChange={(e) => setHwForm({ ...hwForm, max_attempts: e.target.value })} />
+            <div style={{ fontSize: '0.72rem', color: '#888', marginTop: 4 }}>Để trống = học sinh được nộp lại không giới hạn.</div>
+          </div>
+        </div>
+        <div className="form-group">
+          <label className="label">Link video chữa bài (YouTube)</label>
+          <input className="input" placeholder="https://youtube.com/watch?v=..." value={hwForm.solution_video_url} onChange={(e) => setHwForm({ ...hwForm, solution_video_url: e.target.value })} />
+          <div style={{ fontSize: '0.75rem', color: '#888', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Video size={12} /> Học sinh sẽ xem được video chữa cùng lúc với đáp án (theo "Thời gian xem đáp án").
+          </div>
+        </div>
+        {hwForm.solution_video_url && (
+          <div style={{ marginBottom: '1rem', borderRadius: 8, overflow: 'hidden' }}>
+            <VideoPlayer url={hwForm.solution_video_url} type="youtube" />
+          </div>
+        )}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12 }}>
+          <div className="form-group">
+            <label className="label">File đề bài (PDF)</label>
+            <div className="dropzone" style={{ padding: '1rem' }} onClick={() => pdfRef.current?.click()}>
+              {hwFiles.pdf ? <span style={{ color: '#2E7D32', fontSize: '0.85rem' }}>✓ {hwFiles.pdf.name}</span> : <span style={{ fontSize: '0.82rem' }}><Upload size={16} style={{ verticalAlign: 'middle' }} /> Chọn PDF đề</span>}
+            </div>
+            <input ref={pdfRef} type="file" accept=".pdf" hidden onChange={(e) => { if (e.target.files?.[0]) setHwFiles({ ...hwFiles, pdf: e.target.files[0] }); }} />
+          </div>
+          <div className="form-group">
+            <label className="label">File đáp án (PDF cho AI)</label>
+            <div className="dropzone" style={{ padding: '1rem' }} onClick={() => answerRef.current?.click()}>
+              {hwFiles.answer ? <span style={{ color: '#2E7D32', fontSize: '0.85rem' }}>✓ {hwFiles.answer.name}</span> : <span style={{ fontSize: '0.82rem' }}><Upload size={16} style={{ verticalAlign: 'middle' }} /> Chọn PDF đáp án</span>}
+            </div>
+            <input ref={answerRef} type="file" accept=".pdf" hidden onChange={(e) => { if (e.target.files?.[0]) setHwFiles({ ...hwFiles, answer: e.target.files[0] }); }} />
+          </div>
+        </div>
+
+        {/* File đã lưu của bài tập (khi sửa): xem / xóa. Chọn file mới ở trên sẽ thay file cũ khi lưu. */}
+        {editingHw && (editingHw.pdf_file || editingHw.answer_file) && (
+          <div className="form-group">
+            <label className="label">File đã đính kèm</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {([
+                { kind: 'pdf' as const, file: editingHw.pdf_file, name: editingHw.pdf_name || 'File đề bài.pdf', badge: 'Đề bài', color: '#E65100', cls: 'badge-orange', replacing: !!hwFiles.pdf },
+                { kind: 'answer' as const, file: editingHw.answer_file, name: editingHw.answer_name || 'File đáp án.pdf', badge: 'Đáp án', color: '#2E7D32', cls: 'badge-green', replacing: !!hwFiles.answer },
+              ]).filter((a) => a.file).map((a) => (
+                <div key={a.kind} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.82rem', background: '#FAFAFA', border: '1px solid #EEE', borderRadius: 6, padding: '0.4rem 0.6rem', opacity: a.replacing ? 0.5 : 1 }}>
+                  <Paperclip size={13} color={a.color} style={{ flexShrink: 0 }} />
+                  <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: a.replacing ? 'line-through' : 'none' }} title={a.name}>
+                    {a.name} <span className={`badge ${a.cls}`} style={{ marginLeft: 6 }}>{a.replacing ? 'Sẽ được thay' : a.badge}</span>
+                  </span>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([`/uploads/homework/${a.file}`])}><Eye size={13} /> Xem</button>
+                  <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#C62828' }} title="Xóa file"
+                    onClick={() => { if (confirm(`Xóa file "${a.name}"?`)) deleteHwFile(a.kind); }}>
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Excel Import Modal: tạo tài khoản học sinh hàng loạt */}
+      <Modal open={excelModal} onClose={() => setExcelModal(false)} title="Nhập Excel — tạo tài khoản hàng loạt" size="lg"
+        footer={
+          <>
+            <button className="btn btn-ghost" onClick={() => setExcelModal(false)}>Đóng</button>
+            {excelRows.length > 0 && !excelResult && (
+              <button className="btn btn-primary" onClick={importExcel} disabled={loading || excelRows.filter((r) => !r.error).length === 0}>
+                {loading ? 'Đang tạo...' : `Tạo ${excelRows.filter((r) => !r.error).length} tài khoản`}
+              </button>
+            )}
+          </>
+        }>
+        {/* Bước 1: hướng dẫn + chọn file */}
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+          <button className="btn btn-secondary btn-sm" onClick={downloadTemplate}>
+            <Download size={14} /> Tải file mẫu
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={() => excelRef.current?.click()}>
+            <FileSpreadsheet size={14} /> {excelName ? 'Chọn file khác' : 'Chọn file Excel'}
+          </button>
+          <input ref={excelRef} type="file" accept=".xlsx,.xls" hidden
+            onChange={(e) => { if (e.target.files?.[0]) handleExcelFile(e.target.files[0]); e.target.value = ''; }} />
+        </div>
+        <div style={{ padding: '0.6rem 0.8rem', background: '#F5F5F5', borderRadius: 8, fontSize: '0.8rem', color: '#666', lineHeight: 1.6, marginBottom: 14 }}>
+          File Excel cần các cột: <strong>Họ và tên</strong>, <strong>Tên đăng nhập</strong>, <strong>Mật khẩu</strong>, <strong>Số điện thoại</strong> (tùy chọn).
+          Mỗi dòng là một học sinh — tất cả sẽ được tạo tài khoản và thêm thẳng vào lớp này. Nếu tên đăng nhập đã tồn tại và họ tên + số điện thoại khớp
+          hoàn toàn với tài khoản cũ, tài khoản đó vẫn được thêm vào lớp (không tạo mới); nếu chỉ trùng tên đăng nhập nhưng thông tin khác thì sẽ báo lỗi.
+        </div>
+
+        {/* Bước 2: xem trước dữ liệu đã đọc */}
+        {excelName && !excelResult && (
+          <>
+            <div style={{ fontSize: '0.85rem', marginBottom: 8 }}>
+              <FileSpreadsheet size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+              <strong>{excelName}</strong> — {excelRows.length} dòng, {excelRows.filter((r) => !r.error).length} hợp lệ
+              {excelRows.some((r) => r.error) && <span style={{ color: '#C62828' }}> · {excelRows.filter((r) => r.error).length} dòng lỗi (bỏ qua khi tạo)</span>}
+            </div>
+            <div className="table-wrap" style={{ maxHeight: 320, overflowY: 'auto' }}>
+              <table>
+                <thead><tr><th>Dòng</th><th>Họ và tên</th><th>Tên đăng nhập</th><th>Mật khẩu</th><th>SĐT</th><th>Trạng thái</th></tr></thead>
+                <tbody>
+                  {excelRows.map((r) => (
+                    <tr key={r.row} style={r.error ? { background: '#FFF8F8' } : undefined}>
+                      <td style={{ color: '#999' }}>{r.row}</td>
+                      <td><strong>{r.full_name || '—'}</strong></td>
+                      <td style={{ fontFamily: 'monospace' }}>{r.username || '—'}</td>
+                      <td style={{ fontFamily: 'monospace' }}>{r.password || '—'}</td>
+                      <td>{r.parent_phone || '—'}</td>
+                      <td>
+                        {r.error
+                          ? <span className="badge badge-red">{r.error}</span>
+                          : <span className="badge badge-green">Sẵn sàng</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+
+        {/* Bước 3: kết quả sau khi tạo */}
+        {excelResult && (
+          <div>
+            <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+              <div className="card" style={{ flex: 1, padding: '0.8rem 1rem', background: '#E8F5E9', minWidth: 140 }}>
+                <div style={{ fontWeight: 800, fontSize: '1.3rem', color: '#2E7D32' }}>{excelResult.created}</div>
+                <div style={{ fontSize: '0.8rem', color: '#2E7D32' }}>Tài khoản mới đã tạo & thêm vào lớp</div>
+              </div>
+              {excelResult.addedExisting > 0 && (
+                <div className="card" style={{ flex: 1, padding: '0.8rem 1rem', background: '#E3F2FD', minWidth: 140 }}>
+                  <div style={{ fontWeight: 800, fontSize: '1.3rem', color: '#1565C0' }}>{excelResult.addedExisting}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#1565C0' }}>Tài khoản đã tồn tại, thêm vào lớp</div>
+                </div>
+              )}
+              <div className="card" style={{ flex: 1, padding: '0.8rem 1rem', background: excelResult.failed > 0 ? '#FFEBEE' : '#F5F5F5', minWidth: 140 }}>
+                <div style={{ fontWeight: 800, fontSize: '1.3rem', color: excelResult.failed > 0 ? '#C62828' : '#888' }}>{excelResult.failed}</div>
+                <div style={{ fontSize: '0.8rem', color: excelResult.failed > 0 ? '#C62828' : '#888' }}>Dòng lỗi</div>
+              </div>
+            </div>
+            {excelResult.existed?.length > 0 && (
+              <div className="table-wrap" style={{ maxHeight: 200, overflowY: 'auto', marginBottom: 12 }}>
+                <table>
+                  <thead><tr><th>Dòng</th><th>Tên đăng nhập</th><th>Ghi chú</th></tr></thead>
+                  <tbody>
+                    {excelResult.existed.map((e: any, i: number) => (
+                      <tr key={i}>
+                        <td style={{ color: '#999' }}>{e.row}</td>
+                        <td style={{ fontFamily: 'monospace' }}>{e.username || '—'}</td>
+                        <td style={{ color: '#1565C0' }}>{e.reason}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {excelResult.errors?.length > 0 && (
+              <div className="table-wrap" style={{ maxHeight: 240, overflowY: 'auto' }}>
+                <table>
+                  <thead><tr><th>Dòng</th><th>Tên đăng nhập</th><th>Lý do</th></tr></thead>
+                  <tbody>
+                    {excelResult.errors.map((e: any, i: number) => (
+                      <tr key={i}>
+                        <td style={{ color: '#999' }}>{e.row}</td>
+                        <td style={{ fontFamily: 'monospace' }}>{e.username || '—'}</td>
+                        <td style={{ color: '#C62828' }}>{e.reason}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* File Viewer (xem file đính kèm bài giảng) */}
+      {viewFiles && <FileViewer files={viewFiles} onClose={() => setViewFiles(null)} />}
+    </div>
+  );
+}
