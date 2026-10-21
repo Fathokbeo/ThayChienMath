@@ -164,6 +164,24 @@ router.get('/overview', (req, res) => {
   res.json({ today, to_grade: toGrade, ai_pending: aiPending, upcoming, classes, day: { from: dayFrom, to: dayTo } });
 });
 
+// ── Danh sách gọn để Tìm nhanh (Ctrl+K): bài giảng & bài tập trong lớp giáo viên dạy (admin: mọi lớp) ──
+router.get('/search-index', (req, res) => {
+  const db = getDb();
+  const own = req.user.role === 'teacher' ? ' AND cl.teacher_id=?' : '';
+  const p = req.user.role === 'teacher' ? [req.user.id] : [];
+  const lessons = db.prepare(`
+    SELECT l.id, l.title, l.class_id, cl.title class_title, ch.title chapter_title
+    FROM lessons l JOIN classes cl ON l.class_id=cl.id LEFT JOIN chapters ch ON ch.id=l.chapter_id
+    WHERE cl.active=1${own} ORDER BY cl.title, l.lesson_order, l.id
+  `).all(...p);
+  const homework = db.prepare(`
+    SELECT h.id, h.title, h.class_id, h.due_date, cl.title class_title, ch.title chapter_title
+    FROM homework h JOIN classes cl ON h.class_id=cl.id LEFT JOIN chapters ch ON ch.id=h.chapter_id
+    WHERE cl.active=1${own} ORDER BY cl.title, h.hw_order, h.id
+  `).all(...p);
+  res.json({ lessons, homework });
+});
+
 // ── Courses (teacher can create & manage own courses) ──────────────────
 router.get('/my-courses', (req, res) => {
   const db = getDb();

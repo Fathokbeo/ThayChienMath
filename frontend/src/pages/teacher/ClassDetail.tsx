@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import api from '../../lib/api';
 import { buildContentSections, chapterSubject, existingSectionTitles, sectionKey, type ChapterSubject } from '../../lib/classContent';
 import Modal from '../../components/Modal';
@@ -59,6 +59,7 @@ function partBadges(raw: any) {
 
 export default function ClassDetail() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const [cls, setCls] = useState<any>(null);
   const [allStudents, setAllStudents] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'students' | 'content' | 'assistants' | 'ranking'>('content');
@@ -126,6 +127,33 @@ export default function ClassDetail() {
     if (cls) setExpandedChapters(new Set((cls.chapters?.length || 0) === 0 ? ['orphan'] : []));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cls?.id]);
+
+  // Mở từ Tìm nhanh: ?lesson=ID / ?hw=ID → bung đúng chương & mục, cuộn tới bài và tô viền vài giây;
+  // bài giảng có video/tài liệu thì mở luôn để xem.
+  const [focusId, setFocusId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!cls) return;
+    const lessonId = Number(searchParams.get('lesson')) || 0;
+    const hwId = Number(searchParams.get('hw')) || 0;
+    const target = lessonId ? (cls.lessons || []).find((l: any) => l.id === lessonId)
+      : hwId ? (cls.homework || []).find((h: any) => h.id === hwId) : null;
+    if (!target) return;
+    const inChapter = target.chapter_id && (cls.chapters || []).some((c: any) => c.id === target.chapter_id);
+    const groupKey = inChapter ? String(target.chapter_id) : 'orphan';
+    setActiveTab('content');
+    setExpandedChapters((prev) => new Set(prev).add(groupKey));
+    setExpandedSections((prev) => new Set(prev).add(`${groupKey}-${lessonId ? 'lessons' : 'homework'}`));
+    setFocusId(`${lessonId ? 'lesson' : 'hw'}-${target.id}`);
+    if (lessonId && (target.video_url || target.attachments)) { setViewingLesson(target); setViewLessonModal(true); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cls?.id, searchParams]);
+  useEffect(() => {
+    if (!focusId) return;
+    const t1 = setTimeout(() => document.getElementById(focusId)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+    const t2 = setTimeout(() => setFocusId(null), 3500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [focusId]);
+  const focusRing = (key: string): React.CSSProperties => (focusId === key ? { boxShadow: '0 0 0 2px #1F5C68', transition: 'box-shadow 0.3s' } : { transition: 'box-shadow 0.3s' });
 
   const fetchClass = async () => {
     const { data } = await api.get(`/teacher/classes/${id}`);
@@ -680,7 +708,7 @@ export default function ClassDetail() {
     const docCount = atts.filter((a) => a.kind !== 'answer').length;
     const ansCount = atts.filter((a) => a.kind === 'answer').length;
     return (
-      <div key={l.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '1rem 1.25rem' }}>
+      <div key={l.id} id={`lesson-${l.id}`} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '1rem 1.25rem', ...focusRing(`lesson-${l.id}`) }}>
         <div style={{ width: 36, height: 36, background: '#E6F0F3', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <span style={{ fontWeight: 700, color: '#2F6F82', fontSize: '0.9rem' }}>{i + 1}</span>
         </div>

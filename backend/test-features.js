@@ -163,6 +163,18 @@ const login = async (u, p) => (await req('POST', '/auth/login', { json: { userna
   r = await req('GET', '/teacher/overview', { token: out });
   ok('Học sinh không gọi được tổng quan giáo viên (403)', r.status === 403);
 
+  // ── 5. Tìm nhanh: bài giảng & bài tập ──
+  console.log('\n── 5. Tìm nhanh bài giảng & bài tập ──');
+  const lessonId = (await req('POST', `/teacher/classes/${cls}/lessons`, { token: tt, json: { title: 'Bài giảng: Cực trị hàm số' } })).id;
+  r = await req('GET', '/student/search-index', { token: st });
+  ok('HS tìm được bài giảng trong lớp', r.status === 200 && r.data.lessons.some((x) => x.title === 'Bài giảng: Cực trị hàm số' && x.class_id === cls));
+  ok('HS tìm được bài tập trong lớp', r.data.homework.some((x) => x.id === hw && x.class_title === 'L'));
+  r = await req('GET', '/student/search-index', { token: out });
+  ok('HS ngoài lớp không thấy bài của lớp', r.status === 200 && !r.data.lessons.some((x) => x.class_id === cls) && !r.data.homework.some((x) => x.class_id === cls));
+  r = await req('GET', '/teacher/search-index', { token: tt });
+  ok('GV tìm được bài giảng & bài tập lớp mình', r.status === 200 && r.data.lessons.length >= 1 && r.data.homework.some((x) => x.id === hwNew));
+  void lessonId;
+
   console.log(`\n═══ ${pass + fail} test | ✅ ${pass} PASS | ❌ ${fail} FAIL ═══\n`);
   process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

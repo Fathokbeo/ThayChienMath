@@ -179,6 +179,26 @@ router.get('/overview', (req, res) => {
   res.json({ classes, todo, recent });
 });
 
+// Danh sách gọn để Tìm nhanh (Ctrl+K): bài giảng & bài tập trong các lớp học sinh đang học (chỉ tiêu đề + lớp + chương).
+router.get('/search-index', (req, res) => {
+  const db = getDb();
+  const lessons = db.prepare(`
+    SELECT l.id, l.title, l.class_id, cl.title class_title, ch.title chapter_title
+    FROM lessons l JOIN classes cl ON l.class_id=cl.id
+    JOIN class_students cs ON cs.class_id=cl.id AND cs.student_id=?
+    LEFT JOIN chapters ch ON ch.id=l.chapter_id
+    WHERE cl.active=1 ORDER BY cl.title, l.lesson_order, l.id
+  `).all(req.user.id);
+  const homework = db.prepare(`
+    SELECT h.id, h.title, h.class_id, h.due_date, cl.title class_title, ch.title chapter_title
+    FROM homework h JOIN classes cl ON h.class_id=cl.id
+    JOIN class_students cs ON cs.class_id=cl.id AND cs.student_id=?
+    LEFT JOIN chapters ch ON ch.id=h.chapter_id
+    WHERE cl.active=1 ORDER BY cl.title, h.hw_order, h.id
+  `).all(req.user.id);
+  res.json({ lessons, homework });
+});
+
 // Student's profile/stats
 router.get('/stats', (req, res) => {
   const db = getDb();

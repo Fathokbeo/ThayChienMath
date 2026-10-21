@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, School, BookOpen, Home, CornerDownLeft, type LucideIcon } from 'lucide-react';
+import { Search, School, BookOpen, Home, CornerDownLeft, PlayCircle, ClipboardList, type LucideIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 import { navItemsFor } from '../lib/navigation';
 
-// Tìm nhanh (Ctrl/⌘+K): gõ tên trang, lớp hoặc khóa học rồi Enter để mở ngay — không cần bấm qua nhiều menu.
+// Tìm nhanh (Ctrl/⌘+K): gõ tên trang, lớp, khóa học, bài giảng hoặc bài tập rồi Enter để mở ngay.
+// Bài giảng / bài tập chỉ hiện khi đã gõ từ khóa (để danh sách mặc định gọn).
 // Tìm không phân biệt dấu ("toan 12" khớp "Toán 12").
 
 const OPEN_EVENT = 'tc-open-palette';
@@ -21,7 +22,7 @@ export default function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
-  const [data, setData] = useState<{ classes: Item[]; courses: Item[] } | null>(null);
+  const [data, setData] = useState<{ classes: Item[]; courses: Item[]; lessons: Item[]; homework: Item[] } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -44,8 +45,23 @@ export default function CommandPalette() {
     const role = user.role;
     const classUrl = role === 'student' ? '/student/my-classes' : '/teacher/classes';
     const courseUrl = role === 'student' ? '/student/my-courses' : role === 'teacher' ? '/teacher/my-courses' : '/admin/courses';
-    Promise.all([api.get(classUrl).catch(() => ({ data: [] })), api.get(courseUrl).catch(() => ({ data: [] }))]).then(([c, co]) => {
+    const indexUrl = role === 'student' ? '/student/search-index' : '/teacher/search-index';
+    const base = role === 'student' ? '/student/classes' : '/teacher/classes';
+    Promise.all([
+      api.get(classUrl).catch(() => ({ data: [] })),
+      api.get(courseUrl).catch(() => ({ data: [] })),
+      api.get(indexUrl).catch(() => ({ data: { lessons: [], homework: [] } })),
+    ]).then(([c, co, idx]) => {
+      const where = (x: any) => [x.class_title, x.chapter_title].filter(Boolean).join(' · ');
       setData({
+        lessons: (idx.data?.lessons || []).map((x: any) => ({
+          id: `l${x.id}`, group: 'Bài giảng', label: x.title, sub: where(x), icon: PlayCircle,
+          to: `${base}/${x.class_id}?lesson=${x.id}`,
+        })),
+        homework: (idx.data?.homework || []).map((x: any) => ({
+          id: `h${x.id}`, group: 'Bài tập', label: x.title, sub: where(x), icon: ClipboardList,
+          to: role === 'student' ? `${base}/${x.class_id}?hw=${x.id}` : `/teacher/homework/${x.id}`,
+        })),
         classes: (c.data || []).map((x: any) => ({
           id: `c${x.id}`, group: 'Lớp học', label: x.title, sub: x.course_title || '', icon: School,
           to: role === 'student' ? `/student/classes/${x.id}` : `/teacher/classes/${x.id}`,
@@ -64,10 +80,11 @@ export default function CommandPalette() {
       ...navItemsFor(user.role).map((n) => ({ id: `p${n.to}`, group: 'Trang', label: n.label, to: n.to, icon: n.icon })),
       { id: 'home', group: 'Trang', label: 'Trang chủ', to: '/', icon: Home },
     ];
-    const all = [...pages, ...(data?.classes || []), ...(data?.courses || [])];
+    const base = [...pages, ...(data?.classes || []), ...(data?.courses || [])];
     const words = fold(q).split(/\s+/).filter(Boolean);
-    if (!words.length) return all.slice(0, 40);
-    return all.filter((it) => { const hay = fold(`${it.label} ${it.sub || ''}`); return words.every((w) => hay.includes(w)); }).slice(0, 40);
+    if (!words.length) return base.slice(0, 40);
+    const all = [...base, ...(data?.lessons || []), ...(data?.homework || [])];
+    return all.filter((it) => { const hay = fold(`${it.label} ${it.sub || ''}`); return words.every((w) => hay.includes(w)); }).slice(0, 60);
   }, [q, data, user]);
 
   useEffect(() => { setSel(0); }, [q]);
@@ -91,7 +108,7 @@ export default function CommandPalette() {
       <div className="palette" role="dialog" aria-label="Tìm nhanh">
         <div style={{ position: 'relative' }}>
           <Search size={20} style={{ position: 'absolute', left: 17, top: '50%', transform: 'translateY(-50%)', color: '#86868B' }} />
-          <input ref={inputRef} className="palette-input" placeholder="Tìm trang, lớp học, khóa học…" value={q}
+          <input ref={inputRef} className="palette-input" placeholder="Tìm trang, lớp, khóa học, bài giảng, bài tập…" value={q}
             onChange={(e) => setQ(e.target.value)} onKeyDown={onKeyDown} />
         </div>
         <div className="palette-results" ref={listRef}>
