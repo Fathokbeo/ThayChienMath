@@ -377,6 +377,10 @@ function initSchema() {
   if (!subCols.some(c => c.name === 'best_score')) {
     db.exec('ALTER TABLE submissions ADD COLUMN best_score REAL');
   }
+  // Migration: người nộp bài khi KHÁC học sinh (giáo viên thu bài trên lớp rồi nộp hộ) — NULL = học sinh tự nộp
+  if (!subCols.some(c => c.name === 'submitted_by')) {
+    db.exec('ALTER TABLE submissions ADD COLUMN submitted_by INTEGER');
+  }
   // Migration: tên gốc của file đề / file đáp án bài tập (file lưu trên đĩa bằng tên ngẫu nhiên)
   if (!hwCols.some(c => c.name === 'pdf_name')) {
     db.exec('ALTER TABLE homework ADD COLUMN pdf_name TEXT');

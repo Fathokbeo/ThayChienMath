@@ -23,7 +23,7 @@ function childHomework(db, studentId, nowIso, classId) {
     SELECT h.id, h.class_id, h.title, h.due_date, h.created_at, h.answer_visible_date, h.max_score, h.exam_type,
            h.pdf_file, h.answer_file, h.solution_video_url, cl.title class_title,
            s.id submission_id, s.submitted_at, s.graded_at, s.score, s.feedback, s.grading_details, s.grading_status,
-           s.graded_by_ai, s.submit_count, s.files, s.file_path, s.best_attempt
+           s.graded_by_ai, s.submit_count, s.files, s.file_path, s.best_attempt, s.submitted_by
     FROM homework h JOIN classes cl ON cl.id=h.class_id AND cl.active=1
     JOIN class_students cs ON cs.class_id=cl.id AND cs.student_id=?
     LEFT JOIN submissions s ON s.homework_id=h.id AND s.student_id=?
@@ -51,7 +51,7 @@ function childHomework(db, studentId, nowIso, classId) {
       due_date: r.due_date, created_at: r.created_at, answer_visible_date: r.answer_visible_date, max_score: max,
       pdf_file: r.pdf_file, answer_file: canSee ? r.answer_file : null, solution_video_url: canSee ? r.solution_video_url : null,
       status, submitted_at: r.submitted_at, graded_at: gradedAt, submit_count: r.submit_count || 0,
-      graded_by_ai: !!r.graded_by_ai, files: submitted ? files : [],
+      graded_by_ai: !!r.graded_by_ai, files: submitted ? files : [], by_teacher: !!r.submitted_by,
       score: score ?? null, score10: score !== null && score !== undefined ? round1(Math.max(0, Math.min(1, score / max)) * 10) : null,
       can_see_feedback: canSee,
       feedback: canSee ? feedback : null,
@@ -173,7 +173,7 @@ function activityFeed(hws, nowIso, seenAt) {
   for (const h of hws) {
     const base = { homework_id: h.id, class_id: h.class_id, class_title: h.class_title, title: h.title };
     if (h.created_at) ev.push({ ...base, type: 'assigned', at: sqliteToIso(h.created_at), due_date: h.due_date });
-    if (h.submitted_at) ev.push({ ...base, type: 'submitted', at: h.submitted_at, submit_count: h.submit_count });
+    if (h.submitted_at) ev.push({ ...base, type: 'submitted', at: h.submitted_at, submit_count: h.submit_count, by_teacher: h.by_teacher });
     if (h.status === 'graded' && h.graded_at) ev.push({ ...base, type: 'graded', at: h.graded_at, score: h.score, max_score: h.max_score, score10: h.score10 });
     if (h.status === 'missed') ev.push({ ...base, type: 'missed', at: h.due_date });
   }

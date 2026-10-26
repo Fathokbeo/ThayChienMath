@@ -364,7 +364,7 @@ router.get('/homework/:id', (req, res) => {
   const roster = db.prepare(`
     SELECT u.id student_id, u.username, u.full_name, cs.sort_order,
            s.id submission_id, s.file_path, s.files, s.structured_answers, s.submitted_at,
-           s.score, s.feedback, s.graded_at, s.graded_by_ai, s.grading_details, s.grading_status, s.submit_count, s.best_score
+           s.score, s.feedback, s.graded_at, s.graded_by_ai, s.grading_details, s.grading_status, s.submit_count, s.best_score, s.submitted_by
     FROM class_students cs JOIN users u ON cs.student_id=u.id
     LEFT JOIN submissions s ON s.homework_id=? AND s.student_id=u.id
     WHERE cs.class_id=? AND u.active=1
@@ -411,6 +411,57 @@ router.post('/homework/:id/start', requireRole('student'), (req, res) => {
   res.json({ started_at: startedAt, time_limit_minutes: hw.time_limit_minutes || null });
 });
 
+// Lưu 1 lần nộp bài (mới hoặc nộp lại) rồi đưa vào hàng đợi chấm. Dùng chung cho học sinh tự nộp và giáo viên
+// nộp hộ. limits=true: chặn quá hạn / hết lượt (học sinh); giáo viên nộp hộ bài đã thu trên lớp thì không chặn.
+// Trả về { submission, message } hoặc { status, message } khi lỗi (file tải lên đã được dọn).
+function storeSubmission(db, hw, studentId, uploaded, structuredJson, { submittedBy = null, limits = true } = {}) {
+  const cleanup = () => uploaded.forEach(f => { if (fs.existsSync(f.path)) fs.unlinkSync(f.path); });
+  const now = new Date().toISOString();
+  if (limits && hw.due_date && now > hw.due_date) { cleanup(); return { status: 400, message: 'Đã quá hạn nộp bài' }; }
+
+  const existing = db.prepare('SELECT * FROM submissions WHERE homework_id=? AND student_id=?').get(hw.id, studentId);
+
+  // Giới hạn số lần nộp bài (nếu giáo viên có đặt max_attempts) — mỗi lần nộp/nộp lại đều tính 1 lượt
+  const attemptsUsed = existing?.submit_count || 0;
+  if (limits && hw.max_attempts && attemptsUsed >= hw.max_attempts) {
+    cleanup();
+    return { status: 400, message: `Đã hết số lần nộp bài cho phép (tối đa ${hw.max_attempts} lần)` };
+  }
+
+  const filenames = uploaded.map(f => f.filename);
+  const filesJson = filenames.length ? JSON.stringify(filenames) : null;
+
+  // Nộp lại: cất lần nộp có điểm cao nhất (kèm file) để so với lần mới sau khi chấm; file của lần
+  // không cần giữ thì xóa luôn.
+  const best = existing ? archiveBeforeResubmit(existing) : { bestJson: null, bestScore: null };
+
+  // Có đáp án (file tự luận hoặc key objective) → đưa vào hàng đợi chấm AI ('pending'); không có → giáo viên chấm tay (NULL)
+  const aiGrade = needsAiGrading(hw);
+  const initialStatus = aiGrade ? 'pending' : null;
+  const newSubmitCount = attemptsUsed + 1;
+
+  let submissionId;
+  if (existing) {
+    db.prepare('UPDATE submissions SET file_path=?,files=?,structured_answers=?,submitted_at=?,score=NULL,feedback=NULL,grading_details=NULL,graded_at=NULL,graded_by_ai=0,grading_status=?,grading_attempts=0,submit_count=?,best_attempt=?,best_score=?,submitted_by=? WHERE id=?')
+      .run(filenames[0] || null, filesJson, structuredJson, now, initialStatus, newSubmitCount, best.bestJson, best.bestScore, submittedBy, existing.id);
+    submissionId = existing.id;
+  } else {
+    const r = db.prepare('INSERT INTO submissions (homework_id,student_id,file_path,files,structured_answers,submitted_at,grading_status,grading_attempts,submit_count,submitted_by) VALUES (?,?,?,?,?,?,?,0,?,?)')
+      .run(hw.id, studentId, filenames[0] || null, filesJson, structuredJson, now, initialStatus, newSubmitCount, submittedBy);
+    submissionId = r.lastInsertRowid;
+  }
+
+  // Nhận bài NGAY, không chờ chấm. Việc chấm AI chạy nền (có thử lại nếu lỗi).
+  if (aiGrade) enqueue(submissionId);
+
+  const submission = db.prepare('SELECT * FROM submissions WHERE id=?').get(submissionId);
+  let message = aiGrade
+    ? 'Nộp bài thành công. Hệ thống đang tự động chấm, kết quả sẽ hiển thị sau ít phút.'
+    : 'Nộp bài thành công.';
+  if (limits && hw.max_attempts) message += ` (đã dùng ${newSubmitCount}/${hw.max_attempts} lần nộp)`;
+  return { submission, message };
+}
+
 // ── Submit homework (student) ──────────────────────────────────────────
 router.post(
   '/homework/:id/submit',
@@ -440,56 +491,40 @@ router.post(
     const hw = db.prepare('SELECT * FROM homework WHERE id=?').get(req.params.id);
     if (!hw) { cleanup(); return res.status(404).json({ message: 'Không tìm thấy bài tập' }); }
 
-    const now = new Date().toISOString();
-    if (hw.due_date && now > hw.due_date) {
-      cleanup();
-      return res.status(400).json({ message: 'Đã quá hạn nộp bài' });
-    }
-
     const enrolled = db.prepare('SELECT * FROM class_students WHERE class_id=? AND student_id=?').get(hw.class_id, req.user.id);
     if (!enrolled) { cleanup(); return res.status(403).json({ message: 'Bạn không thuộc lớp này' }); }
 
-    const existing = db.prepare('SELECT * FROM submissions WHERE homework_id=? AND student_id=?').get(req.params.id, req.user.id);
+    const out = storeSubmission(db, hw, req.user.id, uploaded, structuredJson);
+    if (out.status) return res.status(out.status).json({ message: out.message });
+    res.json(out);
+  }
+);
 
-    // Giới hạn số lần nộp bài (nếu giáo viên có đặt max_attempts) — mỗi lần nộp/nộp lại đều tính 1 lượt
-    const attemptsUsed = existing?.submit_count || 0;
-    if (hw.max_attempts && attemptsUsed >= hw.max_attempts) {
-      cleanup();
-      return res.status(400).json({ message: `Đã hết số lần nộp bài cho phép (tối đa ${hw.max_attempts} lần)` });
-    }
+// ── Giáo viên nộp bài HỘ học sinh (bài thu trên lớp: chụp ảnh / chọn file) ─────────────────
+// Không cần đăng nhập tài khoản học sinh. Không chặn quá hạn / số lần nộp (bài đã thu đúng giờ trên lớp).
+// Bài vẫn được AI chấm như học sinh tự nộp; submitted_by ghi lại giáo viên đã nộp hộ.
+router.post(
+  '/homework/:id/students/:studentId/submit',
+  requireRole('teacher', 'admin'),
+  uploadSubmission.any(),
+  async (req, res) => {
+    const uploaded = req.files || [];
+    const cleanup = () => uploaded.forEach(f => { if (fs.existsSync(f.path)) fs.unlinkSync(f.path); });
+    if (uploaded.length === 0) return res.status(400).json({ message: 'Chọn hoặc chụp ít nhất một ảnh/file bài làm' });
+    if (uploaded.length > 20) { cleanup(); return res.status(400).json({ message: 'Tối đa 20 file mỗi lần nộp' }); }
 
-    const filenames = uploaded.map(f => f.filename);
-    const filesJson = filenames.length ? JSON.stringify(filenames) : null;
+    const db = getDb();
+    const hw = db.prepare('SELECT h.*,c.teacher_id FROM homework h JOIN classes c ON h.class_id=c.id WHERE h.id=?').get(req.params.id);
+    if (!hw) { cleanup(); return res.status(404).json({ message: 'Không tìm thấy bài tập' }); }
+    if (req.user.role === 'teacher' && hw.teacher_id !== req.user.id) { cleanup(); return res.status(403).json({ message: 'Không có quyền với lớp này' }); }
 
-    // Nộp lại: cất lần nộp có điểm cao nhất (kèm file) để so với lần mới sau khi chấm; file của lần
-    // không cần giữ thì xóa luôn.
-    const best = existing ? archiveBeforeResubmit(existing) : { bestJson: null, bestScore: null };
+    const studentId = Number(req.params.studentId);
+    const enrolled = db.prepare('SELECT 1 FROM class_students cs JOIN users u ON u.id=cs.student_id WHERE cs.class_id=? AND cs.student_id=? AND u.active=1').get(hw.class_id, studentId);
+    if (!enrolled) { cleanup(); return res.status(400).json({ message: 'Học sinh không thuộc lớp này' }); }
 
-    // Có đáp án (file tự luận hoặc key objective) → đưa vào hàng đợi chấm AI ('pending'); không có → giáo viên chấm tay (NULL)
-    const aiGrade = needsAiGrading(hw);
-    const initialStatus = aiGrade ? 'pending' : null;
-    const newSubmitCount = attemptsUsed + 1;
-
-    let submissionId;
-    if (existing) {
-      db.prepare('UPDATE submissions SET file_path=?,files=?,structured_answers=?,submitted_at=?,score=NULL,feedback=NULL,grading_details=NULL,graded_at=NULL,graded_by_ai=0,grading_status=?,grading_attempts=0,submit_count=?,best_attempt=?,best_score=? WHERE id=?')
-        .run(filenames[0] || null, filesJson, structuredJson, now, initialStatus, newSubmitCount, best.bestJson, best.bestScore, existing.id);
-      submissionId = existing.id;
-    } else {
-      const r = db.prepare('INSERT INTO submissions (homework_id,student_id,file_path,files,structured_answers,submitted_at,grading_status,grading_attempts,submit_count) VALUES (?,?,?,?,?,?,?,0,?)')
-        .run(req.params.id, req.user.id, filenames[0] || null, filesJson, structuredJson, now, initialStatus, newSubmitCount);
-      submissionId = r.lastInsertRowid;
-    }
-
-    // Nhận bài NGAY, không chờ chấm. Việc chấm AI chạy nền (có thử lại nếu lỗi).
-    if (aiGrade) enqueue(submissionId);
-
-    const sub = db.prepare('SELECT * FROM submissions WHERE id=?').get(submissionId);
-    let message = aiGrade
-      ? 'Nộp bài thành công. Hệ thống đang tự động chấm, kết quả sẽ hiển thị sau ít phút.'
-      : 'Nộp bài thành công.';
-    if (hw.max_attempts) message += ` (đã dùng ${newSubmitCount}/${hw.max_attempts} lần nộp)`;
-    res.json({ message, submission: sub });
+    const out = storeSubmission(db, hw, studentId, uploaded, null, { submittedBy: req.user.id, limits: false });
+    if (out.status) return res.status(out.status).json({ message: out.message });
+    res.json({ ...out, message: out.message.replace('Nộp bài thành công', 'Đã nộp bài hộ học sinh') });
   }
 );
 

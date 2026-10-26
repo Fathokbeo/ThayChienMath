@@ -62,11 +62,12 @@ export const STATUS: Record<string, { label: string; color: string; bg: string }
 export type Activity = {
   type: 'assigned' | 'submitted' | 'graded' | 'missed';
   at: string; title: string; class_id: number; class_title: string; homework_id: number;
-  score?: number; max_score?: number; score10?: number; submit_count?: number; due_date?: string | null; is_new?: boolean;
+  score?: number; max_score?: number; score10?: number; submit_count?: number; due_date?: string | null; is_new?: boolean; by_teacher?: boolean;
 };
 
 // Câu thông báo cho phụ huynh, xưng "con"
 export function activityText(e: Activity): string {
+  if (e.type === 'submitted' && e.by_teacher) return 'Thầy cô đã thu bài trên lớp và nộp hộ con';
   if (e.type === 'submitted') return e.submit_count && e.submit_count > 1 ? `Con đã nộp lại bài (lần ${e.submit_count})` : 'Con đã nộp bài';
   if (e.type === 'graded') return `Bài đã có điểm: ${fmtScore(e.score)}/${e.max_score}`;
   if (e.type === 'missed') return 'Con không nộp bài đúng hạn — bị tính 0 điểm';

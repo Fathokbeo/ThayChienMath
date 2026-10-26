@@ -7,10 +7,11 @@ import StructuredAnswerReview from '../../components/StructuredAnswerReview';
 import FileViewer from '../../components/FileViewer';
 import HomeworkReport from '../../components/HomeworkReport';
 import HomeworkStats from '../../components/HomeworkStats';
+import ProxySubmitModal from '../../components/ProxySubmitModal';
 import { toast } from '../../components/Toast';
 import { parsePartsConfig, hasObjectiveParts } from '../../lib/homeworkParts';
 import { summarizeEssayFeedback, homeworkHasEssay } from '../../lib/feedbackSummary';
-import { ChevronLeft, Users, CheckCircle, XCircle, Clock, Bot, Star, Eye, Download, Repeat } from 'lucide-react';
+import { ChevronLeft, Users, CheckCircle, XCircle, Clock, Bot, Star, Eye, Download, Repeat, Camera } from 'lucide-react';
 
 // Danh sách URL file của một bài nộp (hỗ trợ cũ: 1 file, mới: nhiều file dạng JSON)
 function submissionFileUrls(s: any): string[] {
@@ -32,6 +33,8 @@ export default function HomeworkDetail() {
   // Thanh chọn: tất cả / đã nộp / chưa nộp (lọc danh sách), "Nhận xét" (khối nhận xét cả lớp)
   // hoặc "Thống kê" (phổ điểm, tỉ lệ đạt theo câu, lỗi sai phổ biến)
   const [filter, setFilter] = useState<'all' | 'submitted' | 'missing' | 'review' | 'stats'>('all');
+  // Nộp hộ: giáo viên thu bài trên lớp, chụp ảnh/chọn file rồi nộp thay học sinh (null = bắt đầu từ em chưa nộp đầu tiên)
+  const [proxy, setProxy] = useState<{ open: boolean; start: number | null }>({ open: false, start: null });
 
   useEffect(() => { fetchHw(); }, [id]);
 
@@ -239,6 +242,10 @@ export default function HomeworkDetail() {
               </button>
             ))}
           </div>
+          <button className="btn btn-primary btn-sm" onClick={() => setProxy({ open: true, start: null })} disabled={roster.length === 0}
+            title="Thu bài trên lớp: chụp ảnh / chọn file rồi nộp hộ từng em, không cần đăng nhập tài khoản học sinh">
+            <Camera size={14} /> Nộp hộ
+          </button>
           <button className="btn btn-success btn-sm" onClick={exportExcel} disabled={roster.length === 0} title="Xuất bảng điểm cả lớp ra Excel">
             <Download size={14} /> Xuất Excel
           </button>
@@ -274,7 +281,10 @@ export default function HomeworkDetail() {
                   <td><strong>{s.full_name}</strong><div style={{ fontSize: '0.78rem', color: '#86868B' }}>{s.username}</div></td>
                   <td>
                     {submitted
-                      ? <span className="badge badge-green"><CheckCircle size={10} style={{ marginRight: 4 }} />Đã nộp</span>
+                      ? <>
+                          <span className="badge badge-green"><CheckCircle size={10} style={{ marginRight: 4 }} />Đã nộp</span>
+                          {s.submitted_by && <div style={{ fontSize: '0.72rem', color: '#6E5A94', marginTop: 4 }}>GV nộp hộ</div>}
+                        </>
                       : isOverdue
                         ? <span className="badge badge-red"><XCircle size={10} style={{ marginRight: 4 }} />Chưa nộp bài</span>
                         : <span className="badge badge-gray">Chưa nộp</span>}
@@ -329,8 +339,15 @@ export default function HomeworkDetail() {
                             {regrading === s.submission_id ? '...' : 'AI'}
                           </button>
                         )}
+                        <button className="btn btn-ghost btn-sm" onClick={() => setProxy({ open: true, start: s.student_id })} title="Nộp lại hộ (thay bài đã nộp)" aria-label={`Nộp lại hộ ${s.full_name}`}>
+                          <Camera size={13} />
+                        </button>
                       </div>
-                    ) : '—'}
+                    ) : (
+                      <button className="btn btn-secondary btn-sm" onClick={() => setProxy({ open: true, start: s.student_id })} title="Chụp ảnh / chọn file bài làm và nộp hộ em này">
+                        <Camera size={13} /> Nộp hộ
+                      </button>
+                    )}
                   </td>
                 </tr>
               );
@@ -365,6 +382,9 @@ export default function HomeworkDetail() {
         {grading?.structured_answers && <StructuredAnswerReview partsConfig={hw.parts_config} structuredAnswers={grading.structured_answers} />}
         {grading?.grading_details && <GradingDetails details={grading.grading_details} />}
       </Modal>
+
+      <ProxySubmitModal open={proxy.open} homeworkId={hw.id} roster={roster} startStudentId={proxy.start}
+        onClose={() => setProxy({ open: false, start: null })} onSubmitted={fetchHw} />
 
       {/* File Viewer Modal */}
       {viewFiles && <FileViewer files={viewFiles} onClose={() => setViewFiles(null)} />}
