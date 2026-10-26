@@ -41,7 +41,7 @@ Hoặc trên Windows chạy `start.bat` để mở cả hai cùng lúc.
 
 ## Dữ liệu demo (bản xem thử)
 
-Đặt biến môi trường `SEED_DEMO=1` (đã bật sẵn trong `render.yaml`): khi database còn trống, server tự nạp dữ liệu demo
+Chạy trên Render (tự nhận biết qua biến `RENDER`) hoặc đặt `SEED_DEMO=1`: khi database còn trống, server tự nạp dữ liệu demo
 lấy từ đề, đáp án và bài làm thật (`backend/demo/`) kèm kết quả AI đã chấm sẵn. Họ tên học sinh trên web là tên giả.
 Chạy tay: `cd backend && npm run seed:demo`.
 
@@ -54,7 +54,7 @@ Chạy tay: `cd backend && npm run seed:demo`.
 | Phụ huynh | Phụ huynh | tên đăng nhập của con (vd `hs6a`) | `123456` |
 
 Render gói free không lưu dữ liệu lâu dài: mỗi lần deploy / khởi động lại, dữ liệu trở về bộ demo này.
-Khi dùng thật: bỏ `SEED_DEMO`, gắn ổ đĩa lưu trữ (persistent disk) và đổi mật khẩu admin.
+Khi dùng thật: đặt `SEED_DEMO=0`, gắn ổ đĩa lưu trữ (persistent disk) và đổi mật khẩu admin.
 
 ## Cấu hình môi trường (`backend/.env`)
 

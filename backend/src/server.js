@@ -56,9 +56,12 @@ app.use('/api', require('./routes/homework'));
 // Initialize DB (creates tables + default admin)
 const db = require('./db/database').getDb();
 
-// Bản xem thử (vd Render gói free — dữ liệu mất sau mỗi lần khởi động lại): SEED_DEMO=1 → database còn
-// trống thì tự nạp dữ liệu demo (giáo viên, học sinh, phụ huynh, bài tập + kết quả chấm thật)
-if (process.env.SEED_DEMO === '1') require('./db/demoSeed').seedDemoIfEmpty(db);
+// Bản xem thử (vd Render gói free — dữ liệu mất sau mỗi lần khởi động lại): database còn trống thì tự nạp
+// dữ liệu demo (giáo viên, học sinh, phụ huynh, bài tập + kết quả chấm thật). Bật khi SEED_DEMO=1, hoặc mặc
+// định khi chạy trên Render (Render tự đặt biến RENDER) — kể cả service tạo tay không qua render.yaml.
+// Tắt hẳn: SEED_DEMO=0.
+const seedDemo = process.env.SEED_DEMO === '1' || (process.env.RENDER && process.env.SEED_DEMO !== '0');
+if (seedDemo) require('./db/demoSeed').seedDemoIfEmpty(db);
 
 // Bật hàng đợi chấm bài AI nền (phục hồi bài còn dở + thử lại khi lỗi)
 require('./services/gradingQueue').startGradingWorker();
