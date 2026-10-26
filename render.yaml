@@ -9,6 +9,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # Ban xem thu: database trong (goi free mat du lieu moi lan khoi dong lai) -> tu nap du lieu demo
+      # (thaychien / hs6a..hs9c, mat khau 123456). Xoa dong nay khi dung that.
+      - key: SEED_DEMO
+        value: "1"
       - key: JWT_SECRET
         generateValue: true
       # Nhap 2 key duoi day trong dashboard Render (Environment).

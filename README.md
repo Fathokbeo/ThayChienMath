@@ -39,6 +39,23 @@ Hoặc trên Windows chạy `start.bat` để mở cả hai cùng lúc.
 ### Tài khoản mặc định
 - Admin: `admin` / `admin123` (đổi mật khẩu ngay sau khi đăng nhập)
 
+## Dữ liệu demo (bản xem thử)
+
+Đặt biến môi trường `SEED_DEMO=1` (đã bật sẵn trong `render.yaml`): khi database còn trống, server tự nạp dữ liệu demo
+lấy từ đề, đáp án và bài làm thật (`backend/demo/`) kèm kết quả AI đã chấm sẵn. Họ tên học sinh trên web là tên giả.
+Chạy tay: `cd backend && npm run seed:demo`.
+
+| Vai trò | Mục đăng nhập | Tên đăng nhập | Mật khẩu |
+|---|---|---|---|
+| Quản trị | Giáo viên | `admin` | `admin123` |
+| Giáo viên | Giáo viên | `thaychien` | `123456` |
+| Học sinh lớp 6A | Học sinh | `hs6a`, `hs6b`, `hs6c`, `hs6d` | `123456` |
+| Học sinh lớp 9A | Học sinh | `hs9a`, `hs9b`, `hs9c` | `123456` |
+| Phụ huynh | Phụ huynh | tên đăng nhập của con (vd `hs6a`) | `123456` |
+
+Render gói free không lưu dữ liệu lâu dài: mỗi lần deploy / khởi động lại, dữ liệu trở về bộ demo này.
+Khi dùng thật: bỏ `SEED_DEMO`, gắn ổ đĩa lưu trữ (persistent disk) và đổi mật khẩu admin.
+
 ## Cấu hình môi trường (`backend/.env`)
 
 | Biến | Mô tả |

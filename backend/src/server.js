@@ -54,7 +54,11 @@ app.use('/api/parent', require('./routes/parent'));
 app.use('/api', require('./routes/homework'));
 
 // Initialize DB (creates tables + default admin)
-require('./db/database').getDb();
+const db = require('./db/database').getDb();
+
+// Bản xem thử (vd Render gói free — dữ liệu mất sau mỗi lần khởi động lại): SEED_DEMO=1 → database còn
+// trống thì tự nạp dữ liệu demo (giáo viên, học sinh, phụ huynh, bài tập + kết quả chấm thật)
+if (process.env.SEED_DEMO === '1') require('./db/demoSeed').seedDemoIfEmpty(db);
 
 // Bật hàng đợi chấm bài AI nền (phục hồi bài còn dở + thử lại khi lỗi)
 require('./services/gradingQueue').startGradingWorker();

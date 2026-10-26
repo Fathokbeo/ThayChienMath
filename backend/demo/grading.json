@@ -1,0 +1,751 @@
+{
+ "bai-lop6-a.pdf": {
+  "score": 8,
+  "feedback": "Con làm bài khá tốt tuy nhiên Phần Tự luận còn cần cẩn thận hơn câu IV, V.2, không làm câu V.1 và cẩn thận hơn khi làm các dạng bài về các dạng bài trong bài tập này.",
+  "grading_details": [
+   {
+    "question": "TN câu 1",
+    "status": "correct",
+    "comment": "Chọn D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 2",
+    "status": "correct",
+    "comment": "Chọn C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 3",
+    "status": "correct",
+    "comment": "Chọn B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 4",
+    "status": "correct",
+    "comment": "Chọn A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 5",
+    "status": "correct",
+    "comment": "Chọn C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 6",
+    "status": "correct",
+    "comment": "Chọn D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 7",
+    "status": "wrong",
+    "comment": "Chọn B: Sai (Đáp án đúng là A) (+0đ)",
+    "points": 0,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 8",
+    "status": "correct",
+    "comment": "Chọn B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "Tự luận câu I.1",
+    "status": "correct",
+    "comment": "Quy đồng mẫu hai phân số: Đúng (+0,25đ). Tính ra kết quả -7/24: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "correct",
+    "comment": "Áp dụng tính chất phân phối rút 8/5: Đúng (+0,25đ). Tính ra kết quả -3/5: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "correct",
+    "comment": "Bỏ dấu ngoặc và nhóm các số thích hợp: Đúng (+0,25đ). Tính ra kết quả 4: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "correct",
+    "comment": "Biến đổi x = (-4/5) : (2/15): Đúng (+0,25đ). Tính x = -6 và kết luận: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "correct",
+    "comment": "Suy ra (x + 1/3)^2 = 4/9 và x + 1/3 = +-2/3: Đúng (+0,25đ). Giải đúng 2 trường hợp x = 1/3 và x = -1, kết luận đầy đủ: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.3",
+    "status": "correct",
+    "comment": "Xét TH1: 4x - 12 = 0 -> x = 3: Đúng (+0,25đ). Xét TH2: x^2 + 5 = 0 (loại) và kết luận x = 3: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1a",
+    "status": "correct",
+    "comment": "Tính số tiền 45,5 . 24,4 = 1110,2 nghìn đồng: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1b",
+    "status": "correct",
+    "comment": "Tính số tiền tiết kiệm 1110,2 - (23,6 . 45,5) = 36,4 nghìn đồng: Đúng cách làm và kết quả (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2a",
+    "status": "correct",
+    "comment": "Tính khối lượng cam xuất khẩu 2400 . 3/8 = 900 kg: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2b",
+    "status": "correct",
+    "comment": "Tính khối lượng cam chuyển vào nhà máy 900 : 3/4 = 1200 kg: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2c",
+    "status": "correct",
+    "comment": "Tính khối lượng cam còn lại 2400 - 900 - 1200 = 300 kg: Đúng (+0,25đ). Tính số thùng gỗ 300 : 25 = 12 thùng: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu IV",
+    "status": "partial",
+    "comment": "Vẽ đúng góc xOy = 90 độ, các điểm A, B, I, D (+0,75đ). Vẽ sai điểm J (xác định nhầm tia đối của IO thành tia đối của OI), dẫn đến đường thẳng BJ và điểm K bị sai (-0,5đ dây chuyền). Không ký hiệu các đoạn thẳng bằng nhau AI = IB, OI = IJ (-0,25đ theo ghi chú barem).",
+    "points": 0.75,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu V.1",
+    "status": "wrong",
+    "comment": "Học sinh không làm bài (+0đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu V.2",
+    "status": "wrong",
+    "comment": "Học sinh thực hiện phép tính sai bản chất logic của bài toán tính ngược từ cuối lên (+0đ)",
+    "points": 0,
+    "max_points": 0.5
+   }
+  ]
+ },
+ "bai-lop6-b.pdf": {
+  "score": 9.75,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "TN câu 1 đến 8",
+    "status": "correct",
+    "comment": "Đáp án: 1-D, 2-C, 3-B, 4-A, 5-C, 6-D, 7-A, 8-B. Học sinh làm đúng hoàn toàn 8 câu (+2.0đ).",
+    "points": 2,
+    "max_points": 2
+   },
+   {
+    "question": "Tự luận câu I.1",
+    "status": "correct",
+    "comment": "Quy đồng mẫu số đúng (+0,25đ); Kết quả -7/24 đúng (+0,25đ).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "correct",
+    "comment": "Sử dụng tính chất phân phối để nhóm 8/5 đúng (+0,25đ); Tính toán ra kết quả -3/5 đúng (+0,25đ).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "correct",
+    "comment": "Phá ngoặc và nhóm các số hạng hợp lý (+0,25đ); Kết quả bằng 4 đúng (+0,25đ).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "correct",
+    "comment": "Chuyển vế tìm x đúng (+0,25đ); Kết quả x = -6 đúng (+0,25đ).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "correct",
+    "comment": "Tìm được (x + 1/3)^2 = 4/9 (+0,25đ); Giải đúng cả 2 trường hợp x = 1/3 và x = -1 (+0,25đ).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.3",
+    "status": "correct",
+    "comment": "Xét TH1 tìm được x = 3 (+0,25đ); Xét TH2 x^2 + 5 = 0 và kết luận vô nghiệm đúng (+0,25đ).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1a",
+    "status": "correct",
+    "comment": "Phép tính 45,5 * 24,4 đúng (+0,25đ); Kết quả 1110,2 nghìn đồng đúng (+0,25đ).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1b",
+    "status": "correct",
+    "comment": "Tính đúng số tiền tiết kiệm là 36,4 nghìn đồng (+0,5đ).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2a",
+    "status": "correct",
+    "comment": "Tính đúng khối lượng cam xuất khẩu là 900 kg (+0,5đ).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2b",
+    "status": "correct",
+    "comment": "Tính đúng khối lượng cam chuyển vào nhà máy là 1200 kg (+0,5đ).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2c",
+    "status": "correct",
+    "comment": "Tính đúng khối lượng cam còn lại là 300 kg (+0,25đ); Tính đúng số thùng là 12 (+0,25đ).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu IV",
+    "status": "correct",
+    "comment": "Vẽ đúng góc, các điểm A, B, I, J, đường thẳng BJ, điểm D và K theo yêu cầu. Có đánh dấu các đoạn thẳng bằng nhau (+1,5đ).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu V.1",
+    "status": "correct",
+    "comment": "Học sinh giải theo cách nhóm cặp (10,11 + 29,30) hợp lệ (+0,25đ); Kết quả 394,1 đúng (+0,25đ).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu V.2",
+    "status": "partial",
+    "comment": "Thiết lập được phương trình/biểu thức đúng để tìm x (+0,25đ); Tính toán sai ở bước cuối (16 * 5 tính nhầm dẫn đến x = 104 thay vì 120) nên không cho điểm kết quả (-0,25đ).",
+    "points": 0.25,
+    "max_points": 0.5
+   }
+  ]
+ },
+ "bai-lop6-c.pdf": {
+  "score": 9.75,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "TN câu 1",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 2",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 3",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 4",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 5",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 6",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 7",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 8",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "Tự luận câu I.1",
+    "status": "correct",
+    "comment": "Quy đồng mẫu số đúng (+0,25đ); Trừ hai phân số ra kết quả -7/24 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "correct",
+    "comment": "Đặt thừa số chung hợp lý (+0,25đ); Tính toán ra kết quả -3/5 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "correct",
+    "comment": "Bỏ ngoặc, nhóm các số hạng hợp lý (+0,25đ); Tính đúng kết quả bằng 4 (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "correct",
+    "comment": "Chuyển vế thành phép chia phân số đúng (+0,25đ); Thực hiện phép tính tìm được x = -6 (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "correct",
+    "comment": "Biến đổi về bình phương đúng (+0,25đ); Xét đủ 2 trường hợp tìm đúng tập nghiệm (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.3",
+    "status": "correct",
+    "comment": "Xét TH1 tìm được x = 3 (+0,25đ); Xét TH2 lập luận vô lý và kết luận chính xác (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1a",
+    "status": "correct",
+    "comment": "Lời giải và phép tính đúng: 45,5 . 24,4 = 1110,2 nghìn đồng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1b",
+    "status": "correct",
+    "comment": "Học sinh giải theo cách khác hợp lệ (tính tiền ngày hôm nay rồi lấy hiệu): đúng bản chất và kết quả 36,4 nghìn đồng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2a",
+    "status": "correct",
+    "comment": "Tính đúng khối lượng cam xuất khẩu: 2400 . 3/8 = 900 kg (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2b",
+    "status": "correct",
+    "comment": "Tính đúng khối lượng cam chuyển vào nhà máy: 900 : 3/4 = 1200 kg (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2c",
+    "status": "correct",
+    "comment": "Tính đúng khối lượng cam còn lại: 300 kg (+0,25đ); Tính đúng số thùng gỗ: 300 : 25 = 12 thùng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu IV",
+    "status": "partial",
+    "comment": "Vẽ đúng hình các ý theo yêu cầu (+1,5đ); Trừ 0,25đ do không đánh dấu hai đoạn thẳng bằng nhau IA = IB theo quy định barem (-0,25đ)",
+    "points": 1.25,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu V.1",
+    "status": "correct",
+    "comment": "Học sinh giải theo cách khác hợp lệ: xem đây là dãy số cách đều với khoảng cách 1,01; tính đúng số số hạng là 20 và tính tổng A = 394,1 chính xác (+1,0đ)",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu V.2",
+    "status": "wrong",
+    "comment": "Học sinh chưa làm câu này (+0đ)",
+    "points": 0,
+    "max_points": 1
+   }
+  ]
+ },
+ "bai-lop6-d.pdf": {
+  "score": 7,
+  "feedback": "Con làm bài khá ổn tuy nhiên Phần Tự luận còn trình bày thiếu câu II.3, IV, cần cẩn thận hơn câu I.3, II.2, III.2b, III.2c, không làm câu V.1, V.2 và cẩn thận hơn khi làm các dạng bài về các dạng bài trong bài tập này.",
+  "grading_details": [
+   {
+    "question": "TN câu 1",
+    "status": "correct",
+    "comment": "Đáp án D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 2",
+    "status": "correct",
+    "comment": "Đáp án C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 3",
+    "status": "correct",
+    "comment": "Đáp án B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 4",
+    "status": "correct",
+    "comment": "Đáp án A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 5",
+    "status": "correct",
+    "comment": "Đáp án C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 6",
+    "status": "correct",
+    "comment": "Đáp án D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 7",
+    "status": "correct",
+    "comment": "Đáp án A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 8",
+    "status": "correct",
+    "comment": "Đáp án B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "Tự luận câu I.1",
+    "status": "correct",
+    "comment": "Quy đồng mẫu đúng (+0,25đ); Tính ra kết quả -7/24 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "correct",
+    "comment": "Đặt nhân tử chung đúng (+0,25đ); Tính ra kết quả -3/5 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "partial",
+    "comment": "Phá ngoặc đúng (+0,25đ); Nhóm hạng tử và biến đổi dấu sai, không ra kết quả đúng (+0đ)",
+    "points": 0.25,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "correct",
+    "comment": "Chuyển vế tính đúng x = (-4/5) : (2/15) (+0,25đ); Tính ra x = -6 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "partial",
+    "comment": "Biến đổi đưa về bình phương đúng (+0,25đ); Khai triển sai logic đại số thành x^2 = 4/9 - 3/9 (+0đ)",
+    "points": 0.25,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.3",
+    "status": "partial",
+    "comment": "Giải TH1 ra x = 3 đúng (+0,25đ); TH2 x^2 = -5 không giải thích rõ x^2 >= 0 nên vô nghiệm (+0đ)",
+    "points": 0.25,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1a",
+    "status": "correct",
+    "comment": "Tính số tiền ngày hôm qua đúng 1110,2 nghìn đồng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1b",
+    "status": "correct",
+    "comment": "Tính số tiền tiết kiệm được đúng 36,4 nghìn đồng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2a",
+    "status": "correct",
+    "comment": "Tính khối lượng cam xuất khẩu đúng 900 kg (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2b",
+    "status": "wrong",
+    "comment": "Thực hiện nhầm phép chia thành phép nhân 900 . 3/4 = 675 kg thay vì chia (+0đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2c",
+    "status": "wrong",
+    "comment": "Lỗi dây chuyền: Dùng kết quả sai ở câu b để tính tiếp các bước sau (+0đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu IV",
+    "status": "partial",
+    "comment": "Vẽ đúng hình và các đối tượng theo yêu cầu (+1,5đ); Không đánh dấu các đoạn thẳng bằng nhau trừ 0,25đ",
+    "points": 1.25,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu V.1",
+    "status": "wrong",
+    "comment": "Học sinh không làm bài (+0đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu V.2",
+    "status": "wrong",
+    "comment": "Học sinh không làm bài (+0đ)",
+    "points": 0,
+    "max_points": 0.5
+   }
+  ]
+ },
+ "bai-lop9-hpt-a.pdf": {
+  "score": 9.25,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "Tự luận câu I.1",
+    "status": "correct",
+    "comment": "Trừ hai phương trình được 10y = 40: Đúng (+0.75đ); Thế tìm x = -3: Đúng (+0.75đ); Kết luận nghiệm (-3; 4): Đúng (+0.5đ).",
+    "points": 2,
+    "max_points": 2
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "correct",
+    "comment": "Đặt ĐKXĐ x khác 0, y khác 0: Đúng (+0.25đ); Đặt ẩn phụ a, b đúng và lập hệ phương trình: Đúng (+0.5đ); Giải hệ tìm được a = 2, b = 3: Đúng (+0.75đ); Tìm x = 1/2, y = 1/3, đối chiếu ĐKXĐ và kết luận: Đúng (+0.5đ).",
+    "points": 2,
+    "max_points": 2
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "partial",
+    "comment": "Đặt ẩn phụ a, b (thiếu ĐK a >= 0, b >= 1) và giải hệ ra a = 1, b = 2: Đúng (+0.75đ); Giải |x + 3| = 1 tìm được x = -2, x = -4: Đúng (+0.5đ); Giải |y^2 + 1| = 2 biến đổi sai dẫn đến bỏ sót nghiệm y = -1: Sai (-0.5đ); Kết luận thiếu 2 cặp nghiệm (-2; -1) và (-4; -1): Sai (-0.25đ).",
+    "points": 1.25,
+    "max_points": 2
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "correct",
+    "comment": "Đặt ẩn và điều kiện x thuộc N*: Đúng (+0.5đ); Biểu diễn số áo 3 ngày đầu và 7 ngày sau: Đúng (+0.5đ); Lập phương trình 3x + 7(x + 5) = 335 và giải ra x = 30 (TM): Đúng (+0.75đ); Kết luận 30 chiếc áo: Đúng (+0.25đ).",
+    "points": 2,
+    "max_points": 2
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "correct",
+    "comment": "Đặt ẩn và điều kiện x thuộc N*, x < 25: Đúng (+0.5đ); Biểu diễn số hoa cúc và số tiền từng loại: Đúng (+0.5đ); Lập phương trình 8x + 6(25 - x) = 180 và giải ra x = 15 (TM): Đúng (+0.75đ); Kết luận đúng 15 hoa hồng và 10 hoa cúc: Đúng (+0.25đ).",
+    "points": 2,
+    "max_points": 2
+   }
+  ]
+ },
+ "bai-lop9-hpt-b.pdf": {
+  "score": 9.25,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "Tự luận câu I.1",
+    "status": "partial",
+    "comment": "Bước 1: Trừ hai phương trình được 10y = 40: Đúng (+0.5đ). Bước 2: Giải ra y = 4 và x = -3: Đúng (+1.0đ). Bước 3: Kết luận nghiệm: Viết nhầm thứ tự thành (4; -3) thay vì (-3; 4) theo quy ước (x; y) (-0.25đ).",
+    "points": 1.75,
+    "max_points": 2
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "partial",
+    "comment": "Bước 1: Đặt ĐKXĐ x khác 0, y khác 0: Thiếu (-0.25đ). Bước 2: Đặt ẩn phụ và biến đổi đúng hệ phương trình: Đúng (+0.5đ). Bước 3: Giải hệ tìm ra a = 2, b = 3: Đúng (+0.75đ). Bước 4: Tìm ra x = 1/2, y = 1/3 và kết luận: Đúng (+0.5đ).",
+    "points": 1.75,
+    "max_points": 2
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "partial",
+    "comment": "Bước 1: Đặt ẩn phụ và giải các trường hợp của ẩn phụ: Đúng (+1.0đ). Bước 2: Tìm các giá trị x, y: Đúng (+0.75đ). Bước 3: Kết luận: Viết nhầm thứ tự cặp nghiệm thành (y; x) và định dạng tập hợp chưa chuẩn (-0.25đ).",
+    "points": 1.75,
+    "max_points": 2
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "correct",
+    "comment": "Bước 1: Chọn ẩn và đặt điều kiện đúng (+0.5đ). Bước 2: Biểu diễn các đại lượng theo ẩn và lập phương trình đúng (+1.0đ). Bước 3: Giải phương trình, đối chiếu điều kiện và kết luận đúng (+0.5đ).",
+    "points": 2,
+    "max_points": 2
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "correct",
+    "comment": "Bước 1: Chọn ẩn và đặt điều kiện thích hợp (+0.5đ). Bước 2: Lập phương trình biểu diễn đúng theo đề bài (+1.0đ). Bước 3: Giải phương trình, đối chiếu điều kiện và kết luận chính xác số lượng mỗi loại (+0.5đ).",
+    "points": 2,
+    "max_points": 2
+   }
+  ]
+ },
+ "bai-lop9-bpt-c.pdf": {
+  "score": 9,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "Tự luận câu 1",
+    "status": "correct",
+    "comment": "Gọi ẩn và ĐKXĐ: Đúng (+0.25) | Lập BPT 80 + 8x <= 120: Đúng (+0.25) | Giải BPT x <= 5 và kết luận: Đúng (+0.5).",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 2",
+    "status": "partial",
+    "comment": "Gọi ẩn và lập biểu thức: Đúng (+0.25) | Lập BPT: Sai do chép sai đề bài từ 440 thành 490 (-0.25) | Giải BPT và kết luận: Sai dây chuyền từ bước lập BPT sai (-0.5).",
+    "points": 0.25,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 3",
+    "status": "correct",
+    "comment": "Gọi ẩn và ĐKXĐ: Đúng (+0.25) | Lập BPT 10x - 3(50-x) >= 200: Đúng (+0.25) | Giải BPT 13x >= 350 và kết luận x = 27: Đúng (+0.5).",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 4",
+    "status": "correct",
+    "comment": "Gọi ẩn và ĐKXĐ: Đúng (+0.25) | Lập BPT 200x + 500 >= 25500: Đúng (+0.25) | Giải BPT x >= 125 và kết luận: Đúng (+0.5).",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 5",
+    "status": "partial",
+    "comment": "Đổi đơn vị và gọi ẩn: Đúng (+0.25) | ĐKXĐ: Chưa hoàn toàn chính xác do học sinh đặt x thuộc N (quãng đường là số thực dương) (-0.25) | Lập BPT, giải BPT x >= 8,75 và kết luận: Đúng (+0.75).",
+    "points": 0.75,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 6",
+    "status": "correct",
+    "comment": "Đổi đơn vị, gọi ẩn và ĐKXĐ: Đúng (+0.25) | Lập BPT x/15 + (15-x)/10 <= 1,25: Đúng (+0.25) | Giải BPT x >= 7,5 và kết luận: Đúng (+0.5).",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 7",
+    "status": "correct",
+    "comment": "Học sinh giải theo cách khác hợp lệ (tính khối lượng trừ đi bác lái xe trước) | Đổi đơn vị và tính tải trọng chở bia: Đúng (+0.5) | Lập BPT n x 6,7 <= 5185, giải ra n <= 773,88 và kết luận 773 thùng: Đúng (+0.5).",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 8",
+    "status": "correct",
+    "comment": "Gọi ẩn S và lập BPT S x 0,75% >= 6000000: Đúng (+0.5) | Giải S >= 800000000 và kết luận 800 triệu đồng: Đúng (+0.5).",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 9",
+    "status": "correct",
+    "comment": "Học sinh giải theo cách khác hợp lệ (tính tiền còn lại sau mở cửa và quãng đường đi thêm) | Tính số tiền còn lại và quãng đường đi thêm 15,42 km: Đúng (+0.5) | Tính tổng quãng đường 16,42 km và làm tròn thành 16 km: Đúng (+0.5).",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 10",
+    "status": "correct",
+    "comment": "Gọi ẩn và ĐKXĐ: Đúng (+0.25) | Lập BPT 5 + 2x - 1(25-x) >= 25: Đúng (+0.25) | Giải BPT x >= 15 và kết luận: Đúng (+0.5).",
+    "points": 1,
+    "max_points": 1
+   }
+  ]
+ }
+}
