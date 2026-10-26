@@ -167,6 +167,123 @@ function resultsAgree(r1, r2, maxScore) {
   return compared === 0 || diff / compared <= 0.1;
 }
 
+// ── BAREM CÓ CẤU TRÚC: đọc file đáp án 1 lần → danh sách ý chấm + điểm tối đa từng ý (cache theo file) ──
+// Đo trên 12 bài thật (đề KT HK2 Toán 6, so với điểm GV chấm tay): AI tự đặt điểm tối đa sai (ý 0,5đ thành 1đ),
+// cho điểm cả ý học sinh không làm, chấm bài vẽ hình quá dễ → điểm cao hơn GV trung bình 0,5đ. Cố định khung
+// ý + điểm tối đa từ barem rồi ép mọi lượt chấm theo đúng khung đó (hệ thống tự kiểm, không tin con số AI tự đặt).
+const rubricCache = new Map(); // `${file}:${mtime}:${maxScore}` → items
+
+async function extractRubricItems(answerFilePath, maxScore) {
+  const prompt = `Đây là FILE ĐỀ + HƯỚNG DẪN CHẤM (barem) của một bài kiểm tra môn Toán, thang ${maxScore} điểm.
+NHIỆM VỤ: lập DANH SÁCH Ý CHẤM — mỗi phần tử là một ĐƠN VỊ CHO ĐIỂM nhỏ nhất theo barem, kèm điểm tối đa.
+Quy tắc:
+- Trắc nghiệm: mỗi câu 1 ý, tên "TN câu <n>", criteria = "Đáp án đúng: <chữ cái>".
+- Tự luận: mỗi ý nhỏ của đề 1 phần tử, tên "Tự luận câu <số bài>.<ý>" (vd "Tự luận câu I.1", "Tự luận câu III.2a"); bài không chia ý thì "Tự luận câu <số bài>".
+- Bài VẼ HÌNH / bài barem chấm theo TỪNG YÊU CẦU (vd "mỗi ý vẽ đúng được 0,25 điểm"): tách MỖI yêu cầu thành 1 phần tử riêng, tên "Tự luận câu <số bài>.<thứ tự>" (vd "Tự luận câu IV.1"), criteria ghi rõ yêu cầu đó.
+- criteria: tóm tắt NGẮN các bước được điểm theo barem (kèm điểm từng bước) và đáp số đúng; ghi cả các ghi chú trừ điểm của barem liên quan ý đó.
+- max_points lấy ĐÚNG theo barem. TỔNG max_points của mọi phần tử PHẢI bằng ${maxScore}.
+Chỉ trả về JSON THUẦN: {"items": [{"question": "...", "max_points": <số>, "criteria": "..."}]}
+Viết công thức dạng chữ thường (vd 3/4, x^2), KHÔNG dùng LaTeX và KHÔNG dùng dấu \\ trong JSON.`;
+  const { out, modelName } = await generateWithFallback(STRONG_MODELS, EXTRACT_CONFIG, [prompt, buildInlinePart(answerFilePath)], (text) => {
+    const items = (parseJsonLoose(text).items || [])
+      .map((it) => ({ question: String(it.question || '').trim().slice(0, 100), max_points: round2(parseFloat(it.max_points)), criteria: String(it.criteria || '').slice(0, 600) }))
+      .filter((it) => it.question && isFinite(it.max_points) && it.max_points > 0);
+    const total = round2(items.reduce((s, it) => s + it.max_points, 0));
+    const names = new Set(items.map((it) => normQ(it.question)));
+    // Tổng không khớp thang điểm / trùng tên ý → barem đọc sai, thử model khác
+    if (!items.length || Math.abs(total - maxScore) > 0.01 || names.size !== items.length) {
+      throw parseError(`barem đọc được tổng ${total}/${maxScore}, ${items.length} ý`);
+    }
+    return items;
+  }, 'rubric-items');
+  console.log(`[aiGrading] Đã lập barem có cấu trúc (${modelName}): ${out.length} ý, tổng ${maxScore}đ`);
+  return out;
+}
+
+// Lỗi (không đọc được barem hợp lệ) → null: chấm theo cách cũ, lần sau thử lại (không cache lỗi)
+async function getRubricItems(answerFilePath, maxScore) {
+  const key = `${answerFilePath}:${fs.statSync(answerFilePath).mtimeMs}:${maxScore}`;
+  if (rubricCache.has(key)) return rubricCache.get(key);
+  try {
+    const items = await extractRubricItems(answerFilePath, maxScore);
+    rubricCache.set(key, items);
+    return items;
+  } catch (err) {
+    console.error(`[aiGrading] không lập được barem có cấu trúc (${err.message}) → chấm theo barem tự do`);
+    return null;
+  }
+}
+
+const normQ = (q) => String(q || '').toLowerCase().normalize('NFC').replace(/\s+/g, '').replace(/[–—:]/g, '-');
+const NO_WORK_RE = /^\s*(không\s*(làm|có|thấy|trình\s*bày|tìm\s*thấy)|bỏ\s*trống|để\s*trống|trống|chưa\s*làm|n\/a|none)\b/i;
+
+// Ép kết quả AI về đúng khung barem: đúng danh sách ý, điểm ≤ điểm tối đa, ý không có bài làm = 0,
+// ý AI bỏ sót = 0 (ghi chú). Khớp quá ít ý → coi như trả lời hỏng để thử model khác.
+function conformToRubric(parsed, items) {
+  const byName = new Map(parsed.details.map((d) => [normQ(d.question), d]));
+  let matched = 0;
+  const details = items.map((it) => {
+    const d = byName.get(normQ(it.question));
+    if (!d) return { question: it.question, status: 'wrong', points: 0, max_points: it.max_points, comment: 'Không tìm thấy bài làm cho ý này.' };
+    matched++;
+    let pts = Math.min(it.max_points, Math.max(0, d.points != null ? d.points : (d.status === 'correct' ? it.max_points : 0)));
+    let comment = d.comment;
+    if (NO_WORK_RE.test(d.student_work || '') && pts > 0) { pts = 0; comment = `Không có bài làm cho ý này (0đ). ${comment}`.slice(0, 900); }
+    pts = round2(pts);
+    return { question: it.question, status: pts >= it.max_points ? 'correct' : pts <= 0 ? 'wrong' : 'partial', points: pts, max_points: it.max_points, comment };
+  });
+  if (matched < Math.ceil(items.length * 0.6)) throw parseError(`kết quả chỉ khớp ${matched}/${items.length} ý của barem`);
+  parsed.details = details;
+  parsed.score = round2(details.reduce((s, d) => s + d.points, 0));
+  return parsed;
+}
+
+// ── LƯỢT CHÉP BÀI ĐỘC LẬP: chỉ đưa BÀI LÀM (không kèm đáp án) để xác định học sinh có làm từng ý không ──
+// Đo trên bài thật: khi đọc chung với file đáp án, AI hay lấy LỜI GIẢI trong đáp án làm bài của học sinh → cho
+// trọn điểm cả bài học sinh bỏ trống (vd 1 em không làm Bài V vẫn được 1đ). Lượt này không thấy đáp án nên không
+// thể nhầm; ý nó xác định "không làm" bị ép về 0 điểm ở mọi lượt chấm.
+async function detectAttempted(subPaths, items) {
+  const prompt = `Đây CHỈ là BÀI LÀM viết tay của học sinh (ảnh/PDF, có thể nhiều trang, thứ tự trang có thể lộn xộn). KHÔNG có đề, KHÔNG có đáp án.
+Với MỖI ý trong danh sách dưới đây, xác định học sinh CÓ trình bày bài làm cho ý đó trong các trang này hay không, và chép NGẮN GỌN kết quả/đáp số cuối cùng học sinh viết.
+- "done": true nếu có bài làm (kể cả làm sai, làm dở); false nếu KHÔNG tìm thấy bất kỳ nội dung nào của ý đó (bỏ trống, không có trang nào viết ý đó).
+- Trắc nghiệm: done = true nếu học sinh có ghi chữ cái đáp án cho câu đó.
+- Vẽ hình: done = true nếu có hình vẽ tương ứng.
+Danh sách ý:
+${items.map((it) => `- "${it.question}": ${it.criteria.slice(0, 120)}`).join('\n')}
+Chỉ trả về JSON THUẦN: {"items": [{"question": "<đúng tên ý>", "done": true|false, "work": "<kết quả học sinh viết, hoặc rỗng>"}]}
+Không dùng LaTeX, không dùng dấu \\ trong JSON.`;
+  const { out, modelName } = await generateWithFallback(LITE_MODELS, EXTRACT_CONFIG, [prompt, ...subPaths.map(buildInlinePart)], (text) => {
+    const rows = (parseJsonLoose(text).items || []).filter((r) => r && r.question);
+    if (rows.length < Math.ceil(items.length * 0.6)) throw parseError(`lượt chép bài chỉ có ${rows.length}/${items.length} ý`);
+    return new Map(rows.map((r) => [normQ(r.question), r.done !== false]));
+  }, 'attempted');
+  const missing = items.filter((it) => out.get(normQ(it.question)) === false).map((it) => it.question);
+  console.log(`[AI grading] lượt chép bài (${modelName}): học sinh không làm ${missing.length} ý${missing.length ? ` (${missing.join(', ')})` : ''}`);
+  return out;
+}
+
+// Ý mà lượt chép bài độc lập xác định "không làm" → 0 điểm (chấm lại tổng)
+function zeroNotAttempted(result, attempted) {
+  if (!result || !attempted) return result;
+  result.details = result.details.map((d) => (attempted.get(normQ(d.question)) === false && d.points > 0
+    ? { ...d, points: 0, status: 'wrong', comment: `Học sinh không làm ý này (0đ). ${d.comment}`.slice(0, 900) }
+    : d));
+  result.score = round2(result.details.reduce((s, d) => s + (d.points || 0), 0));
+  return result;
+}
+
+// Gộp 2 kết quả CÙNG khung barem: mỗi ý lấy lượt có điểm thấp hơn (kèm nhận xét của lượt đó); nhận xét chung
+// lấy của lượt 1 (model mạnh). Ý hai lượt chấm khác nhau được ghi chú để giáo viên dễ soát lại.
+function mergeConservative(r1, r2) {
+  const by2 = new Map(r2.details.map((d) => [normQ(d.question), d]));
+  const details = r1.details.map((d1) => {
+    const d2 = by2.get(normQ(d1.question));
+    if (!d2 || d2.points >= d1.points) return d1;
+    return { ...d2, comment: `${d2.comment} (Hai lượt chấm khác nhau: ${d1.points}đ / ${d2.points}đ — lấy mức thấp hơn.)`.slice(0, 900) };
+  });
+  return { ...r1, details, score: round2(details.reduce((s, d) => s + d.points, 0)) };
+}
+
 async function gradeSubmission(answerFilePath, submissionFilePaths, maxScore = 10, gradingNote = '', opts = {}) {
   const { partsConfig = null, scope = null, studentAnswers = null } = opts;
   const cfg = parsePartsConfig(partsConfig);
@@ -183,6 +300,10 @@ async function gradeSubmission(answerFilePath, submissionFilePaths, maxScore = 1
 
   // File đáp án (PDF) — thường gồm đề + hướng dẫn chấm/barem; có thể không có nếu chỉ chấm phần objective
   const hasAnswerFile = !!answerFilePath && fs.existsSync(answerFilePath);
+  const rubricItems = !cfg && hasAnswerFile ? await getRubricItems(answerFilePath, maxScore) : null;
+  const rubricBlock = rubricItems
+    ? `\nDANH SÁCH Ý CHẤM (lập từ barem — BẮT BUỘC: "details" có ĐÚNG ${rubricItems.length} dòng theo đúng thứ tự, ĐÚNG tên "question" và ĐÚNG "max_points" dưới đây; không thêm, không gộp, không đổi tên):\n${rubricItems.map((it) => `- "${it.question}" (tối đa ${it.max_points}đ): ${it.criteria}`).join('\n')}\n`
+    : '';
 
   // Đáp án học sinh đã điền ở giao diện (cho phần khách quan) — dùng thay cho việc dò trong ảnh.
   const studentText = (cfg && gradeObjective && studentAnswers) ? describeStudentAnswers(cfg, studentAnswers) : '';
@@ -206,7 +327,7 @@ async function gradeSubmission(answerFilePath, submissionFilePaths, maxScore = 1
 
   // Mô tả các tài liệu đính kèm theo thứ tự để AI biết đâu là đáp án, đâu là bài làm
   const docLines = [];
-  if (hasAnswerFile) docLines.push('- Tài liệu đầu tiên (PDF): ĐỀ BÀI / ĐÁP ÁN / BAREM (hướng dẫn chấm) chính thức — dùng để lấy đáp án đúng và BAREM ĐIỂM TỪNG BƯỚC cho MỌI phần.');
+  if (hasAnswerFile) docLines.push('- Tài liệu đầu tiên (PDF): ĐỀ BÀI / ĐÁP ÁN / BAREM (hướng dẫn chấm) chính thức — dùng để lấy đáp án đúng và BAREM ĐIỂM TỪNG BƯỚC cho MỌI phần. TUYỆT ĐỐI không coi lời giải trong tài liệu này là bài làm của học sinh.');
   if (subPaths.length > 1) docLines.push(`- ${subPaths.length} tài liệu tiếp theo: BÀI LÀM CỦA HỌC SINH (nhiều ảnh/trang) — xem xét TẤT CẢ như một bài liền mạch.`);
   else if (subPaths.length === 1) docLines.push('- Tài liệu tiếp theo: BÀI LÀM CỦA HỌC SINH (ảnh/PDF, có thể nhiều trang).');
   else docLines.push('- (Không có ảnh bài làm — học sinh điền đáp án khách quan ở giao diện, xem mục ĐÁP ÁN HỌC SINH ĐÃ ĐIỀN.)');
@@ -244,7 +365,10 @@ async function gradeSubmission(answerFilePath, submissionFilePaths, maxScore = 1
     + '  3. ĐIỀU KIỆN XÁC ĐỊNH: luôn kiểm tra học sinh có đặt ĐKXĐ (khi cần) và có đối chiếu điều kiện ở bước kết luận không; thiếu thì trừ NGHIÊM NGẶT theo barem.\n'
     + '  4. CÁCH GIẢI KHÁC: học sinh giải khác barem nhưng đúng logic và ra cùng kết quả → chia lại điểm tương đương barem gốc và ghi rõ "Học sinh giải theo cách khác hợp lệ". Cách giải khác phải dùng kiến thức ĐÚNG LỚP ĐANG HỌC (xác định lớp từ đề); dùng kiến thức lớp trên để làm bài lớp dưới thì KHÔNG chấp nhận.\n'
     + '  5. Áp dụng ĐÚNG các ghi chú trừ điểm riêng trong barem (vd "thiếu 1 trường hợp trừ 0,25", "thừa/thiếu giá trị trừ 0,25", "không đánh dấu các đoạn bằng nhau trừ tối đa 0,25"…).\n'
-    + '  6. Khi barem KHÔNG quy định khác: bài đại (đại số, giải tích, xác suất…) chỉ ghi đáp số, không có lời giải/các bước → tối đa 50% điểm câu; bài hình tính toán/chứng minh: thiếu hình vẽ minh họa → tối đa 50%, chỉ có hình vẽ không có lời giải → tối đa 25% (vi phạm nhiều mức thì lấy mức trần THẤP NHẤT). Bài yêu cầu VẼ HÌNH thì chấm theo từng ý vẽ của barem.'
+    + '  6. KHÔNG LÀM = 0 ĐIỂM: chỉ cho điểm một ý khi THẤY RÕ bài làm của chính ý đó trong ảnh (ghi vào "student_work"). Không tìm thấy, bỏ trống, chỉ chép lại đề → 0 điểm. KHÔNG được suy ra bài làm của ý này từ ý khác hay từ đáp án.\n'
+    + '  7. BÀI VẼ HÌNH: chấm TỪNG yêu cầu dựng hình; chỉ cho điểm yêu cầu khi hình vẽ thể hiện ĐÚNG và RÕ: đúng tên điểm, điểm nằm đúng tia/đường/đoạn được yêu cầu, đúng phía (vd "tia đối" phải ở phía bên kia), đúng quan hệ (trung điểm, bằng nhau, thẳng hàng, nằm giữa), độ dài/góc phù hợp số đo đề cho (so tỉ lệ các đoạn trên hình; vd OA = 4cm và OB = 3cm thì OA phải dài hơn OB rõ rệt). Thiếu tên điểm, sai vị trí, sai tỉ lệ rõ, hình bị gạch bỏ → 0 điểm cho yêu cầu đó. Nghi ngờ thì KHÔNG cho điểm. Áp dụng đúng ghi chú trừ điểm của barem (vd không đánh dấu các đoạn bằng nhau).\n'
+    + '  8. TRẮC NGHIỆM CÓ TẨY SỬA: lấy đáp án CUỐI CÙNG học sinh để lại; chữ bị gạch/viết đè không rõ đáp án nào hoặc khoanh nhiều đáp án → coi là SAI.\n'
+    + '  9. Khi barem KHÔNG quy định khác: bài đại (đại số, giải tích, xác suất…) chỉ ghi đáp số, không có lời giải/các bước → tối đa 50% điểm câu; bài hình tính toán/chứng minh: thiếu hình vẽ minh họa → tối đa 50%, chỉ có hình vẽ không có lời giải → tối đa 25% (vi phạm nhiều mức thì lấy mức trần THẤP NHẤT). Bài yêu cầu VẼ HÌNH thì chấm theo từng ý vẽ của barem.'
   );
   const objectiveRules = ruleLines.length ? `\nQUY TẮC CHẤM TỪNG PHẦN:\n${ruleLines.join('\n')}\n` : '';
 
@@ -259,7 +383,7 @@ async function gradeSubmission(answerFilePath, submissionFilePaths, maxScore = 1
   // để có thể chèn thêm reviewBlock (kết quả 2 lượt đầu) vào GIỮA cho lượt rà soát.
   const promptBody = `VAI TRÒ: Bạn là một giáo viên Toán xuất sắc, giàu kinh nghiệm giảng dạy và chấm thi cấp THCS/THPT, tư duy logic chặt chẽ, am hiểu cách trình bày bài giải tự luận, luôn chấm CÔNG TÂM và BÁM SÁT BAREM hướng dẫn chấm.
 NHIỆM VỤ: Chấm bài làm môn Toán của học sinh trên thang ${maxScore} điểm. Việc chấm điểm phải dựa TRỰC TIẾP và CHÍNH XÁC vào barem điểm từng bước (trong file đáp án / hướng dẫn chấm).
-${docBlock}${scopeBlock}${answerKeyBlock}${studentBlock}${noteBlock}${objectiveRules}${imageScanNote}
+${docBlock}${scopeBlock}${rubricBlock}${answerKeyBlock}${studentBlock}${noteBlock}${objectiveRules}${imageScanNote}
 CÁCH ĐỌC BÀI LÀM (ảnh, nếu có):
 - Thứ tự các trang/ảnh có thể KHÔNG đúng thứ tự thực tế. Tự xác định thứ tự đọc dựa vào số bài/câu và tính liên tục của lời giải.
 - Bài làm là chữ viết tay (có thể xấu, mờ, nghiêng, tẩy xóa). Đọc thật kỹ TỪNG dòng; dựa vào ngữ cảnh toán học để nhận diện đúng con số, ký hiệu, phân số, lũy thừa, dấu. Nội dung bị gạch bỏ thì coi như học sinh đã xóa.
@@ -268,6 +392,7 @@ CÁCH ĐỌC BÀI LÀM (ảnh, nếu có):
 CÁCH TRẢ KẾT QUẢ:
 - Mỗi Ý NHỎ của đề (vd Bài I.1, Bài I.2, Bài III.2a…) là MỘT dòng trong "details"; câu trắc nghiệm có thể gộp mỗi câu một dòng. Đặt tên dòng tự luận dạng "Tự luận câu <số bài>.<ý>" (vd "Tự luận câu I.1", "Tự luận câu III.2a"), trắc nghiệm dạng "TN câu <n>".
 - "comment" của mỗi dòng = BẢNG CHẤM THU GỌN theo barem: liệt kê từng bước "<bước barem>: Đúng/Sai/Thiếu (+điểm)", nêu RÕ lý do trừ điểm (sai ở đâu, thiếu bước nào, lỗi dây chuyền, thiếu ĐKXĐ…). Ngắn gọn, tiếng Việt.
+- "student_work" = chép NGẮN GỌN bài làm/đáp số học sinh viết cho ý đó (vd "x = -6", "chọn B", "vẽ A trên Oy, I trung điểm AB"); không có bài làm thì ghi đúng "KHÔNG LÀM".
 - "points" = điểm đạt được của ý đó, "max_points" = điểm tối đa của ý theo barem. "score" PHẢI bằng tổng "points" (không vượt quá ${maxScore}).
 - "status": "correct" nếu đạt điểm tối đa của ý, "wrong" nếu 0 điểm, "partial" nếu đạt một phần.
 - "feedback" = NHẬN XÉT CỦA GIÁO VIÊN gồm 3 phần ngắn: "Điểm tốt: …", "Lỗi sai/Lỗ hổng kiến thức: …", "Lời khuyên: …".
@@ -280,7 +405,7 @@ Trả về JSON đúng định dạng sau (chỉ JSON, không kèm chữ nào kh
   "score": <tổng điểm, từ 0 đến ${maxScore}>,
   "feedback": "<Điểm tốt: … Lỗi sai/Lỗ hổng kiến thức: … Lời khuyên: …>",
   "details": [
-    {"question": "<vd: TN câu 1 / Tự luận câu II.2>", "status": "correct|wrong|partial", "points": <điểm đạt>, "max_points": <điểm tối đa của ý>, "comment": "<bảng chấm thu gọn theo barem>"}
+    {"question": "<vd: TN câu 1 / Tự luận câu II.2>", "student_work": "<bài làm của HS cho ý này hoặc KHÔNG LÀM>", "status": "correct|wrong|partial", "points": <điểm đạt>, "max_points": <điểm tối đa của ý>, "comment": "<bảng chấm thu gọn theo barem>"}
   ]
 }`;
 
@@ -300,12 +425,15 @@ Trả về JSON đúng định dạng sau (chỉ JSON, không kèm chữ nào kh
   const basePrompt = promptBody + jsonFormatBlock;
   const baseParts = buildParts(basePrompt);
 
-  const [s1, s2] = await Promise.allSettled([
-    callModelOnce(baseParts, maxScore, STRONG_MODELS),
-    callModelOnce(baseParts, maxScore, LITE_MODELS),
+  const [s1, s2, s3] = await Promise.allSettled([
+    callModelOnce(baseParts, maxScore, STRONG_MODELS, rubricItems),
+    callModelOnce(baseParts, maxScore, LITE_MODELS, rubricItems),
+    rubricItems && subPaths.length ? detectAttempted(subPaths, rubricItems) : Promise.resolve(null),
   ]);
-  const result1 = s1.status === 'fulfilled' ? s1.value : null;
-  const result2 = s2.status === 'fulfilled' ? s2.value : null;
+  const attempted = s3.status === 'fulfilled' ? s3.value : null;
+  if (s3.status === 'rejected') console.error(`[AI grading] lượt chép bài lỗi: ${s3.reason && s3.reason.message} → bỏ qua bước kiểm tra ý không làm`);
+  const result1 = zeroNotAttempted(s1.status === 'fulfilled' ? s1.value : null, attempted);
+  const result2 = zeroNotAttempted(s2.status === 'fulfilled' ? s2.value : null, attempted);
   if (!result1) console.error(`[AI grading] lượt 1 (model mạnh) lỗi: ${s1.reason && s1.reason.message}`);
   if (!result2) console.error(`[AI grading] lượt 2 (model nhẹ) lỗi: ${s2.reason && s2.reason.message}`);
 
@@ -318,10 +446,19 @@ Trả về JSON đúng định dạng sau (chỉ JSON, không kèm chữ nào kh
     console.log(`[AI grading] chỉ 1/2 lượt đầu thành công → dùng điểm ${only.score}, bỏ qua lượt rà soát`);
     return only;
   }
+  aiStats.lastPasses = [result1, result2]; // để đo đạc độ chính xác (không ảnh hưởng chấm bài)
   if (resultsAgree(result1, result2, maxScore)) {
     aiStats.reviewsSkipped++;
     console.log(`[AI grading] lượt 1=${result1.score}, lượt 2=${result2.score} → khớp nhau, chốt điểm lượt 1 (bỏ lượt rà soát)`);
     return result1;
+  }
+  // Có barem có cấu trúc (2 lượt cùng khung ý) → mỗi ý lấy điểm THẤP HƠN của 2 lượt độc lập. Đo trên bài thật:
+  // sai lệch của AI chủ yếu là cho điểm dễ dãi ngẫu nhiên (mỗi lượt dễ dãi ở chỗ khác nhau, nhất là bài vẽ hình),
+  // lấy mức thấp hơn khử được phần lớn sai lệch đó (MAE 0,5 → ~0,3) mà không cần gọi thêm lượt rà soát.
+  if (rubricItems) {
+    const final = mergeConservative(result1, result2);
+    console.log(`[AI grading] lượt 1=${result1.score}, lượt 2=${result2.score} → lệch nhau, mỗi ý lấy điểm thấp hơn = ${final.score}`);
+    return final;
   }
 
   const reviewBlock = `
@@ -341,7 +478,8 @@ NHIỆM VỤ CỦA BẠN — ĐÂY LÀ LƯỢT CHẤM CUỐI, CHỐT ĐIỂM CH�
   const reviewParts = buildParts(promptBody + reviewBlock + jsonFormatBlock);
 
   try {
-    const final = await callModelOnce(reviewParts, maxScore, LITE_MODELS);
+    // Lượt chốt điểm quyết định điểm cuối → dùng model MẠNH (trước đây dùng Lite: đo thấy hay giữ điểm dễ dãi)
+    const final = await callModelOnce(reviewParts, maxScore, STRONG_MODELS, rubricItems);
     console.log(`[AI grading] lượt 1=${result1.score}, lượt 2=${result2.score} → lượt 3 (rà soát, chốt điểm cuối) = ${final.score}`);
     return final;
   } catch (err) {
@@ -354,7 +492,7 @@ const round2 = (n) => Math.round(n * 100) / 100;
 
 // Gọi AI 1 lần để chấm (tự chuyển model khi hết quota/quá tải). Trả về { score, feedback, details } đã chuẩn hóa.
 // Khi mọi dòng chi tiết có "points" → tổng điểm = tổng points (tránh AI cộng nhầm).
-async function callModelOnce(parts, maxScore, models) {
+async function callModelOnce(parts, maxScore, models, rubricItems = null) {
   const { out, modelName } = await generateWithFallback(models, GENERATION_CONFIG, parts, (text) => {
     const parsed = parseJsonLoose(text);
     if (!Array.isArray(parsed.details)) parsed.details = [];
@@ -363,6 +501,7 @@ async function callModelOnce(parts, maxScore, models) {
       .map((d) => {
         const row = {
           question: String(d.question || '').slice(0, 100),
+          student_work: String(d.student_work || '').slice(0, 300),
           status: ['correct', 'wrong', 'partial'].includes(d.status) ? d.status : 'partial',
           comment: String(d.comment || '').slice(0, 900),
         };
@@ -377,6 +516,9 @@ async function callModelOnce(parts, maxScore, models) {
     if (parsed.details.length && withPts.length === parsed.details.length) score = withPts.reduce((s, d) => s + d.points, 0);
     parsed.score = Math.max(0, Math.min(maxScore, round2(score)));
     parsed.feedback = String(parsed.feedback || '');
+    if (rubricItems) conformToRubric(parsed, rubricItems);
+    // student_work chỉ dùng để kiểm tra "không làm = 0", không lưu vào kết quả
+    parsed.details.forEach((d) => { delete d.student_work; });
     return parsed;
   }, 'grading');
   console.log(`[AI grading] chấm bằng ${modelName} → ${out.score} điểm`);
@@ -464,4 +606,4 @@ function normalizeExtractedKey(parsed, cfg) {
   return out;
 }
 
-module.exports = { gradeSubmission, extractAnswerKey, generateFeedbackRubric, aiStats, resultsAgree, parseJsonLoose };
+module.exports = { gradeSubmission, extractAnswerKey, generateFeedbackRubric, aiStats, resultsAgree, parseJsonLoose, conformToRubric };
