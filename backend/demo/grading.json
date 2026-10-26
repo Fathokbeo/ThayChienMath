@@ -1818,5 +1818,841 @@
     "max_points": 0.5
    }
   ]
+ },
+ "bai-lop6-l.pdf": {
+  "score": 8.5,
+  "feedback": "Con làm bài khá tốt tuy nhiên Phần Tự luận còn cần cẩn thận hơn câu III.1b, V.2, không làm câu V.1 và cẩn thận hơn khi làm các dạng bài về các dạng bài trong bài tập này.",
+  "grading_details": [
+   {
+    "question": "TN câu 1",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án D (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 2",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án C (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 3",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án B (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 4",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án A (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 5",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án C (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 6",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án D (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 7",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án A (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 8",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án B (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "Tự luận câu I.1",
+    "status": "correct",
+    "comment": "Quy đồng và trừ phân số đúng (+0,25đ); Kết quả -7/24 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "correct",
+    "comment": "Biến đổi tính chất phân phối đúng (+0,25đ); Tính toán ra -3/5 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "correct",
+    "comment": "Phá ngoặc và nhóm hợp lý (+0,25đ); Tính ra kết quả bằng 4 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "correct",
+    "comment": "Thực hiện phép chia phân số đúng (+0,25đ); Kết quả x = -6 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "correct",
+    "comment": "Biến đổi bình phương đúng (+0,25đ); Giải đủ 2 trường hợp tìm ra nghiệm chính xác (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.3",
+    "status": "correct",
+    "comment": "Xét trường hợp tích bằng 0 đúng (+0,25đ); Giải thích loại TH2 vô nghiệm và kết luận x = 3 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1a",
+    "status": "correct",
+    "comment": "Tính số tiền ngày hôm qua đúng 1110,2 nghìn đồng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1b",
+    "status": "wrong",
+    "comment": "Tính toán nhầm lẫn số tiền ngày hôm nay và số tiền tiết kiệm dẫn đến kết quả sai (-0,5đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2a",
+    "status": "correct",
+    "comment": "Tính khối lượng cam xuất khẩu đúng 900kg (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2b",
+    "status": "correct",
+    "comment": "Tính khối lượng cam chuyển vào nhà máy đúng 1200kg (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2c",
+    "status": "correct",
+    "comment": "Tính số cam bán lẻ đúng 300kg (+0,25đ); Tính số thùng gỗ cần thiết đúng 12 thùng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu IV",
+    "status": "correct",
+    "comment": "Vẽ hình chính xác tất cả các yêu cầu và có đánh dấu đoạn thẳng bằng nhau (+1,5đ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu V.1",
+    "status": "wrong",
+    "comment": "Học sinh bỏ trống, không làm phần này (0đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu V.2",
+    "status": "wrong",
+    "comment": "Học sinh biến đổi sai bản chất phân số của số trang còn lại ở ngày thứ hai, dẫn đến thiết lập tổng phân số và số phần bị sai logic (0đ)",
+    "points": 0,
+    "max_points": 0.5
+   }
+  ]
+ },
+ "bai-tgdd-3.pdf": {
+  "score": 6.5,
+  "feedback": "Con đã nắm được kiến thức tuy nhiên còn nhiều sai sót, Phần Tự luận còn cần cẩn thận hơn câu 3, không làm câu 5 và luyện tập thêm các bài tập về các dạng bài trong bài tập này.",
+  "grading_details": [
+   {
+    "question": "Tự luận câu 1",
+    "status": "correct",
+    "comment": "- Nêu đúng xét tam giác MDC và BAC có góc C chung: Đúng (+0.50đ)\n- Chỉ ra được cặp góc vuông bằng nhau MDC = BAC = 90 độ: Đúng (+0.50đ)\n- Kết luận tam giác MDC đồng dạng tam giác ABC (g.g): Đúng (+0.50đ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 2",
+    "status": "correct",
+    "comment": "- Tính đúng các tỉ số AD/AB = 1/3 và AE/AC = 1/3: Đúng (+0.75đ)\n- So sánh và suy ra được AD/AB = AE/AC: Đúng (+0.25đ)\n- Áp dụng đúng định lí Thalet đảo và kết luận DE // BC: Đúng (+0.50đ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 3",
+    "status": "partial",
+    "comment": "- Lập và tính đúng tỉ số AM/AC = AN/AB = 1/2: Đúng (+0.50đ)\n- Xét tam giác, chỉ ra góc chung và tỉ số cạnh để kết luận đồng dạng: Đúng (+0.50đ)\n- Suy ra đẳng thức cạnh bị nhầm tên đỉnh (AM.AD = AN.AC thay vì AM.AB = AN.AC): Sai (0.00đ / 0.50đ)",
+    "points": 1,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 4a",
+    "status": "correct",
+    "comment": "- Chỉ ra góc A chung và cặp góc vuông AEB = AFC = 90 độ: Đúng (+0.75đ)\n- Kết luận tam giác ABE đồng dạng tam giác ACF (g.g): Đúng (+0.25đ)\n- Suy ra các cặp cạnh tương ứng tỉ lệ và đẳng thức: Đúng (+0.25đ)",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 4b",
+    "status": "correct",
+    "comment": "- Từ kết quả câu a, suy ra được tỉ số tương ứng: Đúng (+0.25đ)\n- Xét tam giác AEF và ABC có góc A chung, kết luận đồng dạng (c.g.c): Đúng (+0.25đ)\n- Suy ra cặp góc tương ứng bằng nhau AEF = ABC: Đúng (+0.25đ)",
+    "points": 0.75,
+    "max_points": 0.75
+   },
+   {
+    "question": "Tự luận câu 4c",
+    "status": "correct",
+    "comment": "- Chỉ ra được KEC = ABC và kết hợp góc K chung để xét tam giác KEC và KBD: Đúng (+0.25đ)\n- Kết luận tam giác đồng dạng, suy ra tỉ lệ cạnh và đẳng thức KF.KE = KB.KC: Đúng (+0.25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu 5",
+    "status": "wrong",
+    "comment": "- Học sinh chưa làm bài 5 trong bài làm: Sai (0.00đ / 3.00đ)",
+    "points": 0,
+    "max_points": 3
+   }
+  ]
+ },
+ "bai-tgdd-5.pdf": {
+  "score": 8.75,
+  "feedback": "Con làm bài khá tốt tuy nhiên Phần Tự luận còn không làm câu IV.c, V.c và cẩn thận hơn khi làm các dạng bài về các dạng bài trong bài tập này.",
+  "grading_details": [
+   {
+    "question": "Tự luận câu I",
+    "status": "correct",
+    "comment": "Học sinh giải theo cách khác hợp lệ: Chỉ ra MD // AB (+0.5đ), xét tam giác MDC đồng dạng với tam giác ABC theo định lý tam giác đồng dạng (+1.0đ). Đầy đủ và chính xác.",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu II",
+    "status": "correct",
+    "comment": "Tính đúng hai tỉ số AD/AB = AE/AC = 1/3 (+0.75đ), chứng minh tam giác ADE đồng dạng tam giác ABC theo c.g.c (+0.25đ), suy ra hai góc đồng vị bằng nhau nên DE // BC (+0.5đ).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu III",
+    "status": "correct",
+    "comment": "Lập đúng tỉ số AM/AC = AN/AB = 1/2 (+0.5đ); Nêu góc A chung và kết luận tam giác AMN đồng dạng tam giác ACB theo c.g.c (+0.5đ); Biến đổi tỉ số suy ra đẳng thức AM.AB = AN.AC (+0.5đ).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu IV.a",
+    "status": "correct",
+    "comment": "Chỉ ra góc BAC chung và góc AEB = góc AFC = 90 độ (+0.75đ); Kết luận tam giác ABE đồng dạng tam giác ACF theo g.g (+0.25đ); Suy ra tỉ số và đẳng thức AF.AB = AE.AC (+0.25đ).",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu IV.b",
+    "status": "correct",
+    "comment": "Suy ra tỉ số AE/AB = AF/AC (+0.25đ); Xét hai tam giác có góc A chung suy ra tam giác AEF đồng dạng tam giác ABC theo c.g.c (+0.25đ); Suy ra góc AEF = góc ABC (+0.25đ).",
+    "points": 0.75,
+    "max_points": 0.75
+   },
+   {
+    "question": "Tự luận câu IV.c",
+    "status": "wrong",
+    "comment": "Học sinh bỏ trống chưa làm phần này (0đ).",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu V.a",
+    "status": "correct",
+    "comment": "Xét tam giác ADB và tam giác AEC có góc A chung và góc ADB = góc AEC = 90 độ (+0.75đ); Kết luận tam giác ADB đồng dạng tam giác AEC theo g.g (+0.5đ).",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu V.b",
+    "status": "correct",
+    "comment": "Học sinh giải theo cách khác hợp lệ: Từ câu a suy ra góc ABD = góc ACE, kết hợp cặp góc vuông để chứng minh tam giác EHB đồng dạng tam giác DHC theo g.g (+0.75đ); Suy ra tỉ số và đẳng thức HE.HC = HD.HB (+0.25đ).",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu V.c",
+    "status": "wrong",
+    "comment": "Học sinh bỏ trống chưa làm phần này (0đ).",
+    "points": 0,
+    "max_points": 0.75
+   }
+  ]
+ },
+ "bai-tgdd-9.pdf": {
+  "score": 9.5,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "Tự luận câu 1",
+    "status": "correct",
+    "comment": "Nêu đúng xét tam giác MDC và tam giác ABC có góc C chung (+0.5đ); Chỉ ra được cặp góc vuông bằng nhau MDC = BAC = 90 độ (+0.5đ); Kết luận tam giác MDC đồng dạng tam giác ABC theo g.g (+0.5đ).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 2",
+    "status": "correct",
+    "comment": "Tính đúng các tỉ số AD/AB = 1/3 và AE/AC = 1/3 (+0.75đ); So sánh và suy ra được AD/AB = AE/AC (+0.25đ); Áp dụng đúng định lí Thalet đảo và kết luận DE song song BC (+0.5đ).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 3",
+    "status": "correct",
+    "comment": "Lập và tính đúng tỉ số AM/AC = AN/AB = 1/2 (+0.5đ); Xét tam giác AMN và tam giác ACB, chỉ ra góc A chung và tỉ số cạnh để kết luận đồng dạng theo c.g.c (+0.5đ); Suy ra đúng các cặp cạnh tương ứng tỉ lệ và kết luận AM nhân AB bằng AN nhân AC (+0.5đ).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 4.a",
+    "status": "correct",
+    "comment": "Chỉ ra góc A chung và cặp góc vuông ADB = AEC = 90 độ (+0.75đ); Kết luận đồng dạng g.g (+0.25đ); Suy ra tỉ số cạnh và đẳng thức tích AB nhân AE = AC nhân AD (+0.25đ).",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 4.b",
+    "status": "correct",
+    "comment": "Từ kết quả câu a suy ra tỉ số AD/AB = AE/AC (+0.25đ); Xét tam giác ADE và tam giác ABC có góc A chung, kết luận đồng dạng c.g.c (+0.25đ); Suy ra cặp góc tương ứng bằng nhau AEF = ABC (+0.25đ).",
+    "points": 0.75,
+    "max_points": 0.75
+   },
+   {
+    "question": "Tự luận câu 4.c",
+    "status": "correct",
+    "comment": "Chỉ ra góc KEC = ABC và kết hợp góc K chung để xét tam giác đồng dạng (+0.25đ); Kết luận đồng dạng g.g, suy ra tỉ lệ cạnh và đẳng thức KF nhân KE = KB nhân KC (+0.25đ).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu 5.a",
+    "status": "correct",
+    "comment": "Xét tam giác ADB và tam giác AEC có góc A chung và góc vuông bằng nhau (+0.75đ); Kết luận đồng dạng g.g (+0.5đ).",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 5.b",
+    "status": "correct",
+    "comment": "Chỉ ra góc đối đỉnh và cặp góc vuông, kết luận đồng dạng g.g (+0.75đ); Suy ra đúng tỉ số tương ứng và đẳng thức HE nhân HC = HD nhân HB (+0.25đ).",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 5.c",
+    "status": "partial",
+    "comment": "Lập luận BH song song CK và CH song song BK để chỉ ra BHCK là hình bình hành, suy ra H, M, K thẳng hàng (+0.25đ); Thiếu gọi I là trung điểm AK và chưa áp dụng tính chất đường trung tuyến trong tam giác vuông để suy ra các đoạn thẳng bằng nhau (-0.50đ).",
+    "points": 0.25,
+    "max_points": 0.75
+   }
+  ]
+ },
+ "bai-tgdd-1.pdf": {
+  "score": 9.25,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "Tự luận câu 1",
+    "status": "correct",
+    "comment": "- Nêu đúng xét tam giác MDC và tam giác ABC có góc C chung: Đúng (+0.5đ)\n- Chỉ ra được cặp góc vuông bằng nhau MDC = BAC = 90 độ: Đúng (+0.5đ)\n- Kết luận tam giác MDC đồng dạng với tam giác ABC (g.g): Đúng (+0.5đ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 2",
+    "status": "correct",
+    "comment": "- Tính đúng các tỉ số (sử dụng AD/DB = AE/EC suy ra AD/AB = AE/AC): Đúng (+0.75đ)\n- So sánh và suy ra tỉ số: Đúng (+0.25đ)\n- Áp dụng định lí Thalet đảo kết luận DE song song BC: Đúng (+0.5đ). (Cách giải khác hợp lệ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 3",
+    "status": "correct",
+    "comment": "- Lập và tính đúng tỉ số AM/AC = AN/AB = 1/2: Đúng (+0.5đ)\n- Xét tam giác, chỉ ra góc A chung và tỉ số cạnh để kết luận đồng dạng (c.g.c): Đúng (+0.5đ)\n- Suy ra các cặp cạnh tương ứng tỉ lệ và kết luận AM.AB = AN.AC: Đúng (+0.5đ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 4a",
+    "status": "correct",
+    "comment": "- Chỉ ra góc A chung và cặp góc vuông AEB = AFC = 90 độ: Đúng (+0.75đ)\n- Kết luận tam giác ABE đồng dạng ACF (g.g): Đúng (+0.25đ)\n- Suy ra các cặp cạnh tương ứng tỉ lệ và đẳng thức AF.AB = AE.AC: Đúng (+0.25đ)",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 4b",
+    "status": "correct",
+    "comment": "- Suy ra tỉ số từ câu a (AE/AB = AF/AC): Đúng (+0.25đ)\n- Xét tam giác AEF và ABC có góc A chung, kết luận đồng dạng (c.g.c): Đúng (+0.25đ)\n- Suy ra cặp góc tương ứng AEF = ABC: Đúng (+0.25đ)",
+    "points": 0.75,
+    "max_points": 0.75
+   },
+   {
+    "question": "Tự luận câu 4c",
+    "status": "correct",
+    "comment": "- Chỉ ra được góc KFB = góc KCE thông qua góc bù: Đúng (+0.25đ)\n- Kết luận tam giác KFB đồng dạng KCE (g.g), suy ra tỉ lệ cạnh và đẳng thức KF.KE = KB.KC: Đúng (+0.25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu 5a",
+    "status": "correct",
+    "comment": "- Xét tam giác ADB và AEC có góc A chung và ADB = AEC = 90 độ: Đúng (+0.75đ)\n- Kết luận tam giác ADB đồng dạng AEC (g.g): Đúng (+0.5đ)",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 5b",
+    "status": "correct",
+    "comment": "- Chỉ ra EHB = DHC (đối đỉnh) và cặp góc vuông, kết luận tam giác HEB đồng dạng HDC (g.g): Đúng (+0.75đ)\n- Suy ra đúng tỉ số tương ứng HE/HD = HB/HC và nhân chéo ra HE.HC = HD.HB: Đúng (+0.25đ)",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 5c",
+    "status": "wrong",
+    "comment": "- Học sinh bỏ sót hoàn toàn ý c, không trình bày bài làm: Thiếu toàn bộ điểm (-0.75đ)",
+    "points": 0,
+    "max_points": 0.75
+   }
+  ]
+ },
+ "bai-tgdd-2.pdf": {
+  "score": 8.75,
+  "feedback": "Con làm bài khá tốt tuy nhiên Phần Tự luận còn không làm câu 4c, 5c và cẩn thận hơn khi làm các dạng bài về các dạng bài trong bài tập này.",
+  "grading_details": [
+   {
+    "question": "Tự luận câu 1",
+    "status": "correct",
+    "comment": "Nêu đúng xét tam giác và góc C chung (+0.5đ): Đúng | Chỉ ra cặp góc vuông MDC = BAC = 90 độ (+0.5đ): Đúng | Kết luận tam giác MDC đồng dạng tam giác ABC (g.g) (+0.5đ): Đúng",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 2",
+    "status": "correct",
+    "comment": "Tính đúng tỉ số AD/AB = AE/AC = 1/3 (+0.75đ): Đúng | So sánh và suy ra tỉ số (+0.25đ): Đúng | Chứng minh đồng dạng rồi suy ra DE song song BC hợp lệ theo Thalet đảo (+0.5đ): Đúng",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 3",
+    "status": "correct",
+    "comment": "Lập và tính đúng tỉ số AM/AC = AN/AB = 1/2 (+0.5đ): Đúng | Xét tam giác, góc A chung, tỉ số cạnh kết luận c.g.c (+0.5đ): Đúng | Suy ra tỉ số cạnh tương ứng và đẳng thức tích (+0.5đ): Đúng",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 4a",
+    "status": "correct",
+    "comment": "Chỉ ra góc A chung và cặp góc ADB = AEC = 90 độ (+0.75đ): Đúng | Kết luận tam giác đồng dạng (+0.25đ): Đúng | Suy ra tỉ số cạnh và đẳng thức AB.AE = AC.AD (+0.25đ): Đúng",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 4b",
+    "status": "correct",
+    "comment": "Từ câu a suy ra tỉ số AD/AB = AE/AC (+0.25đ): Đúng | Xét tam giác ADE và ABC có góc A chung, đồng dạng c.g.c (+0.25đ): Đúng | Suy ra góc AEF = ABC (+0.25đ): Đúng",
+    "points": 0.75,
+    "max_points": 0.75
+   },
+   {
+    "question": "Tự luận câu 4c",
+    "status": "wrong",
+    "comment": "Học sinh chưa làm câu này (-0.5đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu 5a",
+    "status": "correct",
+    "comment": "Xét tam giác ABD và ACE có góc A chung và ADB = AEC = 90 độ (+0.75đ): Đúng | Kết luận tam giác ABD đồng dạng tam giác ACE g.g (+0.5đ): Đúng",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 5b",
+    "status": "correct",
+    "comment": "Chỉ ra BHE = CHD đối đỉnh và cặp góc vuông, kết luận tam giác BHE đồng dạng CHD g.g (+0.75đ): Đúng | Suy ra đúng tỉ số tương ứng HE/HB = HD/HC dẫn đến HE.HC = HD.HB (+0.25đ): Đúng",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 5c",
+    "status": "wrong",
+    "comment": "Học sinh chưa làm câu này (-0.75đ)",
+    "points": 0,
+    "max_points": 0.75
+   }
+  ]
+ },
+ "bai-tgdd-4.pdf": {
+  "score": 9.5,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "Tự luận câu 1",
+    "status": "correct",
+    "comment": "Nêu đúng xét tam giác MDC và tam giác ABC có góc C chung (+0.50); Chỉ ra được cặp góc vuông bằng nhau MDC = BAC = 90 độ (+0.50); Kết luận tam giác MDC đồng dạng với tam giác ABC theo trường hợp g.g (+0.50).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 2",
+    "status": "correct",
+    "comment": "Tính đúng các tỉ số AD/AB = 2/6 = 1/3 và AE/AC = 3/9 = 1/3 (+0.75); So sánh và suy ra được AD/AB = AE/AC (+0.25); Áp dụng đúng định lý Thalet đảo và kết luận DE song song với BC (+0.50).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 3",
+    "status": "correct",
+    "comment": "Lập và tính đúng tỉ số AM/AC = AN/AB = 1/2 (+0.50); Xét tam giác AMN và tam giác ACB, chỉ ra góc A chung và tỉ số cạnh để kết luận đồng dạng theo trường hợp c.g.c (+0.50); Suy ra đúng các cặp cạnh tương ứng tỉ lệ và kết luận đẳng thức AM.AB = AN.AC (+0.50).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 4a",
+    "status": "correct",
+    "comment": "Chỉ ra góc A chung và cặp góc ADB = AEC = 90 độ (+0.75); Kết luận tam giác ABD đồng dạng tam giác ACE theo trường hợp g.g (+0.25); Suy ra các cặp cạnh tương ứng tỉ lệ và đẳng thức AB.AE = AC.AD (+0.25).",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 4b",
+    "status": "correct",
+    "comment": "Từ kết quả câu a suy ra được AD/AB = AE/AC (+0.25); Xét tam giác ADE và tam giác ABC có góc A chung, kết luận đồng dạng theo trường hợp c.g.c (+0.25); Suy ra cặp góc tương ứng AEF = ABC (+0.25).",
+    "points": 0.75,
+    "max_points": 0.75
+   },
+   {
+    "question": "Tự luận câu 4c",
+    "status": "correct",
+    "comment": "Chỉ ra được KEC = ABC và kết hợp góc K chung để xét tam giác KEC và tam giác KBD (+0.25); Kết luận tam giác KEC đồng dạng tam giác KBD, suy ra tỉ lệ cạnh và đẳng thức KE.KD = KB.KC (+0.25).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu 5a",
+    "status": "correct",
+    "comment": "Xét tam giác ABD và tam giác ACE có góc A chung và góc ADB = AEC = 90 độ (+0.75); Kết luận tam giác ABD đồng dạng tam giác ACE theo trường hợp g.g (+0.50).",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 5b",
+    "status": "correct",
+    "comment": "Chỉ ra BHE = CHD đối đỉnh và cặp góc vuông, kết luận tam giác BHE đồng dạng tam giác CHD theo trường hợp g.g (+0.75); Suy ra đúng tỉ số tương ứng HB/HC = HE/HD, suy ra HE.HC = HD.HB (+0.25).",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 5c",
+    "status": "partial",
+    "comment": "Lập luận BH song song với CK và CH song song với BK để chỉ ra HCKB là hình bình hành, kết hợp M là trung điểm BC suy ra H, M, K thẳng hàng (+0.25); Học sinh chưa trình bày phần gọi I là trung điểm AK để chứng minh các điểm A, B, K, C cách đều điểm I (-0.50).",
+    "points": 0.25,
+    "max_points": 0.75
+   }
+  ]
+ },
+ "bai-tgdd-6.pdf": {
+  "score": 8.75,
+  "feedback": "Con làm bài khá tốt tuy nhiên Phần Tự luận còn không làm câu 4c, 5c và cẩn thận hơn khi làm các dạng bài về các dạng bài trong bài tập này.",
+  "grading_details": [
+   {
+    "question": "Tự luận câu 1",
+    "status": "correct",
+    "comment": "Nêu đúng xét tam giác MDC và ABC có góc C chung: Đúng (+0.5đ) - Chỉ ra được cặp góc vuông bằng nhau: Đúng (+0.5đ) - Kết luận tam giác MDC đồng dạng ABC (g.g): Đúng (+0.5đ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 2",
+    "status": "correct",
+    "comment": "Tính đúng các tỉ số AD/AB = 1/3 và AE/AC = 1/3: Đúng (+0.75đ) - So sánh và suy ra AD/AB = AE/AC: Đúng (+0.25đ) - Áp dụng đúng định lí Thalet đảo và kết luận DE song song BC: Đúng (+0.5đ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 3",
+    "status": "correct",
+    "comment": "Lập và tính đúng tỉ số AM/AC = AN/AB = 1/2: Đúng (+0.5đ) - Xét tam giác AMN và ACB, chỉ ra góc A chung và tỉ số cạnh để kết luận đồng dạng (c.g.c): Đúng (+0.5đ) - Suy ra đúng các cặp cạnh tương ứng tỉ lệ và kết luận đẳng thức AM.AB = AN.AC: Đúng (+0.5đ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 4a",
+    "status": "correct",
+    "comment": "Chỉ ra góc A chung và cặp góc AEB = AFC = 90 độ: Đúng (+0.75đ) - Kết luận tam giác ABE đồng dạng ACF (g.g): Đúng (+0.25đ) - Suy ra các cặp cạnh tương ứng tỉ lệ và đẳng thức AF.AB = AE.AC: Đúng (+0.25đ)",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 4b",
+    "status": "correct",
+    "comment": "Từ kết quả câu a, suy ra được AE/AB = AF/AC: Đúng (+0.25đ) - Xét tam giác AEF và ABC có góc A chung, kết luận đồng dạng (c.g.c): Đúng (+0.25đ) - Suy ra cặp góc tương ứng AEF = ABC: Đúng (+0.25đ)",
+    "points": 0.75,
+    "max_points": 0.75
+   },
+   {
+    "question": "Tự luận câu 4c",
+    "status": "wrong",
+    "comment": "Học sinh không làm phần này: 0đ",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu 5a",
+    "status": "correct",
+    "comment": "Xét tam giác ADB và AEC có góc A chung và góc vuông bằng nhau: Đúng (+0.75đ) - Kết luận tam giác ADB đồng dạng AEC (g.g): Đúng (+0.5đ)",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 5b",
+    "status": "correct",
+    "comment": "Chỉ ra cặp góc đối đỉnh và cặp góc vuông, kết luận tam giác HEB đồng dạng HDC (g.g): Đúng (+0.75đ) - Suy ra đúng tỉ số tương ứng và đẳng thức HE.HC = HD.HB: Đúng (+0.25đ)",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 5c",
+    "status": "wrong",
+    "comment": "Học sinh không làm phần này: 0đ",
+    "points": 0,
+    "max_points": 0.75
+   }
+  ]
+ },
+ "bai-tgdd-7.pdf": {
+  "score": 8.88,
+  "feedback": "Con làm bài khá tốt tuy nhiên Phần Tự luận còn trình bày thiếu câu 5.c, cần cẩn thận hơn câu 3, 4.c và cẩn thận hơn khi làm các dạng bài về các dạng bài trong bài tập này.",
+  "grading_details": [
+   {
+    "question": "Tự luận câu 1",
+    "status": "correct",
+    "comment": "- Nêu đúng xét tam giác MDC và tam giác ABC có góc C chung: Đúng (+0.50đ). - Chỉ ra được cặp góc vuông bằng nhau MDC = BAC = 90 độ: Đúng (+0.50đ). - Kết luận tam giác MDC đồng dạng với tam giác ABC (g.g): Đúng (+0.50đ).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 2",
+    "status": "correct",
+    "comment": "- Tính đúng các tỉ số AD/AB = 1/3 và AE/AC = 1/3: Đúng (+0.75đ). - So sánh và suy ra được AD/AB = AE/AC: Đúng (+0.25đ). - Áp dụng đúng định lí Thalet đảo và kết luận DE song song BC: Đúng (+0.50đ).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 3",
+    "status": "partial",
+    "comment": "- Lập và tính đúng tỉ số: Học sinh lập nhầm tỉ số AN/AM = AC/AB: Sai (-0.50đ). - Xét tam giác AMN và ACB, chỉ ra góc A chung và tỉ số cạnh để kết luận đồng dạng (c.g.c): Đạt một phần dựa trên biến đổi và suy luận tương đương (+0.50đ). - Suy ra đúng các cặp cạnh tương ứng tỉ lệ và kết luận độ dài: Biến đổi ra được hệ thức tích đúng (+0.50đ).",
+    "points": 1,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 4.a",
+    "status": "correct",
+    "comment": "- Chỉ ra góc A chung và cặp góc AEB = AFC = 90 độ: Đúng (+0.75đ). - Kết luận tam giác ABE đồng dạng tam giác ACF (g.g): Đúng (+0.25đ). - Suy ra các cặp cạnh tương ứng tỉ lệ và đẳng thức AF.AB = AE.AC: Đúng (+0.25đ).",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 4.b",
+    "status": "correct",
+    "comment": "- Từ kết quả câu a, suy ra được tỉ số cạnh tương ứng: Đúng (+0.25đ). - Xét tam giác AEF và ABC có góc A chung, kết luận đồng dạng (c.g.c): Đúng (+0.25đ). - Suy ra cặp góc tương ứng AEF = ABC: Đúng (+0.25đ).",
+    "points": 0.75,
+    "max_points": 0.75
+   },
+   {
+    "question": "Tự luận câu 4.c",
+    "status": "wrong",
+    "comment": "- Chỉ ra được AFE = ACB (từ 4b): Đúng (+0.25đ). - AFE = KFB (đối đỉnh): Sai bản chất toán học, hai góc này không đối đỉnh (-0.25đ). - KFB = KCE và các bước sau dựa trên lỗi logic trước đó: Không cho điểm do lỗi dây chuyền (-0.25đ).",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu 5.a",
+    "status": "correct",
+    "comment": "- Xét tam giác ADB và AEC có góc A chung và ADB = AEC = 90 độ: Đúng (+0.75đ). - Kết luận tam giác ADB đồng dạng tam giác AEC (g.g): Đúng (+0.50đ).",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 5.b",
+    "status": "correct",
+    "comment": "- Chỉ ra EHB = DHC (đối đỉnh) và cặp góc vuông, kết luận tam giác EHB đồng dạng tam giác DHC (g.g): Đúng (+0.75đ). - Suy ra đúng tỉ số tương ứng HE/HB = HD/HC và tích chéo: Đúng (+0.25đ).",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 5.c",
+    "status": "partial",
+    "comment": "- Lập luận song song để chỉ ra BHCK là hình bình hành và suy ra H, M, K thẳng hàng: Dùng lý do 'đồng vị' chưa chuẩn xác bản chất (trừ nhẹ 0.125đ), nhưng kết luận hình bình hành và thẳng hàng vẫn đúng (+0.125đ). - Gọi I là trung điểm AK và áp dụng tính chất đường trung tuyến trong tam giác vuông để chỉ ra các đoạn bằng nhau: Đúng (+0.25đ). - Kết luận các điểm cách đều điểm I: Đúng (+0.25đ).",
+    "points": 0.63,
+    "max_points": 0.75
+   }
+  ]
+ },
+ "bai-tgdd-8.pdf": {
+  "score": 8,
+  "feedback": "Con làm bài khá tốt tuy nhiên Phần Tự luận còn trình bày thiếu câu câu Bài 3, cần cẩn thận hơn câu câu Bài 4b, câu Bài 4c, câu Bài 5c và cẩn thận hơn khi làm các dạng bài về các dạng bài trong bài tập này.",
+  "grading_details": [
+   {
+    "question": "Tự luận câu Bài 1",
+    "status": "correct",
+    "comment": "Nêu đúng xét AMDC và ∆ABC có góc C chung: Đúng (+0.50)\nChỉ ra được cặp góc vuông bằng nhau MDC = BAC = 90°: Đúng (+0.50)\nKết luận AMDC ~ ∆ABC (g.g): Đúng (+0.50)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu Bài 2",
+    "status": "correct",
+    "comment": "Tính đúng các tỉ số AD/AB = 1/3 và AE/AC = 1/3: Đúng (+0.75)\nSo sánh và suy ra được AD/AB = AE/AC: Đúng (+0.25)\nÁp dụng đúng định lí Thalet đảo và kết luận DE || BC: Đúng (+0.50)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu Bài 3",
+    "status": "partial",
+    "comment": "Lập và tính đúng tỉ số AM/AC = 1/2 và AN/AB = 1/2: Đúng (+0.50)\nXét ∆AMN và ∆ACB, chỉ ra góc A chung và tỉ số cạnh để kết luận đồng dạng (c.g.c): Đúng (+0.50)\nSuy ra đúng các cặp cạnh tương ứng tỉ lệ và kết luận độ dài MN = 1/2 BC: Sai/Thiếu (0.00) - Học sinh chỉ suy ra AM.AB = AN.AC, không kết luận MN = 1/2 BC.",
+    "points": 1,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu Bài 4a",
+    "status": "correct",
+    "comment": "Chỉ ra góc A chung và cặp góc AEB = AFC = 90°: Đúng (+0.75)\nKết luận ∆ABE ~ ∆ACF (g.g): Đúng (+0.25)\nSuy ra các cặp cạnh tương ứng tỉ lệ và đẳng thức AF.AB = AE.AC: Đúng (+0.25)",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu Bài 4b",
+    "status": "partial",
+    "comment": "Từ kết quả câu a, suy ra được AE/AB = AF/AC: Đúng (+0.25)\nXét ∆AEF và ∆ABC có góc A chung, kết luận đồng dạng (c.g.c): Đúng (+0.25)\nSuy ra cặp góc tương ứng AEF = ABC: Sai (0.00) - Học sinh kết luận AEF = BAC.",
+    "points": 0.5,
+    "max_points": 0.75
+   },
+   {
+    "question": "Tự luận câu Bài 4c",
+    "status": "wrong",
+    "comment": "Chỉ ra được KEC = ABC và kết hợp góc K chung để xét ∆KEC và ∆KBD: Sai/Thiếu (0.00) - Học sinh chỉ ghi kết quả, không trình bày các bước chứng minh.\nKết luận ∆KEC ~ ∆KBD (g.g), suy ra tỉ lệ cạnh và đẳng thức KE.KD = KB.KC: Sai/Thiếu (0.00) - Học sinh chỉ ghi kết quả, không trình bày các bước chứng minh.",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu Bài 5a",
+    "status": "correct",
+    "comment": "Xét ∆ABD và ∆ACE có góc A chung và ADB = AEC = 90°: Đúng (+0.75)\nKết luận ∆ABD ~ ∆ACE (g.g): Đúng (+0.50)",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu Bài 5b",
+    "status": "correct",
+    "comment": "Chỉ ra BHE = CHD (đối đỉnh) và cặp góc vuông, kết luận ∆BHE ~ ∆CHD (g.g): Đúng (+0.75)\nSuy ra đúng tỉ số tương ứng HB/HC = HE/HD: Đúng (+0.25) - Tỉ số dẫn đến kết quả đúng.",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu Bài 5c",
+    "status": "wrong",
+    "comment": "Lập luận BH || CK và CH || BK để chỉ ra BHCK là hình bình hành, kết hợp M là trung điểm BC suy ra H,M,K thẳng hàng: Thiếu (0.00)\nGọi I là trung điểm AK và áp dụng tính chất đường trung tuyến trong tam giác vuông để chỉ ra IA = IK = IB = IC: Thiếu (0.00)\nTiếp tục suy ra IA = IK = IB = IC = IE = ID và kết luận các điểm cách đều điểm I (trung điểm AK): Thiếu (0.00)",
+    "points": 0,
+    "max_points": 0.75
+   }
+  ]
+ },
+ "bai-tgdd-10.pdf": {
+  "score": 9.75,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "Tự luận câu 1",
+    "status": "correct",
+    "comment": "Nêu đúng góc C chung: Đúng (+0.50). Chỉ ra cặp góc vuông bằng nhau MDC = BAC = 90 độ: Đúng (+0.50). Kết luận đồng dạng (g.g): Đúng (+0.50).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 2",
+    "status": "correct",
+    "comment": "Tính đúng tỉ số AD/AB = 1/3 và AE/AC = 1/3: Đúng (+0.75). So sánh tỉ số AD/AB = AE/AC: Đúng (+0.25). Áp dụng định lí Thales đảo và kết luận DE // BC: Đúng (+0.50).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 3",
+    "status": "correct",
+    "comment": "Lập và tính đúng tỉ số AM/AC = 1/2 và AN/AB = 1/2: Đúng (+0.50). Xét ∆AMN và ∆ACB, chỉ ra góc A chung và tỉ số cạnh để kết luận đồng dạng (c.g.c): Đúng (+0.50). Suy ra tỉ lệ cạnh và kết luận độ dài MN = 1/2 BC: Đúng (+0.50).",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu 4.a",
+    "status": "correct",
+    "comment": "Chỉ ra góc A chung và cặp góc vuông AEB = AFC = 90 độ: Đúng (+0.75). Kết luận đồng dạng ∆ABE ~ ∆ACF (g.g): Đúng (+0.25). Suy ra tỉ lệ cạnh và đẳng thức AF.AB = AE.AC: Đúng (+0.25).",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 4.b",
+    "status": "correct",
+    "comment": "Từ kết quả câu a, suy ra tỉ số AE/AB = AF/AC: Đúng (+0.25). Xét ∆AEF và ∆ABC có góc A chung và tỉ số cạnh để kết luận đồng dạng (c.g.c): Đúng (+0.25). Suy ra cặp góc tương ứng AEF = ABC: Đúng (+0.25).",
+    "points": 0.75,
+    "max_points": 0.75
+   },
+   {
+    "question": "Tự luận câu 4.c",
+    "status": "correct",
+    "comment": "Chỉ ra KFB = KCE (dựa trên AFE = ACB và góc kề bù): Đúng (+0.25). Xét ∆KCE và ∆KFB có góc K chung và KCE = KFB, kết luận đồng dạng (g.g) và suy ra đẳng thức KF.KE = KB.KC: Đúng (+0.25).",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu 5.a",
+    "status": "correct",
+    "comment": "Chỉ ra góc A chung và cặp góc vuông ADB = AEC = 90 độ: Đúng (+0.75). Kết luận đồng dạng ∆ADB ~ ∆AEC (g.g): Đúng (+0.50).",
+    "points": 1.25,
+    "max_points": 1.25
+   },
+   {
+    "question": "Tự luận câu 5.b",
+    "status": "correct",
+    "comment": "Chỉ ra cặp góc đối đỉnh BHE = CHD và cặp góc vuông BEH = CDH = 90 độ, kết luận đồng dạng ∆BHE ~ ∆CHD (g.g): Đúng (+0.75). Suy ra tỉ số tương ứng và đẳng thức HE.HC = HD.HB: Đúng (+0.25).",
+    "points": 1,
+    "max_points": 1
+   },
+   {
+    "question": "Tự luận câu 5.c",
+    "status": "partial",
+    "comment": "Lập luận BHCK là hình bình hành và kết luận H,M,K thẳng hàng: Đúng (+0.25). Gọi I là trung điểm AK và chứng minh IA = IB = IK = IC: Đúng (+0.25). Thiếu chứng minh IE = ID để kết luận tất cả các điểm A,B,K,C,D,E cách đều I: Sai/Thiếu (-0.25).",
+    "points": 0.5,
+    "max_points": 0.75
+   }
+  ]
  }
 }
