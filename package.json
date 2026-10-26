@@ -4,7 +4,7 @@
   "description": "Thay Chien Math - single-service deploy (frontend + backend)",
   "private": true,
   "scripts": {
-    "build": "cd frontend && npm install --include=dev && npm run build && cd ../backend && npm install --omit=dev",
+    "build": "cd frontend && npm install --include=dev && npm run build && cd ../backend && npm install --omit=dev && npm rebuild better-sqlite3",
     "start": "cd backend && npm start"
   },
   "engines": {
