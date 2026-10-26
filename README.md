@@ -49,9 +49,14 @@ Chạy tay: `cd backend && npm run seed:demo`.
 |---|---|---|---|
 | Quản trị | Giáo viên | `admin` | `admin123` |
 | Giáo viên | Giáo viên | `thaychien` | `123456` |
-| Học sinh lớp 6A | Học sinh | `hs6a`, `hs6b`, `hs6c`, `hs6d` | `123456` |
-| Học sinh lớp 9A | Học sinh | `hs9a`, `hs9b`, `hs9c` | `123456` |
-| Phụ huynh | Phụ huynh | tên đăng nhập của con (vd `hs6a`) | `123456` |
+| Học sinh lớp 6A (Học sinh 1–12) | Học sinh | `hs1` … `hs12` | `123456` |
+| Học sinh lớp 9A (Học sinh 13–22) | Học sinh | `hs13` … `hs22` | `123456` |
+| Phụ huynh | Phụ huynh | tên đăng nhập của con (vd `hs1`) | `123456` |
+
+Ở bản demo, trang đăng nhập hiện sẵn khung "Tài khoản dùng thử": bấm một tài khoản là đăng nhập luôn.
+
+Dữ liệu: đề KT HK2 Toán 6 (12 bài làm), BTVN lập hệ phương trình (2 bài), toán thực tế bất phương trình (1 bài),
+ôn tập tam giác đồng dạng (10 bài) — tất cả đã được AI chấm sẵn; mỗi lớp có thêm 1 bài "Nộp thử" đang mở để nộp bài mới.
 
 Render gói free không lưu dữ liệu lâu dài: mỗi lần deploy / khởi động lại, dữ liệu trở về bộ demo này.
 Khi dùng thật: đặt `SEED_DEMO=0`, gắn ổ đĩa lưu trữ (persistent disk) và đổi mật khẩu admin.

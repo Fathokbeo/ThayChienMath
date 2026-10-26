@@ -66,4 +66,10 @@ router.get('/settings', (req, res) => {
   res.json(obj);
 });
 
+// Bản demo: danh sách tài khoản thử để hiện ở trang đăng nhập. Database thật (không nạp demo) → null
+router.get('/demo-accounts', (req, res) => {
+  const { isDemo, demoAccounts } = require('../db/demoSeed');
+  res.json(isDemo(getDb()) ? demoAccounts() : null);
+});
+
 module.exports = router;

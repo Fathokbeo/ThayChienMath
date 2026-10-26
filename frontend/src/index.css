@@ -322,6 +322,20 @@ button.list-row { width: 100%; border: none; background: #fff; font-family: inhe
 .portal-tab.active { background: #fff; color: var(--tc-accent); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
 @media (max-width: 380px) { .portal-tab { flex-direction: column; gap: 2px; font-size: 0.8rem; min-height: 54px; } }
 
+/* Khung "Tài khoản dùng thử" ở trang đăng nhập (chỉ hiện ở bản demo) */
+.demo-box { margin-top: 26px; padding: 14px 16px 16px; border: 1px dashed var(--tc-line-strong); border-radius: 14px; background: #FAFAFB; text-align: left; }
+.demo-box-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.demo-box-title { font-size: 0.9rem; font-weight: 700; color: var(--tc-ink); }
+.demo-box-pass { font-size: 0.82rem; color: var(--tc-ink-2); white-space: nowrap; }
+.demo-box-pass code { font-weight: 700; color: var(--tc-ink); }
+.demo-box-note { font-size: 0.8rem; color: var(--tc-ink-3); margin: 0 0 8px; line-height: 1.45; }
+.demo-box-group { font-size: 0.76rem; font-weight: 600; color: var(--tc-ink-2); margin: 10px 0 6px; }
+.demo-box-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.demo-acc { min-height: 34px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--tc-line-strong); background: #fff; font-family: inherit; font-size: 0.84rem; font-weight: 600; color: var(--tc-ink); cursor: pointer; transition: border-color 0.15s, color 0.15s; }
+.demo-acc span { font-weight: 500; color: var(--tc-ink-3); margin-left: 4px; }
+.demo-acc:hover:not(:disabled) { border-color: var(--tc-accent); color: var(--tc-accent); }
+.demo-acc:disabled { opacity: 0.55; cursor: default; }
+
 /* ── Trang phụ huynh ─────────────────────────────────────── */
 .ph-hero { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: #fff; border-radius: var(--tc-radius); }
 .ph-hero > div { padding: 1.1rem 1.25rem; }

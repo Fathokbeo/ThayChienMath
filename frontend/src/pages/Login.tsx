@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import type { Portal } from '../contexts/AuthContext';
 import { Eye, EyeOff, ArrowRight, Presentation, GraduationCap, HeartHandshake } from 'lucide-react';
 import { toast } from '../components/Toast';
+import api from '../lib/api';
 
 // 3 mục đăng nhập. Phụ huynh gõ TÊN ĐĂNG NHẬP CỦA CON + mật khẩu phụ huynh (không phải nhớ thêm tên nào).
 const PORTALS: { key: Portal; label: string; icon: typeof Presentation; user: string; pass: string; hint: string }[] = [
@@ -13,6 +14,13 @@ const PORTALS: { key: Portal; label: string; icon: typeof Presentation; user: st
   { key: 'parent', label: 'Phụ huynh', icon: HeartHandshake, user: 'Tên đăng nhập của con', pass: 'Mật khẩu phụ huynh', hint: 'Dùng tên đăng nhập của con. Mật khẩu mặc định là số điện thoại phụ huynh đã đăng ký với thầy cô (chưa đăng ký số thì dùng mật khẩu của con).' },
 ];
 const PORTAL_KEY = 'login_portal';
+
+// Bản demo: server trả danh sách tài khoản thử (database thật trả null → không hiện gì)
+type DemoAccounts = {
+  password: string;
+  teacher: { username: string; password: string; label: string }[];
+  classes: { title: string; students: string[] }[];
+};
 
 // Đăng nhập: một cột ở giữa, nền trắng, ô nhập lớn, nút tròn — gọn và rõ ràng.
 export default function Login() {
@@ -30,17 +38,21 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [usernameError, setUsernameError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [demo, setDemo] = useState<DemoAccounts | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    api.get('/public/demo-accounts').then((r) => setDemo(r.data)).catch(() => { /* không có thì thôi */ });
+  }, []);
+
+  const doLogin = async (u: string, p: string) => {
     setUsernameError('');
     setPasswordError('');
-    if (!username || !password) { toast.error('Vui lòng nhập đầy đủ thông tin'); return; }
+    if (!u || !p) { toast.error('Vui lòng nhập đầy đủ thông tin'); return; }
     setLoading(true);
     try {
-      const user = await login(username.trim(), password, portal);
+      const user = await login(u.trim(), p, portal);
       try { localStorage.setItem(PORTAL_KEY, portal); } catch { /* trình duyệt chặn lưu trữ */ }
       navigate(`/${user.role}`);
     } catch (err: any) {
@@ -54,6 +66,10 @@ export default function Login() {
     }
   };
 
+  const handleSubmit = (e: FormEvent) => { e.preventDefault(); doLogin(username, password); };
+
+  // Bấm 1 tài khoản demo: điền sẵn vào ô và đăng nhập luôn
+  const tryAccount = (u: string, p: string) => { setUsername(u); setPassword(p); doLogin(u, p); };
   const field = (err: string): React.CSSProperties => ({
     minHeight: 54, fontSize: '1.02rem', padding: '0.85rem 1rem', borderRadius: 14,
     borderColor: err ? '#B04A2A' : undefined,
@@ -111,7 +127,39 @@ export default function Login() {
             </button>
           </form>
 
-          <p style={{ color: '#86868B', fontSize: '0.86rem', marginTop: 22, lineHeight: 1.55 }}>{cur.hint}</p>
+          {demo ? (
+            <section className="demo-box" aria-label="Tài khoản dùng thử">
+              <div className="demo-box-head">
+                <span className="demo-box-title">Tài khoản dùng thử</span>
+                {portal !== 'teacher' && <span className="demo-box-pass">Mật khẩu <code>{demo.password}</code></span>}
+              </div>
+              <p className="demo-box-note">
+                {portal === 'teacher' ? 'Bấm một tài khoản để đăng nhập ngay.'
+                  : portal === 'student' ? 'Bấm một học sinh để đăng nhập ngay (hs1 = Học sinh 1…).'
+                  : 'Phụ huynh đăng nhập bằng tên đăng nhập của con. Bấm một học sinh để xem với vai trò phụ huynh.'}
+              </p>
+              {portal === 'teacher' ? (
+                <div className="demo-box-list">
+                  {demo.teacher.map((a) => (
+                    <button key={a.username} type="button" className="demo-acc" disabled={loading} onClick={() => tryAccount(a.username, a.password)}>
+                      {a.username}<span>{a.label} · mật khẩu {a.password}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : demo.classes.map((c) => (
+                <div key={c.title}>
+                  <div className="demo-box-group">{c.title}</div>
+                  <div className="demo-box-list">
+                    {c.students.map((u) => (
+                      <button key={u} type="button" className="demo-acc" disabled={loading} onClick={() => tryAccount(u, demo.password)}>{u}</button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </section>
+          ) : (
+            <p style={{ color: '#86868B', fontSize: '0.86rem', marginTop: 22, lineHeight: 1.55 }}>{cur.hint}</p>
+          )}
         </div>
       </main>
 
