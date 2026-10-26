@@ -50,8 +50,8 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      {/* Việc cần xử lý ở mọi lớp */}
-      <TeachingOverview />
+      {/* Danh sách lớp (trang admin không hiện "Hôm nay" / "Sắp đến hạn") */}
+      <TeachingOverview showDeadlines={false} />
 
       <SectionHeader title="Quản trị" />
       <div className="list">

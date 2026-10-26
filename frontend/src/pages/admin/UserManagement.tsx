@@ -16,6 +16,7 @@ interface User {
   created_at: string;
   plain_password: string | null;
   classes?: ClassRef[];
+  children?: { id: number; username: string; full_name: string }[]; // phụ huynh: các con đang theo dõi
 }
 
 export default function UserManagement() {
@@ -52,7 +53,8 @@ export default function UserManagement() {
 
   useEffect(() => {
     let f = users;
-    if (roleFilter !== 'all') f = f.filter((u) => u.role === roleFilter);
+    // Tài khoản phụ huynh (tự tạo cùng học sinh) chỉ hiện khi chọn lọc "Phụ huynh" để danh sách gọn
+    f = roleFilter === 'all' ? f.filter((u) => u.role !== 'parent') : f.filter((u) => u.role === roleFilter);
     // Chia học sinh theo lớp: chọn 1 lớp → chỉ hiện học sinh của lớp đó (thuận tiện xóa/thao tác hàng loạt)
     if (classFilter !== 'all') f = f.filter((u) => u.classes?.some((c) => String(c.id) === classFilter));
     if (search) f = f.filter((u) => u.full_name.toLowerCase().includes(search.toLowerCase()) || u.username.toLowerCase().includes(search.toLowerCase()));
@@ -155,8 +157,8 @@ export default function UserManagement() {
     setRevealed(next);
   };
 
-  const roleLabels: any = { admin: 'Admin', teacher: 'Giáo viên', student: 'Học sinh' };
-  const roleBadge: any = { admin: 'badge-red', teacher: 'badge-blue', student: 'badge-green' };
+  const roleLabels: any = { admin: 'Admin', teacher: 'Giáo viên', student: 'Học sinh', parent: 'Phụ huynh' };
+  const roleBadge: any = { admin: 'badge-red', teacher: 'badge-blue', student: 'badge-green', parent: 'badge-purple' };
 
   const allChecked = filtered.length > 0 && selected.size === filtered.length;
 
@@ -176,9 +178,10 @@ export default function UserManagement() {
           <input className="input" style={{ paddingLeft: 32 }} placeholder="Tìm kiếm..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <select className="input" style={{ width: 'auto', minWidth: 140 }} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-          <option value="all">Tất cả vai trò</option>
+          <option value="all">Giáo viên & học sinh</option>
           <option value="teacher">Giáo viên</option>
           <option value="student">Học sinh</option>
+          <option value="parent">Phụ huynh</option>
         </select>
         <select className="input" style={{ width: 'auto', minWidth: 160, maxWidth: 260 }} value={classFilter} onChange={(e) => setClassFilter(e.target.value)} title="Lọc học sinh theo lớp">
           <option value="all">Tất cả lớp</option>
@@ -247,6 +250,13 @@ export default function UserManagement() {
                           )) : <span className="badge badge-gray" style={{ fontSize: '0.68rem' }}>Chưa có lớp</span>}
                         </div>
                       )}
+                    </>
+                  ) : u.role === 'parent' ? (
+                    <>
+                      <strong>{u.full_name}</strong>
+                      <div style={{ fontSize: '0.76rem', color: '#86868B', marginTop: 2 }}>
+                        Đăng nhập mục Phụ huynh bằng: {(u.children || []).map((c) => c.username).join(', ') || '—'}
+                      </div>
                     </>
                   ) : <strong>{u.full_name}</strong>}
                 </td>

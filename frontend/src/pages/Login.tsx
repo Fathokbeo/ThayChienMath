@@ -1,12 +1,29 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Eye, EyeOff, ArrowRight } from 'lucide-react';
+import type { Portal } from '../contexts/AuthContext';
+import { Eye, EyeOff, ArrowRight, Presentation, GraduationCap, HeartHandshake } from 'lucide-react';
 import { toast } from '../components/Toast';
+
+// 3 mục đăng nhập. Phụ huynh gõ TÊN ĐĂNG NHẬP CỦA CON + mật khẩu phụ huynh (không phải nhớ thêm tên nào).
+const PORTALS: { key: Portal; label: string; icon: typeof Presentation; user: string; pass: string; hint: string }[] = [
+  { key: 'teacher', label: 'Giáo viên', icon: Presentation, user: 'Tên đăng nhập', pass: 'Mật khẩu', hint: 'Dành cho giáo viên và quản trị viên.' },
+  { key: 'student', label: 'Học sinh', icon: GraduationCap, user: 'Tên đăng nhập', pass: 'Mật khẩu', hint: 'Tài khoản do thầy cô cấp — hãy liên hệ để được tạo.' },
+  { key: 'parent', label: 'Phụ huynh', icon: HeartHandshake, user: 'Tên đăng nhập của con', pass: 'Mật khẩu phụ huynh', hint: 'Dùng tên đăng nhập của con. Mật khẩu mặc định là số điện thoại phụ huynh đã đăng ký với thầy cô (chưa đăng ký số thì dùng mật khẩu của con).' },
+];
+const PORTAL_KEY = 'login_portal';
 
 // Đăng nhập: một cột ở giữa, nền trắng, ô nhập lớn, nút tròn — gọn và rõ ràng.
 export default function Login() {
+  const [params] = useSearchParams();
+  const [portal, setPortal] = useState<Portal>(() => {
+    const fromUrl = params.get('muc');
+    const saved = (() => { try { return localStorage.getItem(PORTAL_KEY); } catch { return null; } })();
+    const v = fromUrl === 'phu-huynh' ? 'parent' : fromUrl === 'hoc-sinh' ? 'student' : fromUrl === 'giao-vien' ? 'teacher' : saved;
+    return v === 'teacher' || v === 'parent' ? v : 'student';
+  });
+  const cur = PORTALS.find((p) => p.key === portal)!;
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -23,16 +40,14 @@ export default function Login() {
     if (!username || !password) { toast.error('Vui lòng nhập đầy đủ thông tin'); return; }
     setLoading(true);
     try {
-      await login(username, password);
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (user.role === 'admin') navigate('/admin');
-      else if (user.role === 'teacher') navigate('/teacher');
-      else navigate('/student');
+      const user = await login(username.trim(), password, portal);
+      try { localStorage.setItem(PORTAL_KEY, portal); } catch { /* trình duyệt chặn lưu trữ */ }
+      navigate(`/${user.role}`);
     } catch (err: any) {
       const field = err.response?.data?.field;
       const message = err.response?.data?.message || 'Đăng nhập thất bại';
       if (field === 'username') setUsernameError(message);
-      else if (field === 'password') setPasswordError(message);
+      else if (field === 'password' || field === 'portal') setPasswordError(message);
       else toast.error(message);
     } finally {
       setLoading(false);
@@ -59,11 +74,21 @@ export default function Login() {
         <div style={{ width: '100%', maxWidth: 400, textAlign: 'center' }}>
           <img src="/logo.svg" alt="Thầy Chiến Math" style={{ width: 72, height: 72, borderRadius: 18, margin: '0 auto' }} />
           <h1 style={{ margin: '22px 0 8px', fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#1D1D1F' }}>Đăng nhập</h1>
-          <p style={{ margin: '0 0 30px', color: '#6E6E73', fontSize: '1.02rem' }}>Học Toán cùng Thầy Chiến — mọi bài giảng, bài tập và điểm số ở một nơi.</p>
+          <p style={{ margin: '0 0 26px', color: '#6E6E73', fontSize: '1.02rem' }}>Học Toán cùng Thầy Chiến — mọi bài giảng, bài tập và điểm số ở một nơi.</p>
+
+          <div role="tablist" aria-label="Bạn là" className="portal-switch">
+            {PORTALS.map(({ key, label, icon: Icon }) => (
+              <button key={key} type="button" role="tab" aria-selected={portal === key}
+                className={`portal-tab ${portal === key ? 'active' : ''}`}
+                onClick={() => { setPortal(key); setUsernameError(''); setPasswordError(''); }}>
+                <Icon size={18} /> {label}
+              </button>
+            ))}
+          </div>
 
           <form onSubmit={handleSubmit} style={{ textAlign: 'left' }}>
             <div className="form-group">
-              <input className="input" style={field(usernameError)} placeholder="Tên đăng nhập" aria-label="Tên đăng nhập"
+              <input className="input" style={field(usernameError)} placeholder={cur.user} aria-label={cur.user}
                 value={username} autoComplete="username" autoCapitalize="none" autoCorrect="off" autoFocus
                 onChange={(e) => { setUsername(e.target.value); if (usernameError) setUsernameError(''); }} />
               {usernameError && <p style={{ color: '#B04A2A', fontSize: '0.84rem', margin: '6px 4px 0' }}>{usernameError}</p>}
@@ -71,7 +96,7 @@ export default function Login() {
             <div className="form-group">
               <div style={{ position: 'relative' }}>
                 <input className="input" type={showPw ? 'text' : 'password'} style={{ ...field(passwordError), paddingRight: 52 }}
-                  placeholder="Mật khẩu" aria-label="Mật khẩu" value={password} autoComplete="current-password"
+                  placeholder={cur.pass} aria-label={cur.pass} value={password} autoComplete="current-password"
                   onChange={(e) => { setPassword(e.target.value); if (passwordError) setPasswordError(''); }} />
                 <button type="button" onClick={() => setShowPw(!showPw)} title={showPw ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'} className="icon-btn"
                   style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }}>
@@ -86,9 +111,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p style={{ color: '#86868B', fontSize: '0.86rem', marginTop: 22, lineHeight: 1.5 }}>
-            Chưa có tài khoản? Tài khoản do thầy cô cấp — hãy liên hệ để được tạo.
-          </p>
+          <p style={{ color: '#86868B', fontSize: '0.86rem', marginTop: 22, lineHeight: 1.55 }}>{cur.hint}</p>
         </div>
       </main>
 

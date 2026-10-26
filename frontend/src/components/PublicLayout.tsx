@@ -3,7 +3,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 import { PAGE_MAX } from '../lib/layout';
-import { Phone, MapPin, Clock, Mail, ExternalLink, Menu, X, LogIn, LogOut, User, ChevronDown, Home, BookOpen, GraduationCap, Trophy, Award, type LucideIcon } from 'lucide-react';
+import { Phone, MapPin, Clock, Mail, ExternalLink, Menu, X, LogIn, LogOut, ChevronDown, Home, BookOpen, GraduationCap, Trophy, Award, LayoutDashboard, type LucideIcon } from 'lucide-react';
+import { ENTER_LABEL, roleColors, accountSubtitle } from '../lib/navigation';
 
 // Các mục của trang chủ — gom vào 1 nút "Trang chủ" thả xuống
 const HOME_MENU: { to: string; label: string; sub: string; icon: LucideIcon }[] = [
@@ -43,6 +44,8 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<any>({});
   const [homeOpen, setHomeOpen] = useState(false);
   const homeRef = useRef<HTMLDivElement>(null);
+  const [accountOpen, setAccountOpen] = useState(false); // menu tài khoản (đã đăng nhập)
+  const accountRef = useRef<HTMLDivElement>(null);
 
   // Đóng danh sách thả xuống khi bấm ra ngoài hoặc nhấn Esc
   useEffect(() => {
@@ -53,6 +56,15 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
   }, [homeOpen]);
+
+  useEffect(() => {
+    if (!accountOpen) return;
+    const onDown = (e: MouseEvent) => { if (accountRef.current && !accountRef.current.contains(e.target as Node)) setAccountOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setAccountOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [accountOpen]);
 
   useEffect(() => {
     api.get('/public/settings').then((r) => setSettings(r.data)).catch(() => {});
@@ -66,10 +78,24 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
-  const handleLogout = () => { logout(); setNavOpen(false); };
+  const handleLogout = () => { logout(); setNavOpen(false); setAccountOpen(false); };
   const dashLink = user ? `/${user.role}` : '/login';
   // Thanh điều hướng luôn nền trơn; khi cuộn thêm đường viền mảnh
   const solid = true;
+  const [avBg, avFg] = roleColors(user?.role);
+  const avatar = (size: number) => (
+    <span className="avatar" style={{ width: size, height: size, background: avBg, color: avFg, fontSize: size > 34 ? '1rem' : '0.82rem' }}>{user?.full_name?.[0] || 'U'}</span>
+  );
+  // Đầu menu tài khoản: ảnh đại diện + họ tên + vai trò · tên đăng nhập
+  const accountHeader = user && (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px 10px' }}>
+      {avatar(38)}
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.full_name}</div>
+        <div style={{ fontSize: '0.8rem', color: '#86868B' }}>{accountSubtitle(user)}</div>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ minHeight: '100vh', background: '#F5F5F7', display: 'flex', flexDirection: 'column' }}>
@@ -113,13 +139,31 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             </div>
 
             {user ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 8 }}>
-                <Link to={dashLink} className="btn btn-primary btn-sm" style={{ gap: 6 }}>
-                  <User size={14} />{user.role === 'admin' ? 'Quản trị' : user.role === 'teacher' ? 'Giáo viên' : 'Vào học'}
-                </Link>
-                <button className="btn btn-ghost btn-sm" style={{ color: solid ? '#515154' : 'white', borderColor: solid ? '#D2D2D7' : 'rgba(255,255,255,0.3)' }} onClick={handleLogout}>
-                  <LogOut size={14} /> Đăng xuất
+              // Nút tài khoản → menu: thông tin tài khoản, vào hệ thống (theo vai trò), đăng xuất
+              <div ref={accountRef} style={{ position: 'relative', marginLeft: 8 }}>
+                <button type="button" onClick={() => setAccountOpen((v) => !v)} aria-haspopup="menu" aria-expanded={accountOpen} title="Tài khoản"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, background: accountOpen ? '#F2F2F4' : 'transparent', border: '1px solid #E5E5EA',
+                    borderRadius: 99, padding: '3px 10px 3px 3px', cursor: 'pointer', fontFamily: 'inherit', color: '#1D1D1F',
+                  }}>
+                  {avatar(30)}
+                  <span style={{ fontWeight: 600, fontSize: '0.88rem', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.full_name}</span>
+                  <ChevronDown size={15} color="#6E6E73" style={{ transition: 'transform 0.2s', transform: accountOpen ? 'rotate(180deg)' : 'none' }} />
                 </button>
+                {accountOpen && (
+                  <div style={{ position: 'absolute', right: 0, top: '100%', paddingTop: 8, zIndex: 130 }}>
+                    <div className="menu-panel" role="menu" style={{ position: 'static', width: 280 }}>
+                      {accountHeader}
+                      <div className="menu-sep" />
+                      <Link to={dashLink} className="menu-item" role="menuitem" onClick={() => setAccountOpen(false)} style={{ color: '#1F5C68', fontWeight: 600 }}>
+                        <LayoutDashboard size={17} color="#1F5C68" /> {ENTER_LABEL[user.role]}
+                      </Link>
+                      <button className="menu-item" role="menuitem" style={{ color: '#B04A2A' }} onClick={handleLogout}>
+                        <LogOut size={17} color="#B04A2A" /> Đăng xuất
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <Link to="/login" className="btn btn-primary btn-sm" style={{ marginLeft: 8 }}><LogIn size={14} /> Đăng nhập</Link>
@@ -142,8 +186,13 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             <div style={{ height: 1, background: '#E8E8ED', margin: '0.6rem 0' }} />
             {user ? (
               <>
-                <Link to={dashLink} onClick={() => setNavOpen(false)} style={{ display: 'block', padding: '0.6rem 0', color: '#1F5C68', fontWeight: 600 }}>Vào hệ thống</Link>
-                <button onClick={handleLogout} style={{ background: 'none', border: 'none', padding: '0.6rem 0', color: '#6E6E73', fontWeight: 500, cursor: 'pointer', width: '100%', textAlign: 'left' }}>Đăng xuất</button>
+                <div style={{ margin: '0 -10px' }}>{accountHeader}</div>
+                <Link to={dashLink} onClick={() => setNavOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.6rem 0', color: '#1F5C68', fontWeight: 600 }}>
+                  <LayoutDashboard size={17} /> {ENTER_LABEL[user.role]}
+                </Link>
+                <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', padding: '0.6rem 0', color: '#B04A2A', fontWeight: 500, fontSize: 'inherit', fontFamily: 'inherit', cursor: 'pointer', width: '100%', textAlign: 'left' }}>
+                  <LogOut size={17} /> Đăng xuất
+                </button>
               </>
             ) : (
               <Link to="/login" onClick={() => setNavOpen(false)} style={{ display: 'block', padding: '0.6rem 0', color: '#1F5C68', fontWeight: 600 }}>Đăng nhập</Link>

@@ -29,6 +29,10 @@ import StudentClasses from './pages/student/StudentClasses';
 import StudentCourseDetail from './pages/student/StudentCourseDetail';
 import StudentClassDetail from './pages/student/StudentClassDetail';
 
+import ParentDashboard from './pages/parent/ParentDashboard';
+import ParentClassDetail from './pages/parent/ParentClassDetail';
+import ParentNotifications from './pages/parent/ParentNotifications';
+
 function ProtectedRoute({ children, role }: { children: React.ReactElement; role?: string | string[] }) {
   const { user, loading } = useAuth();
   if (loading) return (
@@ -86,6 +90,12 @@ function AppRoutes() {
         <Route path="courses/:courseId" element={<StudentCourseDetail />} />
         <Route path="classes" element={<StudentClasses />} />
         <Route path="classes/:id" element={<StudentClassDetail />} />
+      </Route>
+
+      <Route path="/parent" element={<ProtectedRoute role="parent"><Layout /></ProtectedRoute>}>
+        <Route index element={<ParentDashboard />} />
+        <Route path="lop/:id" element={<ParentClassDetail />} />
+        <Route path="thong-bao" element={<ParentNotifications />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

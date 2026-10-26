@@ -7,6 +7,7 @@ const { getDb } = require('../db/database');
 const { authMiddleware, requireRole } = require('../middleware/auth');
 const { uploadAd, uploadCourseThumbnail } = require('../middleware/upload');
 const { hardDeleteCourse } = require('../services/cascade');
+const { ensureParentAccount, removeOrphanParents, syncParentPhone } = require('../services/parentAccounts');
 
 router.use(authMiddleware, requireRole('admin'));
 
@@ -16,6 +17,7 @@ router.get('/stats', (req, res) => {
   res.json({
     totalStudents: db.prepare("SELECT COUNT(*) c FROM users WHERE role='student' AND active=1").get().c,
     totalTeachers: db.prepare("SELECT COUNT(*) c FROM users WHERE role='teacher' AND active=1").get().c,
+    totalParents: db.prepare("SELECT COUNT(*) c FROM users WHERE role='parent' AND active=1").get().c,
     totalCourses: db.prepare("SELECT COUNT(*) c FROM courses WHERE active=1").get().c,
     totalClasses: db.prepare("SELECT COUNT(*) c FROM classes WHERE active=1").get().c,
     totalHomework: db.prepare("SELECT COUNT(*) c FROM homework").get().c,
@@ -39,7 +41,14 @@ router.get('/users', (req, res) => {
     LEFT JOIN courses co ON cl.course_id=co.id
     WHERE cs.student_id=? AND cl.active=1 ORDER BY cl.title
   `);
-  rows.forEach(u => { if (u.role === 'student') u.classes = classStmt.all(u.id); });
+  // Phụ huynh: gắn tên các con đang theo dõi (tài khoản phụ huynh tự tạo cùng học sinh)
+  const childStmt = db.prepare(`
+    SELECT u.id, u.username, u.full_name FROM parent_students ps JOIN users u ON u.id=ps.student_id WHERE ps.parent_id=?
+  `);
+  rows.forEach(u => {
+    if (u.role === 'student') u.classes = classStmt.all(u.id);
+    if (u.role === 'parent') u.children = childStmt.all(u.id);
+  });
   res.json(rows);
 });
 
@@ -58,6 +67,7 @@ router.post('/users', (req, res) => {
   const result = db.prepare(
     'INSERT INTO users (username,password,plain_password,full_name,parent_phone,role,created_by) VALUES (?,?,?,?,?,?,?)'
   ).run(username, bcrypt.hashSync(password, 10), password, full_name, parent_phone || null, role, req.user.id);
+  if (role === 'student') ensureParentAccount(db, result.lastInsertRowid, { studentPassword: password, createdBy: req.user.id });
   res.status(201).json({ id: result.lastInsertRowid, username, full_name, role });
 });
 
@@ -72,6 +82,7 @@ router.put('/users/:id', (req, res) => {
   if (sets.length === 0) return res.status(400).json({ message: 'Không có gì để cập nhật' });
   vals.push(req.params.id);
   db.prepare(`UPDATE users SET ${sets.join(',')} WHERE id=?`).run(...vals);
+  if (parent_phone !== undefined) syncParentPhone(db, req.params.id, parent_phone);
   res.json({ message: 'Cập nhật thành công' });
 });
 
@@ -107,6 +118,7 @@ function hardDeleteUser(db, userId) {
   db.prepare('UPDATE users SET created_by=NULL WHERE created_by=?').run(userId);
 
   db.prepare('DELETE FROM users WHERE id=?').run(userId);
+  removeOrphanParents(db); // xóa học sinh → xóa luôn tài khoản phụ huynh không còn con nào
 }
 
 router.delete('/users/:id', (req, res) => {

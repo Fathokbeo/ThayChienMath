@@ -24,12 +24,20 @@ app.use((req, res, next) => {
   next();
 });
 
+const SAFE_INLINE_EXT = new Set(['.pdf', '.jpg', '.jpeg', '.png', '.webp', '.gif', '.mp4', '.webm', '.mov', '.mkv', '.avi']);
+
 // File tải lên: kiểm tra quyền TRƯỚC khi phục vụ. Ảnh trang giới thiệu vẫn công khai; đề bài, đáp án,
 // bài nộp, video và tài liệu bài giảng thì phải đăng nhập đúng lớp mới tải được.
 const { uploadsAuth, PUBLIC_DIRS } = require('./middleware/uploadsAuth');
 app.use('/uploads', uploadsAuth, express.static(path.join(__dirname, '../uploads'), {
   setHeaders: (res, filePath) => {
     const dir = path.basename(path.dirname(filePath));
+    // Lớp phòng thủ thứ 2 cho file cũ đã lưu với đuôi nguy hiểm (.html/.svg...): luôn tải xuống, không cho
+    // trình duyệt mở và chạy script trên tên miền của web. Đuôi file mới do server tự đặt theo whitelist.
+    if (!SAFE_INLINE_EXT.has(path.extname(filePath).toLowerCase())) {
+      res.setHeader('Content-Disposition', 'attachment');
+      res.setHeader('Content-Security-Policy', "sandbox; default-src 'none'");
+    }
     // Không cho proxy/CDN dùng chung bộ nhớ đệm cho file riêng tư
     if (!PUBLIC_DIRS.has(dir)) res.setHeader('Cache-Control', 'private, no-cache');
   },
@@ -42,6 +50,7 @@ app.use('/api/admin/content', require('./routes/content'));  // trước /api/ad
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/teacher', require('./routes/teacher'));
 app.use('/api/student', require('./routes/student'));
+app.use('/api/parent', require('./routes/parent'));
 app.use('/api', require('./routes/homework'));
 
 // Initialize DB (creates tables + default admin)

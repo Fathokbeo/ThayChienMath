@@ -4,20 +4,20 @@ import { parsePartsConfig } from './homeworkParts';
 // Chuẩn form, ngắn gọn: làm đủ & đúng → "Có làm, trình bày đầy đủ."; còn lại chỉ nêu câu nào
 // làm thiếu / sai, KHÔNG nêu chi tiết lỗi. Nhận xét chi tiết học sinh thấy trên web giữ nguyên.
 
-type Detail = { question?: string; status?: string; comment?: string };
+export type Detail = { question?: string; status?: string; comment?: string; points?: number; max_points?: number };
 
 const OBJECTIVE_RE = /^(trắc nghiệm|đúng\/sai|trả lời ngắn)\b/i;
-const NOT_DONE_RE = /không làm|chưa làm|bỏ trống|để trống|bỏ qua|không có (bài|lời giải)|không thấy (bài|lời giải)|không trình bày/i;
+export const NOT_DONE_RE = /không làm|chưa làm|bỏ trống|để trống|bỏ qua|không có (bài|lời giải)|không thấy (bài|lời giải)|không trình bày/i;
 const WRONG_RE = /\bsai\b|nhầm|không đúng|không chính xác/i;
 
-function parseDetails(raw: any): Detail[] {
+export function parseDetails(raw: any): Detail[] {
   if (!raw) return [];
   try { const a = typeof raw === 'string' ? JSON.parse(raw) : raw; return Array.isArray(a) ? a : []; } catch { return []; }
 }
 
 // "Tự luận câu 2a" → "2a"; không có số câu → giữ tên câu (bỏ chữ "Tự luận")
-function questionLabel(q: string): string {
-  const m = q.match(/câu\s*([0-9]+[a-zđ]?(?:\s*[.,]\s*[0-9a-z]+)*)/i);
+export function questionLabel(q: string): string {
+  const m = q.match(/câu\s*((?:[0-9]+|[IVX]+)[a-zđ]?(?:\s*[.,]\s*[0-9a-z]+)*)/i);
   if (m) return m[1].replace(/\s+/g, '');
   return q.replace(/tự\s*luận/i, '').replace(/[:\-–]/g, ' ').trim() || q;
 }
@@ -94,7 +94,12 @@ const TAG_RULES: { key: ErrorTag; re: RegExp; phrase: string }[] = [
   { key: 'TB', re: /trình bày|lập luận|thiếu bước|thiếu lời giải|lời giải|hình vẽ|thiếu hình|chặt chẽ|căn cứ|sơ sài|giải thích/i, phrase: 'trình bày chưa tốt bài' },
 ];
 
-const NO_KEY_RE = /chưa có đáp án/i;
+// Loại lỗi (theo nhãn TT/TB/ĐĐ/KT/KL) đọc từ lời giải thích của 1 câu / 1 bước; không nhận ra → null
+export function errorTagOf(comment: string): ErrorTag | null {
+  return TAG_RULES.find((r) => r.re.test(comment))?.key ?? null;
+}
+
+export const NO_KEY_RE = /chưa có đáp án/i;
 const OBJ_PARTS: { re: RegExp; label: string }[] = [
   { re: /^trắc nghiệm/i, label: 'trắc nghiệm' },
   { re: /^đúng\/sai/i, label: 'Đúng/Sai' },

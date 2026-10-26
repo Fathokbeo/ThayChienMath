@@ -6,6 +6,7 @@ import GradingDetails from '../../components/GradingDetails';
 import StructuredAnswerReview from '../../components/StructuredAnswerReview';
 import FileViewer from '../../components/FileViewer';
 import HomeworkReport from '../../components/HomeworkReport';
+import HomeworkStats from '../../components/HomeworkStats';
 import { toast } from '../../components/Toast';
 import { parsePartsConfig, hasObjectiveParts } from '../../lib/homeworkParts';
 import { summarizeEssayFeedback, homeworkHasEssay } from '../../lib/feedbackSummary';
@@ -28,8 +29,9 @@ export default function HomeworkDetail() {
   const [loading, setLoading] = useState(false);
   const [regrading, setRegrading] = useState<number | null>(null);
   const [viewFiles, setViewFiles] = useState<string[] | null>(null);
-  // Thanh chọn: tất cả / đã nộp / chưa nộp (lọc danh sách) hoặc "Nhận xét" (khối nhận xét cả lớp)
-  const [filter, setFilter] = useState<'all' | 'submitted' | 'missing' | 'review'>('all');
+  // Thanh chọn: tất cả / đã nộp / chưa nộp (lọc danh sách), "Nhận xét" (khối nhận xét cả lớp)
+  // hoặc "Thống kê" (phổ điểm, tỉ lệ đạt theo câu, lỗi sai phổ biến)
+  const [filter, setFilter] = useState<'all' | 'submitted' | 'missing' | 'review' | 'stats'>('all');
 
   useEffect(() => { fetchHw(); }, [id]);
 
@@ -229,6 +231,7 @@ export default function HomeworkDetail() {
               { key: 'submitted', label: `Đã nộp (${submittedCount})` },
               { key: 'missing', label: `Chưa nộp (${missingCount})` },
               { key: 'review', label: 'Nhận xét' },
+              { key: 'stats', label: 'Thống kê' },
             ] as const).map(({ key, label }) => (
               <button key={key} className="btn btn-sm" onClick={() => setFilter(key)}
                 style={{ background: filter === key ? 'white' : 'transparent', boxShadow: filter === key ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: filter === key ? '#1F5C68' : '#6E6E73', border: 'none' }}>
@@ -244,6 +247,8 @@ export default function HomeworkDetail() {
       {/* Mục "Nhận xét": tổng quan điểm, phổ điểm, nhận xét ngắn từng học sinh — thay cho bảng danh sách */}
       {filter === 'review' ? (
         <div style={{ marginTop: 12 }}><HomeworkReport hw={hw} roster={roster} /></div>
+      ) : filter === 'stats' ? (
+        <div style={{ marginTop: 12 }}><HomeworkStats hw={hw} roster={roster} /></div>
       ) : (
       <div className="table-wrap" style={{ marginTop: 12 }}>
         <table>

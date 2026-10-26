@@ -9,6 +9,7 @@ const { uploadVideo, uploadCourseThumbnail, uploadLessonFile, uploadAssistantPho
 const { hardDeleteCourse, hardDeleteClass, hardDeleteStudent } = require('../services/cascade');
 const { classRankingReport, classAverages } = require('../services/classRanking');
 const { compareVietnameseName } = require('../services/vietnameseName');
+const { ensureParentAccount, parentOf } = require('../services/parentAccounts');
 
 router.use(authMiddleware, requireRole('teacher', 'admin'));
 
@@ -45,6 +46,20 @@ function insertStudentSorted(db, classId, studentId, fullName, customOrder) {
   db.prepare('INSERT INTO class_students (class_id,student_id,sort_order) VALUES (?,?,?)').run(classId, studentId, insertOrder);
 }
 
+// Xóa file vừa được multer lưu khi yêu cầu bị từ chối (không để file mồ côi trong uploads)
+function rmUpload(dir, name) {
+  if (!name) return;
+  const f = path.join(__dirname, '../../uploads', dir, name);
+  try { if (fs.existsSync(f)) fs.unlinkSync(f); } catch { /* ignore */ }
+}
+
+// Lớp có thuộc quyền giáo viên này không (admin: luôn có quyền)
+function ownsClass(db, user, classId) {
+  const cls = db.prepare('SELECT teacher_id FROM classes WHERE id=?').get(classId);
+  if (!cls) return false;
+  return user.role === 'admin' || cls.teacher_id === user.id;
+}
+
 // ── Students ───────────────────────────────────────────────────────────
 router.get('/students', (req, res) => {
   const db = getDb();
@@ -74,6 +89,7 @@ router.post('/students', (req, res) => {
   const result = db.prepare(
     'INSERT INTO users (username,password,plain_password,full_name,parent_phone,role,created_by) VALUES (?,?,?,?,?,?,?)'
   ).run(username, bcrypt.hashSync(password, 10), password, full_name, parent_phone || null, 'student', req.user.id);
+  ensureParentAccount(db, result.lastInsertRowid, { studentPassword: password, createdBy: req.user.id });
   res.status(201).json({ id: result.lastInsertRowid, username, full_name });
 });
 
@@ -212,6 +228,9 @@ router.post('/courses', (req, res) => {
 router.post('/courses/:courseId/thumbnail', uploadCourseThumbnail.single('thumbnail'), (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'Cần file ảnh' });
   const db = getDb();
+  const course = db.prepare('SELECT created_by FROM courses WHERE id=?').get(req.params.courseId);
+  if (!course) { rmUpload('courses', req.file.filename); return res.status(404).json({ message: 'Không tìm thấy khóa học' }); }
+  if (req.user.role === 'teacher' && course.created_by !== req.user.id) { rmUpload('courses', req.file.filename); return res.status(403).json({ message: 'Forbidden' }); }
   db.prepare('UPDATE courses SET thumbnail=? WHERE id=?').run(req.file.filename, req.params.courseId);
   res.json({ thumbnail: req.file.filename });
 });
@@ -290,7 +309,17 @@ router.get('/classes/:id', (req, res) => {
     JOIN users u ON cs.student_id=u.id WHERE cs.class_id=? AND u.active=1
   `).all(req.params.id);
   students.sort((a, b) => (cls.custom_student_order ? (a.sort_order - b.sort_order) : 0) || compareVietnameseName(a.full_name, b.full_name));
-  students.forEach((s) => { delete s.sort_order; });
+  // Tài khoản phụ huynh (tự tạo cùng học sinh) + nhận xét tổng quát giáo viên đã viết cho học sinh ở lớp này
+  const commentStmt = db.prepare('SELECT comment, updated_at FROM student_comments WHERE class_id=? AND student_id=?');
+  students.forEach((s) => {
+    delete s.sort_order;
+    const p = parentOf(db, s.id);
+    s.parent_username = p ? p.username : null;
+    s.parent_password = p ? p.plain_password : null;
+    const c = commentStmt.get(req.params.id, s.id);
+    s.comment = c ? c.comment : null;
+    s.comment_updated_at = c ? c.updated_at : null;
+  });
   const chapters = db.prepare('SELECT * FROM chapters WHERE class_id=? ORDER BY chapter_order,created_at').all(req.params.id);
   const lessons = db.prepare('SELECT * FROM lessons WHERE class_id=? ORDER BY lesson_order,created_at').all(req.params.id);
   const homework = db.prepare('SELECT * FROM homework WHERE class_id=? ORDER BY hw_order,created_at').all(req.params.id);
@@ -370,6 +399,7 @@ router.post('/classes/:id/students', (req, res) => {
       'INSERT INTO users (username,password,plain_password,full_name,parent_phone,role,created_by) VALUES (?,?,?,?,?,?,?)'
     ).run(username, bcrypt.hashSync(password, 10), password, full_name, parent_phone || null, 'student', req.user.id);
     sid = r.lastInsertRowid;
+    ensureParentAccount(db, sid, { studentPassword: password, createdBy: req.user.id });
   }
 
   try {
@@ -434,6 +464,7 @@ router.post('/classes/:id/students/bulk', (req, res) => {
       } else {
         const r = insertUser.run(username, bcrypt.hashSync(password, 10), password, full_name, parent_phone, 'student', req.user.id);
         studentId = r.lastInsertRowid;
+        ensureParentAccount(db, studentId, { studentPassword: password, createdBy: req.user.id });
       }
 
       const alreadyInClass = db.prepare('SELECT 1 FROM class_students WHERE class_id=? AND student_id=?').get(req.params.id, studentId);
@@ -458,6 +489,43 @@ router.post('/classes/:id/students/bulk', (req, res) => {
   });
 });
 
+// Nhận xét tổng quát của giáo viên cho 1 học sinh trong lớp — phụ huynh đọc ở trang của mình.
+// Gửi chuỗi rỗng = xóa nhận xét.
+router.put('/classes/:id/students/:studentId/comment', (req, res) => {
+  const db = getDb();
+  const cls = db.prepare('SELECT * FROM classes WHERE id=?').get(req.params.id);
+  if (!cls) return res.status(404).json({ message: 'Không tìm thấy lớp' });
+  if (req.user.role === 'teacher' && cls.teacher_id !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
+  if (!db.prepare('SELECT 1 FROM class_students WHERE class_id=? AND student_id=?').get(req.params.id, req.params.studentId)) {
+    return res.status(404).json({ message: 'Học sinh không thuộc lớp này' });
+  }
+  const comment = String(req.body?.comment || '').trim().slice(0, 2000);
+  if (!comment) {
+    db.prepare('DELETE FROM student_comments WHERE class_id=? AND student_id=?').run(req.params.id, req.params.studentId);
+    return res.json({ message: 'Đã xóa nhận xét' });
+  }
+  db.prepare(`
+    INSERT INTO student_comments (class_id,student_id,comment,updated_by,updated_at) VALUES (?,?,?,?,CURRENT_TIMESTAMP)
+    ON CONFLICT(class_id,student_id) DO UPDATE SET comment=excluded.comment, updated_by=excluded.updated_by, updated_at=CURRENT_TIMESTAMP
+  `).run(req.params.id, req.params.studentId, comment, req.user.id);
+  res.json({ message: 'Đã lưu nhận xét' });
+});
+
+// Đặt lại mật khẩu tài khoản phụ huynh của 1 học sinh (giáo viên phải dạy học sinh đó)
+router.put('/students/:studentId/parent-password', (req, res) => {
+  const db = getDb();
+  const password = String(req.body?.password || '').trim();
+  if (password.length < 6) return res.status(400).json({ message: 'Mật khẩu phải có ít nhất 6 ký tự' });
+  if (req.user.role === 'teacher') {
+    const teaches = db.prepare('SELECT 1 FROM class_students cs JOIN classes cl ON cl.id=cs.class_id WHERE cs.student_id=? AND cl.teacher_id=?').get(req.params.studentId, req.user.id);
+    if (!teaches) return res.status(403).json({ message: 'Forbidden' });
+  }
+  const parent = ensureParentAccount(db, Number(req.params.studentId), { createdBy: req.user.id });
+  if (!parent) return res.status(404).json({ message: 'Không tìm thấy học sinh' });
+  db.prepare('UPDATE users SET password=?, plain_password=? WHERE id=?').run(bcrypt.hashSync(password, 10), password, parent.id);
+  res.json({ message: 'Đã đặt lại mật khẩu phụ huynh', parent_username: parent.username });
+});
+
 // Đổi lớp: chuyển học sinh từ lớp này sang lớp khác
 router.put('/students/:studentId/move', (req, res) => {
   const { from_class_id, to_class_id } = req.body;
@@ -467,6 +535,9 @@ router.put('/students/:studentId/move', (req, res) => {
   if (!target) return res.status(404).json({ message: 'Không tìm thấy lớp đích' });
   if (req.user.role === 'teacher' && target.teacher_id !== req.user.id) {
     return res.status(403).json({ message: 'Bạn không phụ trách lớp đích' });
+  }
+  if (from_class_id && !ownsClass(db, req.user, from_class_id)) {
+    return res.status(403).json({ message: 'Bạn không phụ trách lớp nguồn' });
   }
   // đã ở lớp đích chưa
   const already = db.prepare('SELECT 1 FROM class_students WHERE class_id=? AND student_id=?').get(to_class_id, req.params.studentId);
@@ -484,6 +555,7 @@ router.put('/students/:studentId/move', (req, res) => {
 
 router.delete('/classes/:id/students/:studentId', (req, res) => {
   const db = getDb();
+  if (!ownsClass(db, req.user, req.params.id)) return res.status(403).json({ message: 'Forbidden' });
   db.prepare('DELETE FROM class_students WHERE class_id=? AND student_id=?').run(req.params.id, req.params.studentId);
   res.json({ message: 'Đã xóa' });
 });
@@ -500,7 +572,8 @@ router.post('/classes/:id/students/bulk-delete', (req, res) => {
   if (!cls) return res.status(404).json({ message: 'Không tìm thấy lớp' });
   if (req.user.role === 'teacher' && cls.teacher_id !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
 
-  const ids = student_ids.map(Number).filter(Boolean);
+  const inClass = db.prepare('SELECT 1 FROM class_students WHERE class_id=? AND student_id=?');
+  const ids = student_ids.map(Number).filter((sid) => sid && inClass.get(req.params.id, sid));
   let purged = 0, kept = 0;
   db.transaction(() => {
     for (const sid of ids) {
@@ -745,7 +818,9 @@ function rmLessonFile(name) {
 
 router.delete('/lessons/:id', (req, res) => {
   const db = getDb();
-  const lesson = db.prepare('SELECT * FROM lessons WHERE id=?').get(req.params.id);
+  const lesson = db.prepare('SELECT l.*,c.teacher_id FROM lessons l JOIN classes c ON l.class_id=c.id WHERE l.id=?').get(req.params.id);
+  if (!lesson) return res.status(404).json({ message: 'Không tìm thấy' });
+  if (req.user.role === 'teacher' && lesson.teacher_id !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
   if (lesson) {
     parseAttachments(lesson.attachments).forEach((a) => rmLessonFile(a.file));
     if (lesson.video_type === 'local' && lesson.video_url) {
@@ -760,6 +835,9 @@ router.delete('/lessons/:id', (req, res) => {
 router.post('/lessons/:id/video', uploadVideo.single('video'), (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'Cần file video' });
   const db = getDb();
+  const lesson = db.prepare('SELECT l.video_type,l.video_url,c.teacher_id FROM lessons l JOIN classes c ON l.class_id=c.id WHERE l.id=?').get(req.params.id);
+  if (!lesson) { rmUpload('videos', req.file.filename); return res.status(404).json({ message: 'Không tìm thấy bài giảng' }); }
+  if (req.user.role === 'teacher' && lesson.teacher_id !== req.user.id) { rmUpload('videos', req.file.filename); return res.status(403).json({ message: 'Forbidden' }); }
   db.prepare("UPDATE lessons SET video_url=?,video_type='local' WHERE id=?").run(req.file.filename, req.params.id);
   res.json({ filename: req.file.filename });
 });

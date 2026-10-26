@@ -13,6 +13,9 @@ const likeSafe = (s) => s.replace(/[\\%_]/g, (m) => '\\' + m);
 function canAccessClass(db, user, classId) {
   if (user.role === 'admin') return true;
   if (user.role === 'teacher') return !!db.prepare('SELECT 1 FROM classes WHERE id=? AND teacher_id=?').get(classId, user.id);
+  if (user.role === 'parent') {
+    return !!db.prepare('SELECT 1 FROM class_students cs JOIN parent_students ps ON ps.student_id=cs.student_id WHERE cs.class_id=? AND ps.parent_id=?').get(classId, user.id);
+  }
   return !!db.prepare('SELECT 1 FROM class_students WHERE class_id=? AND student_id=?').get(classId, user.id);
 }
 
@@ -26,9 +29,9 @@ function checkFileAccess(db, user, dir, file) {
     const hw = db.prepare('SELECT class_id,answer_file,answer_visible_date FROM homework WHERE pdf_file=? OR answer_file=?').get(file, file);
     if (!hw) return 'notfound';
     if (!canAccessClass(db, user, hw.class_id)) return 'forbidden';
-    // File ĐÁP ÁN: học sinh chỉ tải được từ "Thời gian xem đáp án" trở đi — giống hệt ràng buộc mà API
+    // File ĐÁP ÁN: học sinh (và phụ huynh) chỉ tải được từ "Thời gian xem đáp án" trở đi — giống hệt ràng buộc mà API
     // đang áp dụng, để không thể lấy đáp án sớm bằng cách gọi thẳng link file.
-    if (user.role === 'student' && hw.answer_file === file) {
+    if ((user.role === 'student' || user.role === 'parent') && hw.answer_file === file) {
       return verdict(!!hw.answer_visible_date && new Date().toISOString() >= hw.answer_visible_date);
     }
     return 'ok';
@@ -41,6 +44,7 @@ function checkFileAccess(db, user, dir, file) {
     `).get(file, `%"${likeSafe(file)}"%`);
     if (!sub) return 'notfound';
     if (user.role === 'student') return verdict(sub.student_id === user.id); // chỉ xem bài của chính mình
+    if (user.role === 'parent') return verdict(!!db.prepare('SELECT 1 FROM parent_students WHERE parent_id=? AND student_id=?').get(user.id, sub.student_id)); // bài của con
     return verdict(canAccessClass(db, user, sub.class_id));
   }
 

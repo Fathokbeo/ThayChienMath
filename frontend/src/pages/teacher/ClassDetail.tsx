@@ -16,11 +16,12 @@ import { emptyPartsConfig, normalizePartsConfig, computeMaxScore, anyPartEnabled
 import type { AssistantSchedule } from '../../lib/assistantSchedule';
 import AssistantScheduleModal from '../../components/AssistantScheduleModal';
 import FacebookIcon from '../../components/FacebookIcon';
+import ParentInfoModal from '../../components/ParentInfoModal';
 import {
   Users, BookOpen, ClipboardList, Edit, Trash2,
   UserPlus, UserMinus, Play, File, ChevronLeft, Upload, Clock, Eye, EyeOff, Layers, Video, Search,
   ChevronDown, ChevronRight, Trophy, FileSpreadsheet, Download, Paperclip, FileText, X, Plus, GripVertical,
-  UserCog, Phone, Camera, Calendar, Repeat
+  UserCog, Phone, Camera, Calendar, Repeat, HeartHandshake, MessageSquareQuote
 } from 'lucide-react';
 
 // Giờ nhập ở ô datetime-local là GIỜ ĐỊA PHƯƠNG. Lưu dạng ISO (UTC) để khi so "đến hạn"
@@ -83,6 +84,7 @@ export default function ClassDetail() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   // Xem mật khẩu học sinh: bật "Hiện mật khẩu" để lộ hết, hoặc bấm mắt từng dòng
   const [showStudentPw, setShowStudentPw] = useState(false);
+  const [parentFor, setParentFor] = useState<number | null>(null); // id học sinh đang mở hộp "Phụ huynh & nhận xét"
   const [revealedStudentPw, setRevealedStudentPw] = useState<Set<number>>(new Set());
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
   // Danh sách bài giảng/bài tập nào (theo key "<chương>-lessons"/"-homework") đang được bung ra trong 1 chương —
@@ -914,7 +916,7 @@ export default function ClassDetail() {
                 <th style={{ width: 40 }}>
                   <input type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAllStudents} style={{ cursor: 'pointer', width: 16, height: 16 }} />
                 </th>
-                <th>#</th><th>Họ tên</th><th>Tên đăng nhập</th><th>Mật khẩu</th><th>Số điện thoại</th><th></th>
+                <th>#</th><th>Họ tên</th><th>Tên đăng nhập</th><th>Mật khẩu</th><th>Số điện thoại</th><th>Phụ huynh</th><th></th>
               </tr></thead>
               <tbody>
                 {visibleStudents.map((s: any, i: number) => {
@@ -954,6 +956,12 @@ export default function ClassDetail() {
                     </td>
                     <td style={{ color: '#6E6E73' }}>{s.parent_phone || '—'}</td>
                     <td>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setParentFor(s.id)} title="Tài khoản phụ huynh & nhận xét tổng quát"
+                        style={{ whiteSpace: 'nowrap', color: s.comment ? '#1F5C68' : undefined }}>
+                        {s.comment ? <MessageSquareQuote size={14} /> : <HeartHandshake size={14} />} {s.comment ? 'Đã nhận xét' : 'Phụ huynh'}
+                      </button>
+                    </td>
+                    <td>
                       <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} title="Gỡ khỏi lớp" onClick={() => removeStudent(s.id, s.full_name)}>
                         <UserMinus size={14} />
                       </button>
@@ -962,10 +970,10 @@ export default function ClassDetail() {
                   );
                 })}
                 {(!cls.students || cls.students.length === 0) && (
-                  <tr><td colSpan={8} style={{ textAlign: 'center', color: '#86868B', padding: '2rem' }}>Chưa có học sinh</td></tr>
+                  <tr><td colSpan={9} style={{ textAlign: 'center', color: '#86868B', padding: '2rem' }}>Chưa có học sinh</td></tr>
                 )}
                 {cls.students?.length > 0 && visibleStudents.length === 0 && (
-                  <tr><td colSpan={8} style={{ textAlign: 'center', color: '#86868B', padding: '2rem' }}>Không tìm thấy học sinh phù hợp</td></tr>
+                  <tr><td colSpan={9} style={{ textAlign: 'center', color: '#86868B', padding: '2rem' }}>Không tìm thấy học sinh phù hợp</td></tr>
                 )}
               </tbody>
             </table>
@@ -1100,8 +1108,12 @@ export default function ClassDetail() {
               <input className="input" type="text" placeholder="Mật khẩu" value={newStudent.password} onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })} />
             </div>
             <div className="form-group">
-              <label className="label">Số điện thoại</label>
+              <label className="label">Số điện thoại phụ huynh</label>
               <input className="input" type="tel" placeholder="vd: 0912 345 678 (tùy chọn)" value={newStudent.parent_phone} onChange={(e) => setNewStudent({ ...newStudent, parent_phone: e.target.value })} />
+              <div style={{ fontSize: '0.78rem', color: '#86868B', marginTop: 6, lineHeight: 1.5 }}>
+                Tài khoản phụ huynh được tạo tự động: chọn mục <strong>Phụ huynh</strong> khi đăng nhập, dùng tên đăng nhập của con;
+                mật khẩu là số điện thoại này (bỏ trống thì dùng mật khẩu của con).
+              </div>
             </div>
           </>
         ) : (
@@ -1706,6 +1718,7 @@ export default function ClassDetail() {
 
       {/* File Viewer (xem file đính kèm bài giảng) */}
       {viewFiles && <FileViewer files={viewFiles} onClose={() => setViewFiles(null)} />}
+      <ParentInfoModal classId={id!} student={parentFor ? (cls.students || []).find((x: any) => x.id === parentFor) || null : null} onClose={() => setParentFor(null)} onSaved={fetchClass} />
     </div>
   );
 }

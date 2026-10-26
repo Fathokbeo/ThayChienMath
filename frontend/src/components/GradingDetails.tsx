@@ -1,6 +1,9 @@
 import { CheckCircle2, XCircle, MinusCircle } from 'lucide-react';
 
-interface Detail { question: string; status: 'correct' | 'wrong' | 'partial'; comment: string; }
+// points / max_points: điểm đạt & điểm tối đa của ý theo barem (AI chấm tự luận trả về; dữ liệu cũ có thể không có)
+interface Detail { question: string; status: 'correct' | 'wrong' | 'partial'; comment: string; points?: number; max_points?: number; }
+
+const fmtPts = (n: number) => n.toLocaleString('vi-VN', { maximumFractionDigits: 2 });
 
 const STYLE: Record<string, { bg: string; color: string; label: string; Icon: any }> = {
   correct: { bg: '#E5F1EA', color: '#3A7D5C', label: 'Đúng', Icon: CheckCircle2 },
@@ -37,8 +40,13 @@ export default function GradingDetails({ details }: { details: string | Detail[]
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontWeight: 700, fontSize: '0.82rem', color: '#1D1D1F' }}>{d.question || `Câu ${i + 1}`}</span>
                   <span style={{ fontSize: '0.68rem', fontWeight: 700, color: st.color, background: 'white', padding: '1px 7px', borderRadius: 99 }}>{st.label}</span>
+                  {typeof d.points === 'number' && (
+                    <span style={{ marginLeft: 'auto', fontSize: '0.78rem', fontWeight: 700, color: st.color, whiteSpace: 'nowrap' }}>
+                      {fmtPts(d.points)}{typeof d.max_points === 'number' ? `/${fmtPts(d.max_points)}` : ''}đ
+                    </span>
+                  )}
                 </div>
-                {d.comment && <div style={{ fontSize: '0.8rem', color: '#515154', lineHeight: 1.5, marginTop: 2 }}>{d.comment}</div>}
+                {d.comment && <div style={{ fontSize: '0.8rem', color: '#515154', lineHeight: 1.5, marginTop: 2, whiteSpace: 'pre-line' }}>{d.comment}</div>}
               </div>
             </div>
           );

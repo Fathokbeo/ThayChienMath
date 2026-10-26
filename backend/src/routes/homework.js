@@ -13,7 +13,9 @@ const { generateFeedbackRubric } = require('../services/aiGrading');
 const { redactSecrets } = require('../services/security');
 const { archiveBeforeResubmit, settleBest, parseBest, bestFilenames } = require('../services/bestAttempt');
 
-router.use(authMiddleware);
+// Chỉ giáo viên / admin / học sinh. Phụ huynh xem bài tập của con qua /api/parent (đã lọc đúng con,
+// ẩn nhận xét tới giờ mở đáp án) — không cho gọi thẳng các API này (vd GET /homework/:id trả cả lớp).
+router.use(authMiddleware, requireRole('admin', 'teacher', 'student'));
 
 // Đọc FILE ĐÁP ÁN đúng 1 LẦN (chạy nền, không chặn request) để soạn "quy chuẩn nhận xét" (1 câu mô tả
 // khái quát nội dung đề) — dùng khi chấm tự động sau này để ghép vào mẫu nhận xét theo thang điểm mà
@@ -291,6 +293,9 @@ router.delete('/homework/:id/files/:kind', requireRole('teacher', 'admin'), (req
 
 router.delete('/homework/:id', requireRole('teacher', 'admin'), (req, res) => {
   const db = getDb();
+  const owner = db.prepare('SELECT c.teacher_id FROM homework h JOIN classes c ON h.class_id=c.id WHERE h.id=?').get(req.params.id);
+  if (!owner) return res.status(404).json({ message: 'Không tìm thấy' });
+  if (req.user.role === 'teacher' && owner.teacher_id !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
   // Xóa các bài nộp tham chiếu trước (tránh lỗi FOREIGN KEY)
   const subs = db.prepare('SELECT file_path,files,best_attempt FROM submissions WHERE homework_id=?').all(req.params.id);
   subs.forEach(s => {
@@ -315,6 +320,8 @@ router.get('/homework/:id', (req, res) => {
   if (req.user.role === 'student') {
     const enrolled = db.prepare('SELECT * FROM class_students WHERE class_id=? AND student_id=?').get(hw.class_id, req.user.id);
     if (!enrolled) return res.status(403).json({ message: 'Bạn không thuộc lớp này' });
+  } else if (req.user.role === 'teacher' && hw.teacher_id !== req.user.id) {
+    return res.status(403).json({ message: 'Không có quyền truy cập' });
   }
 
   const now = new Date().toISOString();
@@ -490,8 +497,15 @@ router.post(
 router.put('/submissions/:id/grade', requireRole('teacher', 'admin'), (req, res) => {
   const { score, feedback } = req.body;
   const db = getDb();
+  const owner = db.prepare('SELECT c.teacher_id FROM submissions s JOIN homework h ON s.homework_id=h.id JOIN classes c ON h.class_id=c.id WHERE s.id=?').get(req.params.id);
+  if (!owner) return res.status(404).json({ message: 'Không tìm thấy bài nộp' });
+  if (req.user.role === 'teacher' && owner.teacher_id !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
+  const num = Number(score);
+  if (score === null || score === undefined || score === '' || !Number.isFinite(num) || num < 0) {
+    return res.status(400).json({ message: 'Điểm không hợp lệ' });
+  }
   db.prepare('UPDATE submissions SET score=?,feedback=?,graded_at=?,graded_by_ai=0 WHERE id=?')
-    .run(score, feedback, new Date().toISOString(), req.params.id);
+    .run(num, feedback, new Date().toISOString(), req.params.id);
   // Học sinh nộp nhiều lần → giữ lần có điểm cao nhất
   const kept = settleBest(db, req.params.id);
   res.json({ message: kept === 'best' ? 'Đã chấm điểm — lần nộp trước có điểm cao hơn nên được giữ làm điểm chính thức' : 'Đã chấm điểm' });
@@ -500,8 +514,9 @@ router.put('/submissions/:id/grade', requireRole('teacher', 'admin'), (req, res)
 // ── Re-grade with AI (giáo viên bấm chấm lại — chờ kết quả ngay) ─────────
 router.post('/submissions/:id/regrade', requireRole('teacher', 'admin'), async (req, res) => {
   const db = getDb();
-  const sub = db.prepare('SELECT s.*,h.answer_file,h.parts_config,h.exam_type,h.hsa_config FROM submissions s JOIN homework h ON s.homework_id=h.id WHERE s.id=?').get(req.params.id);
+  const sub = db.prepare('SELECT s.*,h.answer_file,h.parts_config,h.exam_type,h.hsa_config,c.teacher_id FROM submissions s JOIN homework h ON s.homework_id=h.id JOIN classes c ON h.class_id=c.id WHERE s.id=?').get(req.params.id);
   if (!sub) return res.status(404).json({ message: 'Không tìm thấy' });
+  if (req.user.role === 'teacher' && sub.teacher_id !== req.user.id) return res.status(403).json({ message: 'Forbidden' });
   if (!needsAiGrading(sub)) return res.status(400).json({ message: 'Bài này không có đáp án để AI chấm' });
   if (submissionFilenames(sub).length === 0 && !sub.structured_answers) return res.status(400).json({ message: 'Học sinh chưa nộp bài' });
 

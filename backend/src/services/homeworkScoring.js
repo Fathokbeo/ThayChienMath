@@ -313,7 +313,7 @@ const OBJECTIVE_Q_RE = /^\s*(tn\b|trắc nghiệm|đúng\s*[-/]\s*sai|đ\/s|tln\
 // "Tự luận câu 4.2c" / "Câu 2 (Tự luận)" → "4.2c" / "2"
 function essayQuestionLabel(q) {
   const s = String(q || '');
-  const m = s.match(/câu\s*([0-9]+[a-zđ]?(?:\s*[.,]\s*[0-9a-z]+)*)/i);
+  const m = s.match(/câu\s*((?:[0-9]+|[IVX]+)[a-zđ]?(?:\s*[.,]\s*[0-9a-z]+)*)/i);
   if (m) return m[1].replace(/\s+/g, '');
   return s.replace(/tự\s*luận/i, '').replace(/[():\-–]/g, ' ').trim() || s;
 }

@@ -56,7 +56,12 @@ function clearSessionCookie(res) {
 function userFromRequest(req) {
   const token = req.headers.authorization?.split(' ')[1] || readCookie(req, SESSION_COOKIE);
   if (!token) return null;
-  try { return jwt.verify(token, getJwtSecret()); } catch { return null; }
+  try {
+    const decoded = jwt.verify(token, getJwtSecret());
+    const row = getDb().prepare('SELECT role,active FROM users WHERE id=?').get(decoded.id);
+    if (!row || !row.active) return null; // tài khoản đã xóa/vô hiệu hóa
+    return { ...decoded, role: row.role };
+  } catch { return null; }
 }
 
 // ── Chặn dò mật khẩu ──────────────────────────────────────────────────

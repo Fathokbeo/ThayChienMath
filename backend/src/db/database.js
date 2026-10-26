@@ -1,6 +1,7 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const { ensureAllParentAccounts } = require('../services/parentAccounts');
 
 const DB_PATH = path.join(__dirname, '../../data/mathweb.db');
 let db;
@@ -23,7 +24,7 @@ function initSchema() {
       password TEXT NOT NULL,
       full_name TEXT NOT NULL,
       email TEXT,
-      role TEXT NOT NULL CHECK(role IN ('admin','teacher','student')),
+      role TEXT NOT NULL CHECK(role IN ('admin','teacher','student','parent')),
       created_by INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       active INTEGER DEFAULT 1
@@ -133,6 +134,29 @@ function initSchema() {
       PRIMARY KEY (homework_id, student_id),
       FOREIGN KEY (homework_id) REFERENCES homework(id),
       FOREIGN KEY (student_id) REFERENCES users(id)
+    );
+
+    -- Phụ huynh ↔ học sinh: 1 phụ huynh theo dõi được nhiều con, 1 học sinh có thể có cả bố lẫn mẹ.
+    -- Xóa tài khoản phụ huynh hoặc học sinh → liên kết tự xóa theo.
+    CREATE TABLE IF NOT EXISTS parent_students (
+      parent_id INTEGER NOT NULL,
+      student_id INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (parent_id, student_id),
+      FOREIGN KEY (parent_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    -- Nhận xét tổng quát của giáo viên cho từng học sinh trong 1 lớp (phụ huynh đọc ở trang của mình).
+    CREATE TABLE IF NOT EXISTS student_comments (
+      class_id INTEGER NOT NULL,
+      student_id INTEGER NOT NULL,
+      comment TEXT NOT NULL,
+      updated_by INTEGER,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (class_id, student_id),
+      FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE,
+      FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS submissions (
@@ -253,6 +277,38 @@ function initSchema() {
   // Migration: thêm cột parent_phone (SĐT phụ huynh)
   if (!cols.some(c => c.name === 'parent_phone')) {
     db.exec('ALTER TABLE users ADD COLUMN parent_phone TEXT');
+  }
+  // Migration: thêm vai trò 'parent' (phụ huynh). SQLite không sửa được ràng buộc CHECK nên dựng lại
+  // bảng users với ràng buộc mới rồi chép nguyên dữ liệu sang (giữ id → các bảng khác không đổi gì).
+  const usersSql = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'").get().sql;
+  if (!usersSql.includes("'parent'")) {
+    const keep = 'id,username,password,full_name,email,role,created_by,created_at,active,plain_password,parent_phone';
+    db.pragma('foreign_keys = OFF');
+    db.transaction(() => {
+      db.exec(`
+        CREATE TABLE users_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          full_name TEXT NOT NULL,
+          email TEXT,
+          role TEXT NOT NULL CHECK(role IN ('admin','teacher','student','parent')),
+          created_by INTEGER,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          active INTEGER DEFAULT 1,
+          plain_password TEXT,
+          parent_phone TEXT
+        )
+      `);
+      db.exec(`INSERT INTO users_new (${keep}) SELECT ${keep} FROM users`);
+      db.exec('DROP TABLE users');
+      db.exec('ALTER TABLE users_new RENAME TO users');
+    })();
+    db.pragma('foreign_keys = ON');
+  }
+  // Mốc phụ huynh đã xem thông báo (các hoạt động của con sau mốc này được đánh dấu "mới")
+  if (!db.prepare('PRAGMA table_info(users)').all().some(c => c.name === 'notif_seen_at')) {
+    db.exec('ALTER TABLE users ADD COLUMN notif_seen_at TEXT');
   }
   // Migration: ghi chú của giáo viên cho AI chấm bài
   const hwCols = db.prepare("PRAGMA table_info(homework)").all();
@@ -443,6 +499,10 @@ function initSchema() {
       .run('admin', hash, 'admin123', 'Quản Trị Viên', 'admin');
     console.log('Default admin created: admin / admin123');
   }
+
+  // Mỗi học sinh luôn có 1 tài khoản phụ huynh — tạo bù cho học sinh cũ / tạo trước khi có tính năng này
+  const created = ensureAllParentAccounts(db);
+  if (created) console.log(`Đã tạo ${created} tài khoản phụ huynh còn thiếu`);
 }
 
 module.exports = { getDb };

@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const { bestFilenames } = require('./bestAttempt');
+const { removeOrphanParents } = require('./parentAccounts');
 
 const UP = path.join(__dirname, '../../uploads');
 
@@ -32,6 +33,7 @@ function hardDeleteStudent(db, studentId) {
   db.prepare('UPDATE courses SET created_by=NULL WHERE created_by=?').run(studentId);
   db.prepare('UPDATE users SET created_by=NULL WHERE created_by=?').run(studentId);
   db.prepare("DELETE FROM users WHERE id=? AND role='student'").run(studentId);
+  removeOrphanParents(db); // tài khoản phụ huynh không còn con nào → xóa theo
 }
 
 // Xóa sạch dữ liệu của 1 lớp (bài nộp + file, bài tập + file, bài giảng + video, học sinh trong lớp).

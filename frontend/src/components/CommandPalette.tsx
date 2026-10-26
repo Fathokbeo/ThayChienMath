@@ -43,6 +43,8 @@ export default function CommandPalette() {
     setTimeout(() => inputRef.current?.focus(), 0);
     if (data) return;
     const role = user.role;
+    // Phụ huynh: chỉ tìm các trang (Tổng quan, Thông báo) — không có bài giảng / lớp để mở
+    if (role === 'parent') { setData({ lessons: [], homework: [], classes: [], courses: [] }); return; }
     const classUrl = role === 'student' ? '/student/my-classes' : '/teacher/classes';
     const courseUrl = role === 'student' ? '/student/my-courses' : role === 'teacher' ? '/teacher/my-courses' : '/admin/courses';
     const indexUrl = role === 'student' ? '/student/search-index' : '/teacher/search-index';

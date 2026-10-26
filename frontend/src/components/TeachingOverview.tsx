@@ -8,7 +8,8 @@ import useIsMobile from '../lib/useIsMobile';
 
 // Tổng quan "thông minh" cho giáo viên (và admin): bài đến hạn HÔM NAY, hạn nộp từ ngày mai kèm tỉ lệ đã nộp,
 // danh sách lớp học kèm số liệu. Mỗi dòng bấm thẳng vào trang bài tập / lớp.
-export default function TeachingOverview() {
+// showDeadlines=false (trang admin): bỏ 2 mục "Hôm nay" và "Sắp đến hạn", chỉ còn danh sách lớp.
+export default function TeachingOverview({ showDeadlines = true }: { showDeadlines?: boolean }) {
   const isMobile = useIsMobile();
   const [ov, setOv] = useState<any>(null);
   const now = Date.now();
@@ -36,6 +37,7 @@ export default function TeachingOverview() {
         </div>
       )}
 
+      {showDeadlines && (
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'minmax(0, 1fr)' : 'minmax(0, 1fr) minmax(0, 1fr)', gap: 28, alignItems: 'start' }}>
         <section>
           <SectionHeader title="Hôm nay" count={today.length}
@@ -106,9 +108,10 @@ export default function TeachingOverview() {
           )}
         </section>
       </div>
+      )}
 
       {/* Lớp học đang dạy: bấm để vào lớp */}
-      <section style={{ marginTop: '2.25rem' }}>
+      <section style={{ marginTop: showDeadlines ? '2.25rem' : 0 }}>
         <SectionHeader title="Lớp học" count={classes.length} />
         {classes.length === 0 ? (
           <EmptyState icon={<School size={30} />} title="Chưa có lớp nào" text="Vào một khóa học để tạo lớp." />

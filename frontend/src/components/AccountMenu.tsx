@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Home, LogOut, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { navItemsFor, ROLE_LABEL, roleColors } from '../lib/navigation';
+import { navItemsFor, roleColors, accountSubtitle } from '../lib/navigation';
 import { openPalette } from './CommandPalette';
 
 // Menu tài khoản (mở từ ảnh đại diện trên thanh trên, hoặc nút "Thêm" ở thanh dưới trên điện thoại):
@@ -33,7 +33,7 @@ export default function AccountMenu({ open, onClose, showNav }: { open: boolean;
         <span className="avatar" style={{ width: 38, height: 38, background: bg, color: fg }}>{user.full_name?.[0] || 'U'}</span>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.full_name}</div>
-          <div style={{ fontSize: '0.8rem', color: '#86868B' }}>{ROLE_LABEL[user.role]} · {user.username}</div>
+          <div style={{ fontSize: '0.8rem', color: '#86868B' }}>{accountSubtitle(user)}</div>
         </div>
       </div>
       <div className="menu-sep" />

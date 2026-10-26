@@ -4,11 +4,12 @@
 
 ## Tính năng
 
-**3 vai trò:** Admin · Giáo viên · Học sinh
+**4 vai trò:** Admin · Giáo viên · Học sinh · Phụ huynh
 
 - **Admin:** quản lý tài khoản (xem được mật khẩu, xóa/vô hiệu hóa, chọn nhiều), khóa học, lớp học, quảng cáo banner, và toàn bộ nội dung trang giới thiệu (học sinh tiêu biểu, giáo viên, khóa học tiêu biểu, thành tích, liên hệ).
 - **Giáo viên:** tạo khóa học và lớp học bên trong khóa, tạo tài khoản học sinh, thêm/đổi lớp cho học sinh, soạn bài giảng (YouTube/video), giao bài tập (PDF) kèm đáp án để **AI tự chấm**.
 - **Học sinh:** xem lớp/bài giảng, nộp bài (PDF/ảnh) và nhận điểm + nhận xét tự động ngay sau khi nộp.
+- **Phụ huynh:** tài khoản tự tạo cùng học sinh. Đăng nhập mục "Phụ huynh" bằng tên đăng nhập của con, mật khẩu mặc định = SĐT phụ huynh (chưa có SĐT thì dùng mật khẩu của con). Chỉ xem: điểm TB + thứ hạng tháng, nộp bài, việc cần chú ý, bài sắp đến hạn, nhận xét tổng quát (tự động + giáo viên viết), biểu đồ điểm so với TB lớp, thông báo hoạt động, nhận xét từng bài (mở cùng lúc với đáp án).
 
 ## Công nghệ
 

@@ -5,22 +5,43 @@ const { v4: uuidv4 } = require('uuid');
 
 const UPLOADS_DIR = path.join(__dirname, '../../uploads');
 
+// Đuôi file do SERVER quyết định theo loại file khai báo (whitelist), KHÔNG lấy từ tên người dùng gửi.
+// Nếu lấy đuôi từ tên gốc, người dùng có thể tải lên "x.html" khai là PDF/ảnh rồi để trình duyệt chạy
+// script ngay trên tên miền của web (XSS → lấy token đăng nhập của giáo viên/admin khi họ mở file).
+const EXT_BY_MIME = {
+  'application/pdf': '.pdf',
+  'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif',
+  'video/mp4': '.mp4', 'video/webm': '.webm', 'video/quicktime': '.mov', 'video/x-matroska': '.mkv', 'video/x-msvideo': '.avi',
+  'application/msword': '.doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+  'application/vnd.ms-powerpoint': '.ppt',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+  'application/vnd.ms-excel': '.xls',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+};
+function safeExt(file) {
+  const mime = String(file.mimetype || '').toLowerCase();
+  if (EXT_BY_MIME[mime]) return EXT_BY_MIME[mime];
+  return mime.startsWith('video/') ? '.mp4' : '.bin'; // video lạ: trình duyệt không chạy script từ video
+}
+
 function createStorage(subDir) {
   const dir = path.join(UPLOADS_DIR, subDir);
   fs.mkdirSync(dir, { recursive: true });
   return multer.diskStorage({
     destination: (req, file, cb) => cb(null, dir),
     filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname);
-      cb(null, `${uuidv4()}${ext}`);
+      cb(null, `${uuidv4()}${safeExt(file)}`);
     },
   });
 }
 
+const isRasterImage = (file) => /^image\/(jpe?g|png|webp|gif)$/i.test(file.mimetype || '');
+
 const uploadAd = multer({
   storage: createStorage('ads'),
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) cb(null, true);
+    if (isRasterImage(file)) cb(null, true);
     else cb(new Error('Chỉ chấp nhận file ảnh'));
   },
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -77,7 +98,7 @@ const uploadLessonFile = multer({
 const uploadCourseThumbnail = multer({
   storage: createStorage('courses'),
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) cb(null, true);
+    if (isRasterImage(file)) cb(null, true);
     else cb(new Error('Chỉ chấp nhận file ảnh'));
   },
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -86,7 +107,7 @@ const uploadCourseThumbnail = multer({
 const uploadAssistantPhoto = multer({
   storage: createStorage('assistants'),
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) cb(null, true);
+    if (isRasterImage(file)) cb(null, true);
     else cb(new Error('Chỉ chấp nhận file ảnh'));
   },
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -97,7 +118,7 @@ function makeImageUpload(subDir) {
   return multer({
     storage: createStorage(subDir),
     fileFilter: (req, file, cb) => {
-      if (file.mimetype.startsWith('image/')) cb(null, true);
+      if (isRasterImage(file)) cb(null, true);
       else cb(new Error('Chỉ chấp nhận file ảnh'));
     },
     limits: { fileSize: 5 * 1024 * 1024 },

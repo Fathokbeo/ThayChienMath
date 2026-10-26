@@ -42,6 +42,7 @@ node test-all.js         # toàn bộ API, có chấm AI thật
 node test-features.js    # điểm cao nhất, bài cần làm, file bài tập, xếp hạng
 node test-users.js; node test-classstudents.js; node test-content.js
 node test-multifile.js; node test-newfeatures.js; node test-delete.js; node test-grading.js
+node test-parent.js      # tài khoản phụ huynh, đăng nhập theo mục, trang phụ huynh
 ```
 Các test tạo dữ liệu thử trong database. Trước khi dùng thật, xóa `backend/data/mathweb.db`
 (và file trong `backend/uploads/*`) để bắt đầu với database sạch.
@@ -50,5 +51,7 @@ Các test tạo dữ liệu thử trong database. Trước khi dùng thật, xó
 - Admin: quản lý tài khoản, khóa học, lớp học, trợ giảng, nội dung trang giới thiệu, quảng cáo
 - Giáo viên: khóa học, lớp, chương, bài giảng, bài tập (trắc nghiệm / đúng-sai / trả lời ngắn / tự luận / HSA),
   AI chấm bài, nhận xét lớp (xuất PDF / Excel), xếp hạng tháng, trợ giảng
+- Phụ huynh (tự tạo cùng học sinh; đăng nhập mục Phụ huynh bằng tên đăng nhập của con): điểm, thứ hạng,
+  tiến độ nộp bài, bài sắp đến hạn, nhận xét tổng quát + nhận xét từng bài, biểu đồ điểm, thông báo hoạt động của con
 - Học sinh: bài giảng, bài tập cần làm, làm & nộp bài (nhiều lần — lấy điểm cao nhất), xem điểm,
   nhận xét, đáp án, video chữa, xếp hạng lớp

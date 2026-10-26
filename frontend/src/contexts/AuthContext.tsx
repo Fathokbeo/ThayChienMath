@@ -6,14 +6,17 @@ interface User {
   id: number;
   username: string;
   full_name: string;
-  role: 'admin' | 'teacher' | 'student';
+  role: 'admin' | 'teacher' | 'student' | 'parent';
   parent_phone?: string;
 }
+
+// Mục chọn ở trang đăng nhập (admin đăng nhập ở mục Giáo viên)
+export type Portal = 'teacher' | 'student' | 'parent';
 
 interface AuthCtx {
   user: User | null;
   token: string | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string, portal?: Portal) => Promise<User>;
   logout: () => void;
   loading: boolean;
 }
@@ -36,12 +39,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     api.post('/auth/session').catch(() => {}).finally(() => setLoading(false));
   }, []);
 
-  const login = async (username: string, password: string) => {
-    const { data } = await api.post('/auth/login', { username, password });
+  const login = async (username: string, password: string, portal?: Portal) => {
+    const { data } = await api.post('/auth/login', { username, password, portal });
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
+    return data.user as User;
   };
 
   const logout = () => {
