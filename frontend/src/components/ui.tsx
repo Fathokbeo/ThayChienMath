@@ -35,8 +35,12 @@ export function greeting(d = new Date()) {
   return 'Chào buổi tối';
 }
 
-// Tên gọi = chữ cuối của họ tên Việt ("Nguyễn Bảo Anh" → "Anh")
-export const givenName = (full?: string) => (full || '').trim().split(/\s+/).pop() || '';
+// Tên gọi = chữ cuối của họ tên Việt ("Nguyễn Bảo Anh" → "Anh"); chữ cuối là số ("Học sinh 2") → giữ cả tên
+export const givenName = (full?: string) => {
+  const name = (full || '').trim();
+  const last = name.split(/\s+/).pop() || '';
+  return /^\d+$/.test(last) ? name : last;
+};
 
 export const todayLabel = (d = new Date()) =>
   d.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' });

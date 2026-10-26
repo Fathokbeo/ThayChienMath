@@ -747,5 +747,1076 @@
     "max_points": 1
    }
   ]
+ },
+ "bai-lop6-e.pdf": {
+  "score": 10,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "TN câu 1",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 2",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 3",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 4",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 5",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 6",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 7",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 8",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "Tự luận câu I.1",
+    "status": "correct",
+    "comment": "Quy đồng mẫu số đúng (+0,25đ); Kết quả -7/24 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "correct",
+    "comment": "Sử dụng tính chất phân phối nhóm hợp lý (+0,25đ); Tính toán ra kết quả -3/5 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "correct",
+    "comment": "Phá ngoặc và nhóm các số hạng hợp lý (+0,25đ); Tính toán ra kết quả bằng 4 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "correct",
+    "comment": "Thực hiện phép chia phân số đúng (+0,25đ); Kết quả x = -6 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "correct",
+    "comment": "Biến đổi và tìm được x+1/3 = +-2/3 (+0,25đ); Giải đúng cả 2 trường hợp và kết luận tập nghiệm đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.3",
+    "status": "correct",
+    "comment": "Xét TH1 tìm được x=3 (+0,25đ); Xét TH2 lập luận x^2+5>0 vô nghiệm đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1a",
+    "status": "correct",
+    "comment": "Phép tính 45,5 * 24,4 và kết quả 1110,2 nghìn đồng đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1b",
+    "status": "correct",
+    "comment": "Tính đúng số tiền tiết kiệm là 36,4 nghìn đồng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2a",
+    "status": "correct",
+    "comment": "Tính đúng khối lượng cam xuất khẩu là 900 kg (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2b",
+    "status": "correct",
+    "comment": "Tính đúng khối lượng cam chuyển vào nhà máy là 1200 kg (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2c",
+    "status": "correct",
+    "comment": "Tính đúng khối lượng cam còn lại là 300 kg (+0,25đ); Tính đúng số thùng là 12 (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu IV",
+    "status": "correct",
+    "comment": "Vẽ hình chính xác, đầy đủ tất cả các ý và có đánh dấu các đoạn thẳng bằng nhau (+1,5đ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu V.1",
+    "status": "correct",
+    "comment": "Tách tổng thành phần nguyên và phần thập phân chính xác, tính toán ra kết quả A = 394,1 đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu V.2",
+    "status": "correct",
+    "comment": "Lập luận giải bài toán bằng cách tính ngược từ ngày cuối cùng chính xác, ra kết quả tổng số trang là 120 trang đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   }
+  ]
+ },
+ "bai-lop6-f.pdf": {
+  "score": 9.75,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "TN câu 1",
+    "status": "correct",
+    "comment": "Chọn D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 2",
+    "status": "correct",
+    "comment": "Chọn C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 3",
+    "status": "correct",
+    "comment": "Chọn B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 4",
+    "status": "correct",
+    "comment": "Chọn A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 5",
+    "status": "correct",
+    "comment": "Chọn C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 6",
+    "status": "correct",
+    "comment": "Chọn D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 7",
+    "status": "correct",
+    "comment": "Chọn A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 8",
+    "status": "correct",
+    "comment": "Chọn B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "Tự luận câu I.1",
+    "status": "correct",
+    "comment": "Quy đồng mẫu số đúng: Đúng (+0,25đ); Tính ra kết quả -7/24: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "correct",
+    "comment": "Đặt thừa số chung hợp lý: Đúng (+0,25đ); Tính đúng kết quả -3/5: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "correct",
+    "comment": "Phá ngoặc và nhóm các số hạng hợp lý: Đúng (+0,25đ); Tính ra kết quả 4: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "correct",
+    "comment": "Chuyển vế tìm x = -4/5 : 2/15: Đúng (+0,25đ); Tính đúng x = -6 và kết luận: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "correct",
+    "comment": "Biến đổi được (x + 1/3)^2 = 4/9: Đúng (+0,25đ); Xét đủ 2 trường hợp tìm ra đúng nghiệm x = 1/3 và x = -1: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.3",
+    "status": "correct",
+    "comment": "TH1: 4x - 12 = 0 tìm được x = 3: Đúng (+0,25đ); TH2: x^2 + 5 = 0 vô nghiệm và kết luận x = 3: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1a",
+    "status": "correct",
+    "comment": "Lời giải và phép tính 45,5 . 24,4 = 1110,2 nghìn đồng: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1b",
+    "status": "correct",
+    "comment": "Lời giải và phép tính ra 36,4 nghìn đồng: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2a",
+    "status": "correct",
+    "comment": "Tính đúng khối lượng cam xuất khẩu là 900 kg: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2b",
+    "status": "correct",
+    "comment": "Tính đúng khối lượng cam chuyển vào nhà máy là 1200 kg: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2c",
+    "status": "correct",
+    "comment": "Tính số cam còn lại và số thùng gỗ cần là 12 thùng: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu IV",
+    "status": "correct",
+    "comment": "Vẽ đúng góc xOy = 90 độ, các đoạn OA, OB: Đúng (+0,5đ); Xác định đúng trung điểm I, điểm J trên tia đối và đánh dấu các đoạn bằng nhau: Đúng (+0,5đ); Vẽ đúng BJ, điểm D giữa I, A và điểm K thẳng hàng O, D, K: Đúng (+0,5đ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu V.1",
+    "status": "correct",
+    "comment": "Học sinh giải theo cách ghép 10 cặp (mỗi cặp có tổng 39,41) hợp lệ và tính đúng A = 394,1: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu V.2",
+    "status": "partial",
+    "comment": "Chỉ ghi đáp số 120 trang, không có các bước giải bài toán: Cho tối đa 50% số điểm theo quy định (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.5
+   }
+  ]
+ },
+ "bai-lop6-g.pdf": {
+  "score": 9,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "TN câu 1",
+    "status": "correct",
+    "comment": "Chọn D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 2",
+    "status": "correct",
+    "comment": "Chọn C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 3",
+    "status": "correct",
+    "comment": "Chọn B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 4",
+    "status": "correct",
+    "comment": "Chọn A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 5",
+    "status": "correct",
+    "comment": "Chọn C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 6",
+    "status": "correct",
+    "comment": "Chọn D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 7",
+    "status": "correct",
+    "comment": "Chọn A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 8",
+    "status": "correct",
+    "comment": "Chọn B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "Tự luận câu I.1",
+    "status": "correct",
+    "comment": "Quy đồng mẫu số đúng: Đúng (+0,25đ); Kết quả -7/24: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "correct",
+    "comment": "Sử dụng tính chất phân phối: Đúng (+0,25đ); Tính toán ra kết quả -3/5: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "correct",
+    "comment": "Phá ngoặc và nhóm số hạng hợp lý: Đúng (+0,25đ); Kết quả bằng 4: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "correct",
+    "comment": "Thực hiện phép chia phân số: Đúng (+0,25đ); Kết quả x = -6: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "correct",
+    "comment": "Tìm được (x+1/3)^2 = 4/9: Đúng (+0,25đ); Giải đúng 2 trường hợp x = 1/3 và x = -1: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.3",
+    "status": "correct",
+    "comment": "Chia 2 trường hợp: Đúng (+0,25đ); Giải x=3 và biện luận x^2+5 vô nghiệm: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1a",
+    "status": "correct",
+    "comment": "Phép tính 45,5 * 24,4 và kết quả 1110,2: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1b",
+    "status": "correct",
+    "comment": "Tính số tiền tiết kiệm (cách giải khác hợp lệ): Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2a",
+    "status": "correct",
+    "comment": "Tính khối lượng cam xuất khẩu 900kg: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2b",
+    "status": "correct",
+    "comment": "Tính khối lượng cam vào nhà máy 1200kg: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2c",
+    "status": "correct",
+    "comment": "Tính lượng cam còn lại 300kg: Đúng (+0,25đ); Tính số thùng là 12: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu IV",
+    "status": "correct",
+    "comment": "Vẽ hình đúng tất cả các bước diễn đạt, có đánh dấu các đoạn thẳng bằng nhau: Đúng (+1,5đ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu V.1",
+    "status": "wrong",
+    "comment": "Chỉ chép lại đề bài, chưa thực hiện tính toán: Sai (+0đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu V.2",
+    "status": "wrong",
+    "comment": "Học sinh không làm câu này: Thiếu (+0đ)",
+    "points": 0,
+    "max_points": 0.5
+   }
+  ]
+ },
+ "bai-lop6-h.pdf": {
+  "score": 10,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "TN câu 1",
+    "status": "correct",
+    "comment": "Đáp án D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 2",
+    "status": "correct",
+    "comment": "Đáp án C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 3",
+    "status": "correct",
+    "comment": "Đáp án B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 4",
+    "status": "correct",
+    "comment": "Đáp án A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 5",
+    "status": "correct",
+    "comment": "Đáp án C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 6",
+    "status": "correct",
+    "comment": "Đáp án D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 7",
+    "status": "correct",
+    "comment": "Đáp án A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 8",
+    "status": "correct",
+    "comment": "Đáp án B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "Tự luận câu I.1",
+    "status": "correct",
+    "comment": "Quy đồng mẫu số: Đúng (+0,25đ); Kết quả -7/24: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "correct",
+    "comment": "Đặt nhân tử chung: Đúng (+0,25đ); Tính toán và kết quả -3/5: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "correct",
+    "comment": "Phá ngoặc và nhóm số hạng hợp lý: Đúng (+0,25đ); Kết quả 4: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "correct",
+    "comment": "Chuyển vế tìm x: Đúng (+0,25đ); Kết quả x = -6: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "correct",
+    "comment": "Tìm được (x+1/3)^2 = 4/9: Đúng (+0,25đ); Giải đủ 2 trường hợp và kết luận: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.3",
+    "status": "correct",
+    "comment": "Xét TH1 4x-12=0 tìm x=3: Đúng (+0,25đ); Xét TH2 x^2+5=0 vô lý: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1a",
+    "status": "correct",
+    "comment": "Phép tính 45,5 * 24,4: Đúng (+0,25đ); Kết quả 1110200 đồng: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1b",
+    "status": "correct",
+    "comment": "Tính số tiền tiết kiệm: Đúng (+0,25đ); Kết quả 36400 đồng: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2a",
+    "status": "correct",
+    "comment": "Tính khối lượng cam xuất khẩu: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2b",
+    "status": "correct",
+    "comment": "Tính khối lượng cam vào nhà máy: Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2c",
+    "status": "correct",
+    "comment": "Tính khối lượng cam còn lại: Đúng (+0,25đ); Tính số thùng gỗ: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu IV",
+    "status": "correct",
+    "comment": "Vẽ đúng 6 ý theo yêu cầu: Đúng (+1,5đ); Có đánh dấu các đoạn bằng nhau: Đạt yêu cầu",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu V.1",
+    "status": "correct",
+    "comment": "Học sinh giải theo cách khác hợp lệ (tổng dãy số cách đều): Đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu V.2",
+    "status": "correct",
+    "comment": "Tính số trang sau ngày 1: Đúng (+0,25đ); Tính tổng số trang sách: Đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   }
+  ]
+ },
+ "bai-lop6-i.pdf": {
+  "score": 7.75,
+  "feedback": "Con làm bài khá ổn tuy nhiên Phần Tự luận còn cần cẩn thận hơn câu I.2, III.2b, III.2c, không làm câu V.1, V.2 và cẩn thận hơn khi làm các dạng bài về các dạng bài trong bài tập này.",
+  "grading_details": [
+   {
+    "question": "TN câu 1",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án D (+0.25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 2",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án C (+0.25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 3",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án B (+0.25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 4",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án A (+0.25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 5",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án C (+0.25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 6",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án D (+0.25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 7",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án A (+0.25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 8",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án B (+0.25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "Tự luận câu I.1",
+    "status": "correct",
+    "comment": "Quy đồng mẫu số đúng (+0.25đ); Kết quả -7/24 đúng (+0.25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "partial",
+    "comment": "Bước nhóm thừa số chung: Đúng (+0.25đ); Bước tính toán cuối cùng 9/5 . (-1/7 + 1) tính nhầm ra 0 thay vì 3/5 (0đ)",
+    "points": 0.25,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "correct",
+    "comment": "Phá ngoặc và nhóm số hạng hợp lý (+0.25đ); Tính toán ra kết quả 6 đúng (+0.25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "correct",
+    "comment": "Chuyển vế và tính toán đúng x = -6 (+0.5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "correct",
+    "comment": "Biến đổi tìm bình phương đúng (+0.25đ); Xét đủ 2 trường hợp và kết luận tập nghiệm đúng (+0.25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.3",
+    "status": "correct",
+    "comment": "Xét TH1 tìm x = 3 (+0.25đ); Xét TH2 lập luận x^2+5 vô lý đúng (+0.25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1a",
+    "status": "correct",
+    "comment": "Tính đúng số tiền bác An đã phải trả là 1.110.200 đồng (+0.5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1b",
+    "status": "correct",
+    "comment": "Tính đúng số tiền tiết kiệm được là 36.400 đồng (+0.5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2a",
+    "status": "correct",
+    "comment": "Tính đúng khối lượng cam xuất khẩu là 900 kg (+0.5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2b",
+    "status": "wrong",
+    "comment": "Tính sai khối lượng cam chuyển vào nhà máy (lấy 900 nhân 3/4 thay vì chia 3/4) (0đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2c",
+    "status": "wrong",
+    "comment": "Sai do lỗi dây chuyền từ câu b, tính sai số cam còn lại và số thùng gỗ (0đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu IV",
+    "status": "correct",
+    "comment": "Vẽ đúng tất cả các yêu cầu và đánh dấu đoạn thẳng bằng nhau đầy đủ (+1.5đ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu V.1",
+    "status": "wrong",
+    "comment": "Học sinh không làm bài này (0đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu V.2",
+    "status": "wrong",
+    "comment": "Học sinh không làm bài này (0đ)",
+    "points": 0,
+    "max_points": 0.5
+   }
+  ]
+ },
+ "bai-lop6-j.pdf": {
+  "score": 9,
+  "feedback": "Con làm bài tốt, cố gắng phát huy.",
+  "grading_details": [
+   {
+    "question": "TN câu 1",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 2",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 3",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 4",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 5",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án C: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 6",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án D: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 7",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án A: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "TN câu 8",
+    "status": "correct",
+    "comment": "Chọn đúng đáp án B: Đúng (+0,25đ)",
+    "points": 0.25,
+    "max_points": 0.25
+   },
+   {
+    "question": "Tự luận câu I.1",
+    "status": "correct",
+    "comment": "Quy đồng mẫu số đúng (+0,25đ); Kết quả -7/24 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "correct",
+    "comment": "Đặt thừa số chung đúng (+0,25đ); Tính toán ra kết quả -3/5 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "correct",
+    "comment": "Phá ngoặc và nhóm các số hạng hợp lý (+0,25đ); Kết quả bằng 4 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "correct",
+    "comment": "Chuyển vế và thực hiện phép chia đúng (+0,25đ); Kết quả x = -6 đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "correct",
+    "comment": "Tìm được (x+1/3)^2 = 4/9 và chia 2 trường hợp đúng (+0,25đ); Giải đúng 2 giá trị x = 1/3 và x = -1 (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.3",
+    "status": "correct",
+    "comment": "Xét TH1: 4x-12=0 ra x=3 đúng (+0,25đ); Xét TH2: x^2+5=0 vô nghiệm đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1a",
+    "status": "correct",
+    "comment": "Tính số tiền trả ngày hôm qua đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1b",
+    "status": "correct",
+    "comment": "Tính số tiền tiết kiệm đúng (+0,5đ). Học sinh làm theo cách tính hiệu hai tổng tiền, hợp lệ.",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2a",
+    "status": "correct",
+    "comment": "Tính khối lượng cam xuất khẩu đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2b",
+    "status": "correct",
+    "comment": "Tính khối lượng cam vào nhà máy đúng (+0,5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2c",
+    "status": "correct",
+    "comment": "Tính khối lượng cam còn lại bán lẻ đúng (+0,25đ); Tính số thùng gỗ là 12 thùng đúng (+0,25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu IV",
+    "status": "correct",
+    "comment": "Vẽ đúng tất cả các yêu cầu và có đánh dấu các đoạn thẳng bằng nhau (+1,5đ)",
+    "points": 1.5,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu V.1",
+    "status": "wrong",
+    "comment": "Học sinh không làm câu này (0đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu V.2",
+    "status": "wrong",
+    "comment": "Học sinh không làm câu này (0đ)",
+    "points": 0,
+    "max_points": 0.5
+   }
+  ]
+ },
+ "bai-lop6-k.pdf": {
+  "score": 7.75,
+  "feedback": "Con làm bài khá ổn tuy nhiên Phần Tự luận còn trình bày thiếu câu IV, cần cẩn thận hơn câu I.3, II.1, V.2, không làm câu V.1 và cẩn thận hơn khi làm các dạng bài về các dạng bài trong bài tập này.",
+  "grading_details": [
+   {
+    "question": "TN câu 1-8",
+    "status": "correct",
+    "comment": "Trả lời đúng toàn bộ 8 câu trắc nghiệm (+2.0đ)",
+    "points": 2,
+    "max_points": 2
+   },
+   {
+    "question": "Tự luận câu I.1",
+    "status": "correct",
+    "comment": "Quy đồng mẫu số đúng (+0.25đ); Kết quả đúng -7/24 (+0.25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.2",
+    "status": "correct",
+    "comment": "Sử dụng tính chất phân phối đúng (+0.25đ); Tính toán và kết quả cuối cùng đúng -3/5 (+0.25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu I.3",
+    "status": "wrong",
+    "comment": "Phá ngoặc sai dấu: -(3 - 5/14 - 2.25) thành -3 + 5/14 + 2.25 (0đ); Kết quả tính toán sai (-0.5đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.1",
+    "status": "wrong",
+    "comment": "Biến đổi tìm x theo phép chia phân số đúng hướng (+0.0đ theo barem chia bước nhưng học sinh tính sai kết quả -2/3 thay vì -6, do đó không đạt điểm bước tính toán kết quả theo barem)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.2",
+    "status": "correct",
+    "comment": "Chuyển vế và khai triển bình phương đúng (+0.25đ); Xét hai trường hợp và kết luận đúng tập nghiệm (+0.25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu II.3",
+    "status": "correct",
+    "comment": "Tách hai trường hợp đúng (+0.25đ); Giải TH1 ra x=3, loại TH2 do x^2+5>0, kết luận đúng (+0.25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1a",
+    "status": "correct",
+    "comment": "Tính số tiền ngày hôm qua đúng 1110,2 nghìn đồng (+0.5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.1b",
+    "status": "correct",
+    "comment": "Tính số tiền tiết kiệm đúng 36,4 nghìn đồng (+0.5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2a",
+    "status": "correct",
+    "comment": "Tính khối lượng cam xuất khẩu đúng 900kg (+0.5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2b",
+    "status": "correct",
+    "comment": "Tính khối lượng cam chuyển vào nhà máy đúng 1200kg (+0.5đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu III.2c",
+    "status": "correct",
+    "comment": "Tính số cam bán lẻ còn lại đúng 300kg (+0.25đ); Tính số thùng gỗ đúng 12 thùng (+0.25đ)",
+    "points": 0.5,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu IV",
+    "status": "partial",
+    "comment": "Vẽ đúng hình và các yêu cầu theo barem (+1.5đ); Không đánh dấu các đoạn thẳng bằng nhau nên trừ 0.25đ theo quy định (-0.25đ)",
+    "points": 1.25,
+    "max_points": 1.5
+   },
+   {
+    "question": "Tự luận câu V.1",
+    "status": "wrong",
+    "comment": "Học sinh không làm câu V.1 (0đ)",
+    "points": 0,
+    "max_points": 0.5
+   },
+   {
+    "question": "Tự luận câu V.2",
+    "status": "wrong",
+    "comment": "Lập luận và tính toán sai phân số cũng như số trang ở các bước, dẫn đến kết quả sai (0đ)",
+    "points": 0,
+    "max_points": 0.5
+   }
+  ]
  }
 }
