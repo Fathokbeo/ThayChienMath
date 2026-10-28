@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../lib/api';
+import api, { fileUrl } from '../../lib/api';
 import { BookOpen, Users, School, Plus, Edit, Trash2, ChevronRight, Search } from 'lucide-react';
 import Modal from '../../components/Modal';
 import { PageHeader, SectionHeader, EmptyState } from '../../components/ui';
@@ -37,7 +37,7 @@ export default function TeacherCourses({ embedded = false }: { embedded?: boolea
     setEditing(c);
     setForm({ title: c.title, description: c.description || '' });
     setFile(null);
-    setPreview(c.thumbnail ? `/uploads/courses/${c.thumbnail}` : '');
+    setPreview(c.thumbnail ? fileUrl(`/uploads/courses/${c.thumbnail}`) : '');
     setModal(true);
   };
 
@@ -112,7 +112,7 @@ export default function TeacherCourses({ embedded = false }: { embedded?: boolea
             <div key={c.id} className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <Link to={`/teacher/courses/${c.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                 {c.thumbnail ? (
-                  <img src={`/uploads/courses/${c.thumbnail}`} alt={c.title} style={{ width: '100%', height: 140, objectFit: 'cover', display: 'block' }} />
+                  <img src={fileUrl(`/uploads/courses/${c.thumbnail}`)} alt={c.title} style={{ width: '100%', height: 140, objectFit: 'cover', display: 'block' }} />
                 ) : (
                   <div style={{ height: 110, background: '#E6F0F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <BookOpen size={30} color="#1F5C68" />

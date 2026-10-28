@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { getDb } = require('../db/database');
 const {
-  getJwtSecret, setSessionCookie, clearSessionCookie, userFromRequest,
+  getJwtSecret, setSessionCookie, clearSessionCookie, userFromRequest, signFileTicket,
   loginBlockedFor, recordLoginFailure, clearLoginFailures,
 } = require('../services/security');
 const { findParentForLogin } = require('../services/parentAccounts');
@@ -70,6 +70,14 @@ router.post('/session', (req, res) => {
   if (!token || !userFromRequest(req)) return res.status(401).json({ message: 'Unauthorized' });
   setSessionCookie(req, res, token);
   res.json({ message: 'OK' });
+});
+
+// App Android: cấp vé xem file /uploads (thay cho cookie phiên, vì app khác tên miền máy chủ).
+router.post('/file-ticket', (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const user = token && userFromRequest(req);
+  if (!user) return res.status(401).json({ message: 'Unauthorized' });
+  res.json({ ticket: signFileTicket(user) });
 });
 
 router.post('/logout', (req, res) => {

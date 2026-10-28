@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../lib/api';
+import api, { fileUrl } from '../../lib/api';
 import Modal from '../../components/Modal';
 import { toast } from '../../components/Toast';
 import { Plus, Edit, Trash2, BookOpen, School, Users, ChevronRight } from 'lucide-react';
@@ -52,7 +52,7 @@ export default function CourseManagement() {
     const ownedByTeacher = teachers.some((t) => t.id === c.created_by);
     setForm({ title: c.title, description: c.description || '', teacher_id: ownedByTeacher ? String(c.created_by) : '' });
     setFile(null);
-    setPreview(c.thumbnail ? `/uploads/courses/${c.thumbnail}` : '');
+    setPreview(c.thumbnail ? fileUrl(`/uploads/courses/${c.thumbnail}`) : '');
     setModal(true);
   };
 
@@ -105,7 +105,7 @@ export default function CourseManagement() {
         {courses.map((c) => (
           <div key={c.id} style={{ background: 'white', borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
             {c.thumbnail ? (
-              <img src={`/uploads/courses/${c.thumbnail}`} alt={c.title} style={{ width: '100%', height: 140, objectFit: 'cover' }} />
+              <img src={fileUrl(`/uploads/courses/${c.thumbnail}`)} alt={c.title} style={{ width: '100%', height: 140, objectFit: 'cover' }} />
             ) : (
               <div style={{ height: 140, background: 'linear-gradient(135deg, #1F5C68, #2F6F82)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <BookOpen size={36} color="rgba(255,255,255,0.7)" />

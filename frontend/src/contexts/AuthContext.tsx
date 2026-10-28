@@ -1,6 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import api from '../lib/api';
+import api, { IS_REMOTE_API, setFileTicket } from '../lib/api';
+
+async function refreshFileTicket() {
+  const { data } = await api.post('/auth/file-ticket');
+  setFileTicket(data.ticket);
+}
 
 interface User {
   id: number;
@@ -36,13 +41,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(JSON.parse(u));
     // Cấp (hoặc gia hạn) cookie phiên TRƯỚC khi hiện giao diện, để ảnh/đề bài/video tải được ngay từ
     // lần mở đầu tiên — kể cả người đã đăng nhập từ trước khi có tính năng kiểm tra quyền tải file.
-    api.post('/auth/session').catch(() => {}).finally(() => setLoading(false));
+    // App (máy chủ khác tên miền) thì lấy vé xem file thay cho cookie.
+    (IS_REMOTE_API ? refreshFileTicket() : api.post('/auth/session'))
+      .catch(() => {}).finally(() => setLoading(false));
   }, []);
+
+  // App: gia hạn vé xem file định kỳ (vé sống 24 giờ) khi đang đăng nhập.
+  useEffect(() => {
+    if (!IS_REMOTE_API || !token) return;
+    const id = setInterval(() => { refreshFileTicket().catch(() => {}); }, 6 * 60 * 60 * 1000);
+    return () => clearInterval(id);
+  }, [token]);
 
   const login = async (username: string, password: string, portal?: Portal) => {
     const { data } = await api.post('/auth/login', { username, password, portal });
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
+    if (IS_REMOTE_API) await refreshFileTicket().catch(() => {});
     setToken(data.token);
     setUser(data.user);
     return data.user as User;
@@ -52,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     api.post('/auth/logout').catch(() => {}); // xóa cookie phiên ở máy chủ
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    setFileTicket(null);
     setToken(null);
     setUser(null);
   };

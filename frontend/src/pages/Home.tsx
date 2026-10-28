@@ -4,7 +4,7 @@ import AdCarousel from '../components/AdCarousel';
 import PublicLayout from '../components/PublicLayout';
 import { useAuth } from '../contexts/AuthContext';
 import FacebookIcon from '../components/FacebookIcon';
-import api from '../lib/api';
+import api, { fileUrl } from '../lib/api';
 import { PAGE_MAX } from '../lib/layout';
 import { BookOpen, ChevronRight, ChevronDown, Trophy, Users, GraduationCap, Award, Calendar, UserCircle, Phone, Sparkles, Smartphone, LineChart } from 'lucide-react';
 
@@ -52,7 +52,7 @@ function StaffGrid({ list }: { list: any[] }) {
       {list.map((s) => (
         <div key={s.id} style={{ background: 'white', borderRadius: 14, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', textAlign: 'center' }}>
           {s.image ? (
-            <img src={`/uploads/staff/${s.image}`} alt={s.name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
+            <img src={fileUrl(`/uploads/staff/${s.image}`)} alt={s.name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
           ) : (
             <div style={{ height: 220, background: 'linear-gradient(135deg, #E6F0F3, #CDE1E7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <UserCircle size={56} color="#2F6F82" />
@@ -174,7 +174,7 @@ export default function Home() {
             {students.map((s) => (
               <div key={s.id} style={{ background: 'white', borderRadius: 14, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
                 {s.image ? (
-                  <img src={`/uploads/featured_students/${s.image}`} alt={s.name} style={{ width: '100%', height: 240, objectFit: 'cover' }} />
+                  <img src={fileUrl(`/uploads/featured_students/${s.image}`)} alt={s.name} style={{ width: '100%', height: 240, objectFit: 'cover' }} />
                 ) : (
                   <div style={{ height: 240, background: 'linear-gradient(135deg, #E4EFF1, #CFE2E6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Trophy size={48} color="#1F5C68" />
@@ -225,7 +225,7 @@ export default function Home() {
                 onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.07)'; }}>
                 {c.thumbnail ? (
-                  <img src={`/uploads/courses/${c.thumbnail}`} alt={c.title} style={{ width: '100%', height: 160, objectFit: 'cover' }} />
+                  <img src={fileUrl(`/uploads/courses/${c.thumbnail}`)} alt={c.title} style={{ width: '100%', height: 160, objectFit: 'cover' }} />
                 ) : (
                   <div style={{ height: 160, background: 'linear-gradient(135deg, #1F5C68, #2F6F82)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <BookOpen size={40} color="rgba(255,255,255,0.7)" />
@@ -260,7 +260,7 @@ export default function Home() {
                 display: 'flex', flexDirection: i % 2 === 0 ? 'row' : 'row-reverse', flexWrap: 'wrap',
               }}>
                 {a.image && (
-                  <img src={`/uploads/achievements/${a.image}`} alt={a.title} style={{ width: 320, maxWidth: '100%', height: 220, objectFit: 'cover', flex: '1 1 280px' }} />
+                  <img src={fileUrl(`/uploads/achievements/${a.image}`)} alt={a.title} style={{ width: 320, maxWidth: '100%', height: 220, objectFit: 'cover', flex: '1 1 280px' }} />
                 )}
                 <div style={{ padding: '1.5rem', flex: '1 1 300px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   {a.year && (

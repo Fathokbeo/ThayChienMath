@@ -64,6 +64,29 @@ function userFromRequest(req) {
   } catch { return null; }
 }
 
+// ── Vé xem file (app Android) ─────────────────────────────────────────
+// App chạy ở https://localhost (khác tên miền máy chủ) nên WebView không gửi cookie phiên kèm thẻ <img>/<video>.
+// Thay vào đó app gắn vé vào link: /uploads/...?t=<vé>. Vé ký bằng khóa RIÊNG (khóa chính + hậu tố), nên
+// không dùng thay token đăng nhập để gọi API được; chỉ có tác dụng xem file, sống 24 giờ.
+const FILE_TICKET_TTL = '24h';
+const fileTicketSecret = () => `${getJwtSecret()}:file-ticket`;
+
+function signFileTicket(user) {
+  return jwt.sign({ id: user.id }, fileTicketSecret(), { expiresIn: FILE_TICKET_TTL });
+}
+
+// Lấy người dùng từ vé ?t=...; null nếu không có vé hoặc vé không hợp lệ.
+function userFromFileTicket(req) {
+  const t = req.query?.t;
+  if (!t || typeof t !== 'string') return null;
+  try {
+    const { id } = jwt.verify(t, fileTicketSecret());
+    const row = getDb().prepare('SELECT id,username,role,active,full_name FROM users WHERE id=?').get(id);
+    if (!row || !row.active) return null;
+    return { id: row.id, username: row.username, role: row.role, full_name: row.full_name };
+  } catch { return null; }
+}
+
 // ── Chặn dò mật khẩu ──────────────────────────────────────────────────
 // Đếm số lần đăng nhập sai theo TÊN ĐĂNG NHẬP (bảo vệ từng tài khoản) và theo IP (chặn dò hàng loạt).
 // Ngưỡng theo IP nới rộng hơn vì cả lớp học có thể dùng chung một đường mạng.
@@ -141,6 +164,8 @@ module.exports = {
   setSessionCookie,
   clearSessionCookie,
   userFromRequest,
+  signFileTicket,
+  userFromFileTicket,
   loginBlockedFor,
   recordLoginFailure,
   clearLoginFailures,

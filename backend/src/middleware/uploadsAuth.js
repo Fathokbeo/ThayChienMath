@@ -1,5 +1,5 @@
 const { getDb } = require('../db/database');
-const { userFromRequest } = require('../services/security');
+const { userFromRequest, userFromFileTicket } = require('../services/security');
 
 // Ảnh của trang giới thiệu công khai (trang chủ, khóa tiêu biểu, giáo viên...) — khách vãng lai xem được.
 const PUBLIC_DIRS = new Set(['ads', 'courses', 'featured_students', 'staff', 'featured_courses', 'achievements']);
@@ -78,7 +78,7 @@ function uploadsAuth(req, res, next) {
   if (PUBLIC_DIRS.has(dir)) return next();
   if (!PROTECTED_DIRS.has(dir)) return res.status(404).json({ message: 'Không tìm thấy file' });
 
-  const user = userFromRequest(req);
+  const user = userFromRequest(req) || userFromFileTicket(req); // cookie/header (web) hoặc vé ?t= (app)
   if (!user) return res.status(401).json({ message: 'Cần đăng nhập để xem file này' });
 
   const verdict = checkFileAccess(getDb(), user, dir, file);

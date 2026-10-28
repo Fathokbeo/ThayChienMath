@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import api from '../../lib/api';
+import api, { fileUrl } from '../../lib/api';
 import Modal from '../../components/Modal';
 import { toast } from '../../components/Toast';
 import AssistantScheduleModal from '../../components/AssistantScheduleModal';
@@ -30,7 +30,7 @@ export default function AssistantManagement() {
     setEditing(a);
     setForm({ full_name: a.full_name, phone: a.phone || '', facebook_url: a.facebook_url || '' });
     setPhoto(null);
-    setPhotoPreview(a.photo ? `/uploads/assistants/${a.photo}` : '');
+    setPhotoPreview(a.photo ? fileUrl(`/uploads/assistants/${a.photo}`) : '');
   };
 
   const save = async () => {
@@ -94,7 +94,7 @@ export default function AssistantManagement() {
                 <Edit size={13} color="#515154" />
               </button>
               {a.photo ? (
-                <img src={`/uploads/assistants/${a.photo}`} alt={a.full_name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
+                <img src={fileUrl(`/uploads/assistants/${a.photo}`)} alt={a.full_name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
               ) : (
                 <div style={{ height: 220, background: 'linear-gradient(135deg, #EFEBF5, #D9D0E8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <UserCog size={56} color="#6E5A94" />

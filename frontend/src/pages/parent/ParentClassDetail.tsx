@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronDown, ChevronRight, Lock, Eye, FileCheck2, Bot, Phone, MessageSquareQuote, UserCog } from 'lucide-react';
-import api from '../../lib/api';
+import api, { fileUrl } from '../../lib/api';
 import { PageHeader, SectionHeader, EmptyState, scoreTone } from '../../components/ui';
 import GradingDetails from '../../components/GradingDetails';
 import FileViewer from '../../components/FileViewer';
@@ -138,9 +138,9 @@ export default function ParentClassDetail() {
                       {h.status === 'missed' && <div style={{ fontSize: '0.86rem', color: '#B04A2A' }}>Đã quá hạn mà con không nộp — bài này tính 0 điểm vào điểm trung bình.</div>}
                       {(h.status === 'grading' || h.status === 'waiting') && <div style={{ fontSize: '0.86rem', color: '#2F6F82' }}>Con đã nộp bài, đang chờ chấm.</div>}
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                        {h.pdf_file && <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([`/uploads/homework/${h.pdf_file}`])}><Eye size={13} /> Xem đề</button>}
-                        {h.files.length > 0 && <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles(h.files.map((f: string) => `/uploads/submissions/${f}`))}><Eye size={13} /> Bài làm của con{h.files.length > 1 ? ` (${h.files.length})` : ''}</button>}
-                        {h.answer_file && <button className="btn btn-success btn-sm" onClick={() => setViewFiles([`/uploads/homework/${h.answer_file}`])}><FileCheck2 size={13} /> Đáp án</button>}
+                        {h.pdf_file && <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([fileUrl(`/uploads/homework/${h.pdf_file}`)])}><Eye size={13} /> Xem đề</button>}
+                        {h.files.length > 0 && <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles(h.files.map((f: string) => fileUrl(`/uploads/submissions/${f}`)))}><Eye size={13} /> Bài làm của con{h.files.length > 1 ? ` (${h.files.length})` : ''}</button>}
+                        {h.answer_file && <button className="btn btn-success btn-sm" onClick={() => setViewFiles([fileUrl(`/uploads/homework/${h.answer_file}`)])}><FileCheck2 size={13} /> Đáp án</button>}
                       </div>
                     </div>
                   )}
@@ -179,7 +179,7 @@ export default function ParentClassDetail() {
             {cls.assistants.map((a: any) => (
               <div key={a.id} className="list-row">
                 {a.photo
-                  ? <img src={`/uploads/assistants/${a.photo}`} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
+                  ? <img src={fileUrl(`/uploads/assistants/${a.photo}`)} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
                   : <span style={{ width: 40, height: 40, borderRadius: '50%', background: '#EFEBF5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><UserCog size={18} color="#6E5A94" /></span>}
                 <div className="list-row-main">
                   <div className="list-row-title">{a.full_name}</div>

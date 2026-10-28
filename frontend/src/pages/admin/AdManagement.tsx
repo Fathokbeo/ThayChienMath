@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import api from '../../lib/api';
+import api, { fileUrl } from '../../lib/api';
 import Modal from '../../components/Modal';
 import { toast } from '../../components/Toast';
 import { Plus, Trash2, Edit, Eye, EyeOff, Upload, Image } from 'lucide-react';
@@ -42,7 +42,7 @@ export default function AdManagement() {
     setEditing(a);
     setForm({ title: a.title || '', link: a.link || '', order: String(a.ad_order) });
     setFile(null);
-    setPreview(`/uploads/ads/${a.image_path}`);
+    setPreview(fileUrl(`/uploads/ads/${a.image_path}`));
     setModal(true);
   };
 
@@ -111,7 +111,7 @@ export default function AdManagement() {
           }}>
             <div style={{ position: 'relative' }}>
               <img
-                src={`/uploads/ads/${a.image_path}`}
+                src={fileUrl(`/uploads/ads/${a.image_path}`)}
                 alt={a.title}
                 style={{ width: '100%', height: 160, objectFit: 'cover' }}
               />

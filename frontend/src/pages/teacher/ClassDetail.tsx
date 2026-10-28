@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import api from '../../lib/api';
+import api, { fileUrl } from '../../lib/api';
 import { buildContentSections, chapterSubject, existingSectionTitles, sectionKey, type ChapterSubject } from '../../lib/classContent';
 import Modal from '../../components/Modal';
 import VideoPlayer from '../../components/VideoPlayer';
@@ -434,7 +434,7 @@ export default function ClassDetail() {
     setEditingAssistant(a);
     setAssistantForm({ full_name: a.full_name, phone: a.phone || '', facebook_url: a.facebook_url || '' });
     setAssistantPhoto(null);
-    setAssistantPhotoPreview(a.photo ? `/uploads/assistants/${a.photo}` : '');
+    setAssistantPhotoPreview(a.photo ? fileUrl(`/uploads/assistants/${a.photo}`) : '');
     setAssistantModal(true);
   };
 
@@ -1041,7 +1041,7 @@ export default function ClassDetail() {
                     </button>
                   </div>
                   {a.photo ? (
-                    <img src={`/uploads/assistants/${a.photo}`} alt={a.full_name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
+                    <img src={fileUrl(`/uploads/assistants/${a.photo}`)} alt={a.full_name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
                   ) : (
                     <div style={{ height: 220, background: 'linear-gradient(135deg, #EFEBF5, #D9D0E8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <UserCog size={56} color="#6E5A94" />
@@ -1244,7 +1244,7 @@ export default function ClassDetail() {
                     borderBottom: '1px solid #F2F2F4',
                   }}>
                   {a.photo ? (
-                    <img src={`/uploads/assistants/${a.photo}`} alt={a.full_name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                    <img src={fileUrl(`/uploads/assistants/${a.photo}`)} alt={a.full_name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                   ) : (
                     <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#EFEBF5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <UserCog size={16} color="#6E5A94" />
@@ -1385,8 +1385,8 @@ export default function ClassDetail() {
                     {a.name} <span className={`badge ${a.kind === 'answer' ? 'badge-green' : 'badge-orange'}`} style={{ marginLeft: 6 }}>{a.kind === 'answer' ? 'Đáp án BT' : 'Tài liệu'}</span>
                   </span>
                   {isViewableFile(a.file)
-                    ? <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([`/uploads/lessons/${a.file}`])}><Eye size={13} /> Xem</button>
-                    : <a className="btn btn-ghost btn-sm" href={`/uploads/lessons/${a.file}`} download={a.name}><Download size={13} /> Tải</a>}
+                    ? <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([fileUrl(`/uploads/lessons/${a.file}`)])}><Eye size={13} /> Xem</button>
+                    : <a className="btn btn-ghost btn-sm" href={fileUrl(`/uploads/lessons/${a.file}`)} download={a.name}><Download size={13} /> Tải</a>}
                   <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} title="Xóa file"
                     onClick={() => { if (confirm(`Xóa file "${a.name}"?`)) deleteAttachment(a.file); }}>
                     <Trash2 size={13} />
@@ -1420,9 +1420,9 @@ export default function ClassDetail() {
                     {a.name} <span className={`badge ${a.kind === 'answer' ? 'badge-green' : 'badge-orange'}`} style={{ marginLeft: 6 }}>{a.kind === 'answer' ? 'Đáp án BT trên lớp' : 'Tài liệu bài giảng'}</span>
                   </span>
                   {isViewableFile(a.file) && (
-                    <button className="btn btn-secondary btn-sm" onClick={() => setViewFiles([`/uploads/lessons/${a.file}`])}><Eye size={13} /> Xem</button>
+                    <button className="btn btn-secondary btn-sm" onClick={() => setViewFiles([fileUrl(`/uploads/lessons/${a.file}`)])}><Eye size={13} /> Xem</button>
                   )}
-                  <a className="btn btn-ghost btn-sm" href={`/uploads/lessons/${a.file}`} download={a.name}><Download size={13} /> Tải về</a>
+                  <a className="btn btn-ghost btn-sm" href={fileUrl(`/uploads/lessons/${a.file}`)} download={a.name}><Download size={13} /> Tải về</a>
                 </div>
               ))}
             </div>
@@ -1588,7 +1588,7 @@ export default function ClassDetail() {
                   <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: a.replacing ? 'line-through' : 'none' }} title={a.name}>
                     {a.name} <span className={`badge ${a.cls}`} style={{ marginLeft: 6 }}>{a.replacing ? 'Sẽ được thay' : a.badge}</span>
                   </span>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([`/uploads/homework/${a.file}`])}><Eye size={13} /> Xem</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([fileUrl(`/uploads/homework/${a.file}`)])}><Eye size={13} /> Xem</button>
                   <button className="btn btn-ghost btn-sm btn-icon" style={{ color: '#B04A2A' }} title="Xóa file"
                     onClick={() => { if (confirm(`Xóa file "${a.name}"?`)) deleteHwFile(a.kind); }}>
                     <Trash2 size={13} />

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { fileUrl } from '../lib/api';
 
 interface Ad {
   id: number;
@@ -30,7 +31,7 @@ export default function AdCarousel({ ads }: Props) {
   const content = (
     <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 16 }}>
       <img
-        src={`/uploads/ads/${ad.image_path}`}
+        src={fileUrl(`/uploads/ads/${ad.image_path}`)}
         alt={ad.title || 'Quảng cáo'}
         style={{ width: '100%', height: 380, objectFit: 'cover', display: 'block' }}
       />

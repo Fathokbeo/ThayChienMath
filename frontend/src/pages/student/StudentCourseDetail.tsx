@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import api from '../../lib/api';
+import api, { fileUrl } from '../../lib/api';
 import { toast } from '../../components/Toast';
 import { ArrowLeft, School, BookOpen, ChevronRight, Trophy } from 'lucide-react';
 
@@ -38,7 +38,7 @@ export default function StudentCourseDetail() {
       {/* Course header */}
       <div style={{ background: 'white', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.07)', marginBottom: '1.5rem' }}>
         {course.thumbnail ? (
-          <img src={`/uploads/courses/${course.thumbnail}`} alt={course.title} style={{ width: '100%', height: 180, objectFit: 'cover' }} />
+          <img src={fileUrl(`/uploads/courses/${course.thumbnail}`)} alt={course.title} style={{ width: '100%', height: 180, objectFit: 'cover' }} />
         ) : (
           <div style={{ height: 140, background: 'linear-gradient(135deg, #1F5C68 0%, #2F6F82 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <BookOpen size={40} color="rgba(255,255,255,0.8)" />

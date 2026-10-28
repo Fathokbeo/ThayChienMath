@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import api from '../../lib/api';
+import api, { fileUrl } from '../../lib/api';
 import Modal from '../../components/Modal';
 import GradingDetails from '../../components/GradingDetails';
 import StructuredAnswerReview from '../../components/StructuredAnswerReview';
@@ -18,7 +18,7 @@ function submissionFileUrls(s: any): string[] {
   let names: string[] = [];
   if (s.files) { try { const a = JSON.parse(s.files); if (Array.isArray(a)) names = a; } catch { /* ignore */ } }
   if (names.length === 0 && s.file_path) names = [s.file_path];
-  return names.map((n: string) => `/uploads/submissions/${n}`);
+  return names.map((n: string) => fileUrl(`/uploads/submissions/${n}`));
 }
 
 export default function HomeworkDetail() {
@@ -211,12 +211,12 @@ export default function HomeworkDetail() {
       {(hw.pdf_file || hw.answer_file) && (
         <div style={{ display: 'flex', gap: 10, marginBottom: '1.5rem' }}>
           {hw.pdf_file && (
-            <button className="btn btn-secondary" onClick={() => setViewFiles([`/uploads/homework/${hw.pdf_file}`])}>
+            <button className="btn btn-secondary" onClick={() => setViewFiles([fileUrl(`/uploads/homework/${hw.pdf_file}`)])}>
               <Eye size={15} /> Xem đề bài
             </button>
           )}
           {hw.answer_file && (
-            <button className="btn btn-success" onClick={() => setViewFiles([`/uploads/homework/${hw.answer_file}`])}>
+            <button className="btn btn-success" onClick={() => setViewFiles([fileUrl(`/uploads/homework/${hw.answer_file}`)])}>
               <Eye size={15} /> Xem đáp án
             </button>
           )}

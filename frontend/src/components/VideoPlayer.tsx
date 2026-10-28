@@ -1,4 +1,5 @@
 import ReactPlayer from 'react-player';
+import { fileUrl } from '../lib/api';
 
 interface Props {
   url: string;
@@ -6,7 +7,7 @@ interface Props {
 }
 
 function getVideoUrl(url: string, type: string) {
-  if (type === 'local') return `/uploads/videos/${url}`;
+  if (type === 'local') return fileUrl(`/uploads/videos/${url}`);
   return url;
 }
 

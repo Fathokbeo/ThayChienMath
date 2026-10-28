@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import api from '../../lib/api';
+import api, { fileUrl } from '../../lib/api';
 import { buildContentSections } from '../../lib/classContent';
 import VideoPlayer from '../../components/VideoPlayer';
 import Modal from '../../components/Modal';
@@ -28,7 +28,7 @@ function submittedFileUrls(hw: any): string[] {
   let names: string[] = [];
   if (hw.submitted_files) { try { const a = JSON.parse(hw.submitted_files); if (Array.isArray(a)) names = a; } catch { /* ignore */ } }
   if (names.length === 0 && hw.submitted_file) names = [hw.submitted_file];
-  return names.map((n: string) => `/uploads/submissions/${n}`);
+  return names.map((n: string) => fileUrl(`/uploads/submissions/${n}`));
 }
 
 export default function StudentClassDetail() {
@@ -407,7 +407,7 @@ export default function StudentClassDetail() {
           {/* Actions */}
           <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', flexWrap: 'wrap', gap: 6, alignItems: 'center', justifyContent: isMobile ? 'flex-start' : 'flex-end', flexShrink: 0, width: isMobile ? '100%' : 'auto' }}>
             {hw.pdf_file && (
-              <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([`/uploads/homework/${hw.pdf_file}`])}>
+              <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([fileUrl(`/uploads/homework/${hw.pdf_file}`)])}>
                 <FileText size={13} /> Xem đề
               </button>
             )}
@@ -417,7 +417,7 @@ export default function StudentClassDetail() {
               </button>
             )}
             {!!hw.can_see_answer && !!hw.answer_file && (
-              <button className="btn btn-success btn-sm" onClick={() => setViewFiles([`/uploads/homework/${hw.answer_file}`])}>
+              <button className="btn btn-success btn-sm" onClick={() => setViewFiles([fileUrl(`/uploads/homework/${hw.answer_file}`)])}>
                 <Eye size={13} /> Đáp án
               </button>
             )}
@@ -648,7 +648,7 @@ export default function StudentClassDetail() {
             {cls.assistants.map((a: any) => (
               <div key={a.id} style={{ background: 'white', borderRadius: 14, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', textAlign: 'center' }}>
                 {a.photo ? (
-                  <img src={`/uploads/assistants/${a.photo}`} alt={a.full_name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
+                  <img src={fileUrl(`/uploads/assistants/${a.photo}`)} alt={a.full_name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
                 ) : (
                   <div style={{ height: 220, background: 'linear-gradient(135deg, #EFEBF5, #D9D0E8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <UserCog size={56} color="#6E5A94" />
@@ -700,9 +700,9 @@ export default function StudentClassDetail() {
                     {a.name} <span className={`badge ${a.kind === 'answer' ? 'badge-green' : 'badge-orange'}`} style={{ marginLeft: 6 }}>{a.kind === 'answer' ? 'Đáp án BT trên lớp' : 'Tài liệu bài giảng'}</span>
                   </span>
                   {isViewableFile(a.file) && (
-                    <button className="btn btn-secondary btn-sm" onClick={() => setViewFiles([`/uploads/lessons/${a.file}`])}><Eye size={13} /> Xem</button>
+                    <button className="btn btn-secondary btn-sm" onClick={() => setViewFiles([fileUrl(`/uploads/lessons/${a.file}`)])}><Eye size={13} /> Xem</button>
                   )}
-                  <a className="btn btn-ghost btn-sm" href={`/uploads/lessons/${a.file}`} download={a.name}><Download size={13} /> Tải về</a>
+                  <a className="btn btn-ghost btn-sm" href={fileUrl(`/uploads/lessons/${a.file}`)} download={a.name}><Download size={13} /> Tải về</a>
                 </div>
               ))}
             </div>
@@ -720,7 +720,7 @@ export default function StudentClassDetail() {
         open={submitModal}
         onClose={() => setSubmitModal(false)}
         title={`Làm bài: ${submitting?.title || ''}`}
-        pdfUrl={submitting?.pdf_file ? `/uploads/homework/${submitting.pdf_file}` : null}
+        pdfUrl={submitting?.pdf_file ? fileUrl(`/uploads/homework/${submitting.pdf_file}`) : null}
         submitObjective={submitObjective}
         submitEssay={submitEssay}
         cfg={submitCfg}

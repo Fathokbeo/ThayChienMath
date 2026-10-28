@@ -12,7 +12,9 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5174';
 app.set('trust proxy', 1);
 app.disable('x-powered-by'); // không quảng cáo "Express" cho người dò lỗ hổng
 
-app.use(cors({ origin: [FRONTEND_URL, 'http://localhost:5174'], credentials: true }));
+// https://localhost = app Android (Capacitor), capacitor://localhost = app iOS. API chỉ nhận token ở header
+// Authorization nên mở thêm 2 origin này không tạo đường CSRF.
+app.use(cors({ origin: [FRONTEND_URL, 'http://localhost:5174', 'https://localhost', 'capacitor://localhost'], credentials: true }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 

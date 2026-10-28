@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import api from '../../lib/api';
+import api, { fileUrl } from '../../lib/api';
 import Modal from '../../components/Modal';
 import { toast } from '../../components/Toast';
 import { Plus, Edit, Trash2, Eye, EyeOff, ImageIcon } from 'lucide-react';
@@ -66,7 +66,7 @@ function CollectionManager({ collection }: { collection: string }) {
     cfg.fields.forEach((fl) => { f[fl.key] = it[fl.key] ?? ''; });
     setForm(f);
     setFile(null);
-    setPreview(it.image ? `/uploads/${cfg.dir}/${it.image}` : '');
+    setPreview(it.image ? fileUrl(`/uploads/${cfg.dir}/${it.image}`) : '');
     setModal(true);
   };
 
@@ -119,7 +119,7 @@ function CollectionManager({ collection }: { collection: string }) {
         {items.map((it) => (
           <div key={it.id} style={{ background: 'white', borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', opacity: it.active ? 1 : 0.55 }}>
             {it.image ? (
-              <img src={`/uploads/${cfg.dir}/${it.image}`} alt="" style={{ width: '100%', height: 140, objectFit: 'cover' }} />
+              <img src={fileUrl(`/uploads/${cfg.dir}/${it.image}`)} alt="" style={{ width: '100%', height: 140, objectFit: 'cover' }} />
             ) : (
               <div style={{ height: 140, background: '#EEEEF1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <ImageIcon size={32} color="#AEAEB2" />

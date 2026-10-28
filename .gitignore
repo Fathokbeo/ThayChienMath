@@ -19,7 +19,11 @@ backend/uploads/*/*
 
 # ── Build output ────────────────────────────────
 frontend/dist/
+frontend/dist-android/
 dist/
+# Khóa ký app Android — tuyệt đối không đẩy lên (mất/lộ là không cập nhật app được)
+*.jks
+*.keystore
 build/
 
 # ── Logs / tạm ──────────────────────────────────
