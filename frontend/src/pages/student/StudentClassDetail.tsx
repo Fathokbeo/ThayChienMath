@@ -93,8 +93,10 @@ export default function StudentClassDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cls?.id]);
 
-  // Mở từ Tìm nhanh: ?lesson=ID / ?hw=ID → bung đúng chương & mục, cuộn tới bài và tô viền vài giây;
-  // bài giảng có video/tài liệu thì mở luôn để xem.
+  // Mở từ Tìm nhanh / trang Tổng quan: ?lesson=ID / ?hw=ID → bung đúng chương & mục, cuộn tới bài và tô viền vài giây;
+  // bài giảng có video/tài liệu thì mở luôn để xem. Thêm:
+  //   &chi-tiet=1 (từ "Kết quả mới") → mở sẵn nhận xét & kết quả từng câu của bài đó
+  //   &tab=todo   (từ "Việc cần làm") → giữ tab Việc cần làm (bài đã hiện sẵn ở đó), chỉ cuộn tới bài
   const [focusId, setFocusId] = useState<string | null>(null);
   useEffect(() => {
     if (!cls) return;
@@ -103,6 +105,14 @@ export default function StudentClassDetail() {
     const target = lessonId ? (cls.lessons || []).find((l: any) => l.id === lessonId)
       : hwId ? (cls.homework || []).find((h: any) => h.id === hwId) : null;
     if (!target) return;
+    if (hwId && searchParams.get('chi-tiet') === '1' && target.can_see_answer) {
+      setOpenGradeDetails((prev) => new Set(prev).add(target.id));
+    }
+    // Cùng điều kiện lọc với danh sách todoHomework bên dưới
+    if (hwId && searchParams.get('tab') === 'todo' && target.due_date && target.can_submit && !target.submission_id) {
+      setFocusId(`hw-${target.id}`);
+      return;
+    }
     const inChapter = target.chapter_id && (cls.chapters || []).some((c: any) => c.id === target.chapter_id);
     const groupKey = inChapter ? String(target.chapter_id) : 'orphan';
     setActiveTab('content');
@@ -114,11 +124,17 @@ export default function StudentClassDetail() {
   }, [cls?.id, searchParams]);
   useEffect(() => {
     if (!focusId) return;
-    const t1 = setTimeout(() => document.getElementById(focusId)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+    // Cuộn đầu thẻ lên ngay dưới thanh trên cùng (scrollMarginTop) — thẻ đã mở nhận xét thường dài hơn màn hình,
+    // căn giữa sẽ che mất tên bài và điểm.
+    const t1 = setTimeout(() => document.getElementById(focusId)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250);
     const t2 = setTimeout(() => setFocusId(null), 3500);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [focusId]);
-  const focusRing = (key: string): React.CSSProperties => (focusId === key ? { boxShadow: '0 0 0 2px #1F5C68', transition: 'box-shadow 0.3s' } : { transition: 'box-shadow 0.3s' });
+  const focusRing = (key: string): React.CSSProperties => ({
+    scrollMarginTop: 'calc(var(--tc-nav-h) + var(--sa-top) + 12px)',
+    transition: 'box-shadow 0.3s',
+    ...(focusId === key ? { boxShadow: '0 0 0 2px #1F5C68' } : {}),
+  });
 
   const fetchClass = async () => {
     const { data } = await api.get(`/student/my-classes/${id}`);

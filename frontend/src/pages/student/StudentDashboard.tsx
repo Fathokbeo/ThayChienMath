@@ -69,7 +69,7 @@ export default function StudentDashboard() {
                 const left = new Date(h.due_date).getTime() - now;
                 const tone = urgencyColor(left);
                 return (
-                  <Link key={h.id} to={`/student/classes/${h.class_id}?tab=todo`} className="list-row">
+                  <Link key={h.id} to={`/student/classes/${h.class_id}?tab=todo&hw=${h.id}`} className="list-row">
                     <span style={{ width: 10, height: 10, borderRadius: '50%', background: tone, flexShrink: 0 }} />
                     <div className="list-row-main">
                       <div className="list-row-title">{h.title}</div>
@@ -99,7 +99,7 @@ export default function StudentDashboard() {
               {recent.map((r) => {
                 const tone = scoreTone(r.score, r.max_score);
                 return (
-                  <Link key={`${r.homework_id}`} to={`/student/classes/${r.class_id}`} className="list-row">
+                  <Link key={`${r.homework_id}`} to={`/student/classes/${r.class_id}?hw=${r.homework_id}&chi-tiet=1`} className="list-row">
                     <div className="list-row-main">
                       <div className="list-row-title">{r.title}</div>
                       <div className="list-row-sub">{r.class_title}</div>
