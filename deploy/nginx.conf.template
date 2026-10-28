@@ -1,0 +1,36 @@
+# nginx cho Thầy Chiến Math — setup-vps.sh thay __DOMAIN__ / __SERVER_NAMES__ rồi chép vào
+# /etc/nginx/sites-available/thaychienmath. HTTPS (cổng 443) do certbot tự thêm vào file này.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name __SERVER_NAMES__;
+
+    # Video bài giảng tối đa 500MB (xem backend/src/middleware/upload.js) → chừa dư một chút
+    client_max_body_size 520m;
+    # Đẩy thẳng file tải lên vào Node thay vì gom hết vào đĩa tạm của nginx trước
+    proxy_request_buffering off;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml text/plain;
+    gzip_min_length 1024;
+
+    # File giao diện đã build có mã băm trong tên → cho trình duyệt nhớ lâu
+    location /assets/ {
+        proxy_pass http://127.0.0.1:5100;
+        proxy_set_header Host $host;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:5100;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        # Backend dựa vào header này để bật cookie "secure" khi chạy HTTPS
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+    }
+}

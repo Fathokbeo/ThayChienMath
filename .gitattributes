@@ -1,0 +1,3 @@
+# Script chạy trên VPS Linux: luôn giữ xuống dòng kiểu Linux (LF), kể cả khi sửa trên Windows
+*.sh text eol=lf
+deploy/*.template text eol=lf

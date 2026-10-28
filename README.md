@@ -37,7 +37,14 @@ npm run dev                 # chạy tại http://localhost:5174
 Hoặc trên Windows chạy `start.bat` để mở cả hai cùng lúc.
 
 ### Tài khoản mặc định
-- Admin: `admin` / `admin123` (đổi mật khẩu ngay sau khi đăng nhập)
+- Máy cá nhân / bản demo: Admin `admin` / `admin123` (đổi mật khẩu ngay sau khi đăng nhập)
+- Bản chạy thật (`NODE_ENV=production`, không phải demo): **không** tự tạo `admin/admin123` — tài khoản quản trị
+  tạo từ `ADMIN_USERNAME` / `ADMIN_PASSWORD` trong `backend/.env`, hoặc bằng `npm run admin:password`
+
+## Đưa lên web thật (VPS + tên miền)
+
+Xem [deploy/HUONG_DAN_DEPLOY.md](deploy/HUONG_DAN_DEPLOY.md): 1 script cài đặt (Node, nginx, HTTPS, pm2, tường lửa,
+sao lưu hằng đêm) và 1 script cập nhật sau mỗi lần push code.
 
 ## Dữ liệu demo (bản xem thử)
 
@@ -68,7 +75,11 @@ Khi dùng thật: đặt `SEED_DEMO=0`, gắn ổ đĩa lưu trữ (persistent d
 | `PORT` | Cổng backend (mặc định 5100) |
 | `JWT_SECRET` | Chuỗi bí mật ký JWT |
 | `GEMINI_API_KEY` | Google Gemini API key ([lấy tại đây](https://aistudio.google.com/apikey)) |
+| `ANTHROPIC_API_KEY` | Anthropic (Claude) API key |
 | `FRONTEND_URL` | URL frontend cho CORS |
+| `NODE_ENV` | `production` khi chạy thật |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Tài khoản quản trị đầu tiên (chỉ dùng khi database chưa có admin) |
+| `DATA_DIR` | Thư mục chứa database (mặc định `backend/data`) |
 
 ## Lưu ý bảo mật
 

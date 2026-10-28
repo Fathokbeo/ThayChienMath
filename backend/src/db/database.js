@@ -3,11 +3,14 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const { ensureAllParentAccounts } = require('../services/parentAccounts');
 
-const DB_PATH = path.join(__dirname, '../../data/mathweb.db');
+// Thư mục database: mặc định backend/data; đặt DATA_DIR để để ở chỗ khác (vd ổ đĩa riêng, hoặc database thử nghiệm)
+const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, '../../data');
+const DB_PATH = path.join(DATA_DIR, 'mathweb.db');
 let db;
 
 function getDb() {
   if (!db) {
+    require('fs').mkdirSync(DATA_DIR, { recursive: true });
     db = new Database(DB_PATH);
     db.pragma('journal_mode = WAL');
     db.pragma('foreign_keys = ON');
@@ -496,12 +499,26 @@ function initSchema() {
     )
   `);
 
+  // Tài khoản quản trị đầu tiên (chỉ khi database chưa có admin nào):
+  // - ADMIN_USERNAME / ADMIN_PASSWORD trong .env → tạo đúng tài khoản đó (mật khẩu không lưu dạng chữ thường).
+  // - Không đặt: máy cá nhân / bản demo vẫn tạo admin / admin123 cho tiện; còn bản chạy thật (NODE_ENV=production,
+  //   không phải demo) thì KHÔNG tự tạo mật khẩu ai cũng biết — chỉ báo cách tạo.
   const admin = db.prepare("SELECT id FROM users WHERE role='admin' LIMIT 1").get();
   if (!admin) {
-    const hash = bcrypt.hashSync('admin123', 10);
-    db.prepare("INSERT INTO users (username,password,plain_password,full_name,role) VALUES (?,?,?,?,?)")
-      .run('admin', hash, 'admin123', 'Quản Trị Viên', 'admin');
-    console.log('Default admin created: admin / admin123');
+    const demoMode = process.env.SEED_DEMO === '1' || (!!process.env.RENDER && process.env.SEED_DEMO !== '0');
+    const realProd = process.env.NODE_ENV === 'production' && !demoMode;
+    const username = (process.env.ADMIN_USERNAME || 'admin').trim();
+    const password = process.env.ADMIN_PASSWORD || (realProd ? null : 'admin123');
+    if (!password) {
+      console.warn('⚠️  Chưa có tài khoản quản trị. Đặt ADMIN_USERNAME và ADMIN_PASSWORD trong backend/.env rồi khởi động lại,');
+      console.warn('    hoặc chạy: npm run admin:password (trong thư mục backend).');
+    } else if (realProd && password.length < 10) {
+      console.warn('⚠️  ADMIN_PASSWORD quá ngắn (cần ít nhất 10 ký tự) — chưa tạo tài khoản quản trị.');
+    } else {
+      db.prepare("INSERT INTO users (username,password,plain_password,full_name,role) VALUES (?,?,?,?,?)")
+        .run(username, bcrypt.hashSync(password, 10), process.env.ADMIN_PASSWORD ? null : password, 'Quản Trị Viên', 'admin');
+      console.log(`Đã tạo tài khoản quản trị: ${username}${process.env.ADMIN_PASSWORD ? '' : ' / admin123'}`);
+    }
   }
 
   // Mỗi học sinh luôn có 1 tài khoản phụ huynh — tạo bù cho học sinh cũ / tạo trước khi có tính năng này
@@ -509,4 +526,4 @@ function initSchema() {
   if (created) console.log(`Đã tạo ${created} tài khoản phụ huynh còn thiếu`);
 }
 
-module.exports = { getDb };
+module.exports = { getDb, DB_PATH };
