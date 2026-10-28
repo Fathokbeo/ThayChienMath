@@ -122,7 +122,7 @@ export default function Home() {
     <PublicLayout>
       {/* Mở đầu: tiêu đề lớn ở giữa + 2 nút; ảnh quảng cáo (nếu có) ngay bên dưới */}
       <section style={{ background: '#fff', textAlign: 'center', padding: '4.5rem 22px 3.5rem' }}>
-        <img src="/logo.svg" alt="Thầy Chiến Math" style={{ width: 64, height: 64, borderRadius: 16, margin: '0 auto' }} />
+        <img src="/logo.png" alt="Thầy Chiến Math" style={{ width: 64, height: 64, borderRadius: 16, margin: '0 auto' }} />
         <h1 style={{ fontSize: 'clamp(2.4rem, 6vw, 4rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: '18px auto 14px', maxWidth: 900, color: '#1D1D1F' }}>
           {settings.hero_title || 'Thầy Chiến Math'}
         </h1>

@@ -10,6 +10,7 @@ import PartsEditor from '../../components/PartsEditor';
 import HsaEditor from '../../components/HsaEditor';
 import useIsMobile from '../../lib/useIsMobile';
 import { toast } from '../../components/Toast';
+import { saveWorkbook } from '../../lib/native';
 import { sortByVietnameseName, matchesNameSearch, normalizeVietnamese } from '../../lib/vietnameseName';
 import { parseAttachments, isViewableFile } from '../../lib/attachments';
 import { emptyPartsConfig, normalizePartsConfig, computeMaxScore, anyPartEnabled, type PartsConfig, PART_LABELS, PART_ORDER, type PartKey, emptyHsaConfig, parseHsaConfig, hsaMaxScore, type HsaConfig, type ExamType } from '../../lib/homeworkParts';
@@ -279,7 +280,7 @@ export default function ClassDetail() {
     ws['!cols'] = [{ wch: 26 }, { wch: 18 }, { wch: 14 }, { wch: 16 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Danh sách');
-    XLSX.writeFile(wb, 'Mau danh sach hoc sinh.xlsx');
+    await saveWorkbook(XLSX, wb, 'Mau danh sach hoc sinh.xlsx');
   };
 
   // Đọc file Excel: tìm dòng tiêu đề, nhận diện cột theo tên (không phân biệt hoa thường/dấu)

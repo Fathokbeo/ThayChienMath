@@ -42,7 +42,7 @@ export default function ToastContainer() {
     // trang thì vùng đó phủ gần hết màn hình, làm các nút bên dưới (ví dụ nút 3 gạch) bấm không ăn.
     // Từng thẻ thông báo vẫn nhận chạm nhờ pointerEvents 'auto' bên dưới.
     <div style={{
-      position: 'fixed', top: 16, right: 16, zIndex: 9999,
+      position: 'fixed', top: 'calc(16px + var(--sa-top))', right: 16, zIndex: 9999,
       display: 'flex', flexDirection: 'column', gap: 8,
       width: 280, maxWidth: 'calc(100vw - 32px)', pointerEvents: 'none',
     }}>

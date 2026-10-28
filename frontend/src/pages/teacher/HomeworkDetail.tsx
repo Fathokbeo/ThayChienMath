@@ -9,6 +9,7 @@ import HomeworkReport from '../../components/HomeworkReport';
 import HomeworkStats from '../../components/HomeworkStats';
 import ProxySubmitModal from '../../components/ProxySubmitModal';
 import { toast } from '../../components/Toast';
+import { saveWorkbook } from '../../lib/native';
 import { parsePartsConfig, hasObjectiveParts } from '../../lib/homeworkParts';
 import { summarizeEssayFeedback, homeworkHasEssay } from '../../lib/feedbackSummary';
 import { ChevronLeft, Users, CheckCircle, XCircle, Clock, Bot, Star, Eye, Download, Repeat, Camera } from 'lucide-react';
@@ -132,7 +133,7 @@ export default function HomeworkDetail() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Bảng điểm');
     const safeTitle = (hw.title || 'bai-tap').replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 80);
-    XLSX.writeFile(wb, `Bang diem - ${safeTitle}.xlsx`);
+    await saveWorkbook(XLSX, wb, `Bang diem - ${safeTitle}.xlsx`);
     toast.success('Đã xuất file Excel');
   };
 

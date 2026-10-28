@@ -13,7 +13,10 @@
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.5.3",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/share": "^8.0.3",
     "@types/react-router-dom": "^5.3.3",
     "axios": "^1.17.0",
     "html-to-image": "^1.11.11",

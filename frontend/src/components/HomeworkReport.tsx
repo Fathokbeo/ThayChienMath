@@ -3,6 +3,7 @@ import { MessageSquareText, Download, Loader2 } from 'lucide-react';
 import { buildStudentReview, summarizeEssayFeedback, homeworkHasEssay, ERROR_TAGS, type ErrorTag } from '../lib/feedbackSummary';
 import useIsMobile from '../lib/useIsMobile';
 import { toast } from './Toast';
+import { savePdf } from '../lib/native';
 
 // Mục "Nhận xét" trên thanh chọn ở trang chi tiết bài tập (giáo viên): tổng quan điểm cả lớp + phổ điểm
 // + nhận xét từng học sinh (đầy đủ như file Excel: nhận xét chi tiết + nhận xét tự luận ngắn gọn) kèm
@@ -65,7 +66,7 @@ async function exportPdf(node: HTMLElement, filename: string) {
     first = false;
     y = end;
   }
-  pdf.save(filename);
+  await savePdf(pdf, filename); // web: tải về; app: mở bảng Chia sẻ
 }
 
 type CardProps = {

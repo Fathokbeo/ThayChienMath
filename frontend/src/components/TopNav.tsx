@@ -18,7 +18,7 @@ export default function TopNav() {
     <header className="topnav">
       <div className="topnav-inner">
         <Link to={`/${user?.role || ''}`} className="topnav-brand">
-          <img src="/logo.svg" alt="" style={{ width: 28, height: 28, borderRadius: 7 }} />
+          <img src="/logo.png" alt="" style={{ width: 28, height: 28, borderRadius: 7 }} />
           <span>Thầy Chiến Math</span>
         </Link>
 

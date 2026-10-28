@@ -37,9 +37,9 @@ export default function GradingDetails({ details }: { details: string | Detail[]
             <div key={i} style={{ display: 'flex', gap: 8, padding: '0.5rem 0.7rem', background: st.bg, borderRadius: 8, alignItems: 'flex-start' }}>
               <Icon size={16} color={st.color} style={{ flexShrink: 0, marginTop: 1 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px 6px' }}>
                   <span style={{ fontWeight: 700, fontSize: '0.82rem', color: '#1D1D1F' }}>{d.question || `Câu ${i + 1}`}</span>
-                  <span style={{ fontSize: '0.68rem', fontWeight: 700, color: st.color, background: 'white', padding: '1px 7px', borderRadius: 99 }}>{st.label}</span>
+                  <span style={{ fontSize: '0.68rem', fontWeight: 700, color: st.color, background: 'white', padding: '1px 7px', borderRadius: 99, whiteSpace: 'nowrap' }}>{st.label}</span>
                   {typeof d.points === 'number' && (
                     <span style={{ marginLeft: 'auto', fontSize: '0.78rem', fontWeight: 700, color: st.color, whiteSpace: 'nowrap' }}>
                       {fmtPts(d.points)}{typeof d.max_points === 'number' ? `/${fmtPts(d.max_points)}` : ''}đ

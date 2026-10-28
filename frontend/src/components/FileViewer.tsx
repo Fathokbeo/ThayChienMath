@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Download, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, FileText, ZoomIn, ZoomOut } from 'lucide-react';
+import PdfCanvasViewer from './PdfCanvasViewer';
+import { IS_NATIVE } from '../lib/native';
 
 const isPdf = (url: string) => url.split('?')[0].toLowerCase().endsWith('.pdf');
 
 // Xem 1 hoặc nhiều tài liệu (ảnh / PDF). Có điều hướng + dải thumbnail khi nhiều file.
 export default function FileViewer({ files, onClose }: { files: string[]; onClose: () => void }) {
   const [idx, setIdx] = useState(0);
+  const [zoom, setZoom] = useState(1);
   if (!files || files.length === 0) return null;
 
   const i = Math.min(idx, files.length - 1);
@@ -27,7 +30,18 @@ export default function FileViewer({ files, onClose }: { files: string[]; onClos
 
         <div style={{ flex: 1, position: 'relative', overflow: 'auto', background: '#26343A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {isPdf(url)
-            ? <iframe src={url} style={{ width: '100%', height: '100%', border: 'none', background: 'white' }} title="PDF" />
+            // App Android: WebView không tự hiển thị PDF trong iframe → vẽ bằng pdf.js (kèm nút phóng to/nhỏ)
+            ? IS_NATIVE
+              ? (
+                <>
+                  <PdfCanvasViewer url={url} zoom={zoom} />
+                  <div style={{ position: 'absolute', bottom: 14, right: 14, display: 'flex', gap: 4, background: 'rgba(32,32,40,0.72)', borderRadius: 99, padding: 3 }}>
+                    <button type="button" className="zoom-pill-btn" onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))} disabled={zoom <= 0.5} aria-label="Thu nhỏ"><ZoomOut size={17} /></button>
+                    <button type="button" className="zoom-pill-btn" onClick={() => setZoom((z) => Math.min(3, z + 0.25))} disabled={zoom >= 3} aria-label="Phóng to"><ZoomIn size={17} /></button>
+                  </div>
+                </>
+              )
+              : <iframe src={url} style={{ width: '100%', height: '100%', border: 'none', background: 'white' }} title="PDF" />
             : <img src={url} alt={`Trang ${i + 1}`} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />}
 
           {multi && (

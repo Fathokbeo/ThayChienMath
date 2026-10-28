@@ -278,28 +278,43 @@ export default function StudentClassDetail() {
     // attempts_left: null/undefined = không giới hạn số lần nộp
     const hasAttemptLimit = hw.attempts_left !== null && hw.attempts_left !== undefined;
     const attemptsExhausted = hasAttemptLimit && hw.attempts_left <= 0;
+    const submittedUrls = isSubmitted ? submittedFileUrls(hw) : [];
+    // Nút phụ: xem đề, bài đã nộp, đáp án, video chữa (nút chính Nộp bài / Làm bài vẽ riêng bên dưới)
+    const secondaryActions = [
+      hw.pdf_file && { key: 'de', cls: 'btn-ghost', icon: <FileText size={13} />, label: 'Xem đề', onClick: () => setViewFiles([fileUrl(`/uploads/homework/${hw.pdf_file}`)]) },
+      submittedUrls.length > 0 && { key: 'nop', cls: 'btn-ghost', icon: <Eye size={13} />, label: `Bài đã nộp (${submittedUrls.length})`, onClick: () => setViewFiles(submittedUrls) },
+      !!hw.can_see_answer && !!hw.answer_file && { key: 'da', cls: 'btn-success', icon: <Eye size={13} />, label: 'Đáp án', onClick: () => setViewFiles([fileUrl(`/uploads/homework/${hw.answer_file}`)]) },
+      !!hw.can_see_answer && !!hw.solution_video_url && { key: 'video', cls: 'btn-secondary', icon: <Video size={13} />, label: 'Video chữa', onClick: () => setSolutionVideo({ title: hw.title, url: hw.solution_video_url }) },
+    ].filter(Boolean) as { key: string; cls: string; icon: React.ReactNode; label: string; onClick: () => void }[];
 
     return (
-      <div key={hw.id} id={`hw-${hw.id}`} className="card" style={{ padding: '1.25rem', ...focusRing(`hw-${hw.id}`) }}>
+      <div key={hw.id} id={`hw-${hw.id}`} className="card" style={{ padding: isMobile ? '0.95rem' : '1.25rem', ...focusRing(`hw-${hw.id}`) }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flexDirection: isMobile ? 'column' : 'row' }}>
           <div style={{ display: 'flex', gap: 12, flex: 1, minWidth: 0, width: isMobile ? '100%' : 'auto' }}>
-          <div style={{ width: 36, height: 36, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: isSubmitted ? '#E5F1EA' : '#EFEBF5' }}>
-            {isSubmitted ? <CheckCircle size={18} color="#3A7D5C" /> : <ClipboardList size={18} color="#6E5A94" />}
-          </div>
+          {/* Ô biểu tượng trạng thái: điện thoại bỏ đi cho rộng chỗ (trạng thái đã có nhãn "Đã nộp"/"Hết hạn") */}
+          {!isMobile && (
+            <div style={{ width: 36, height: 36, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: isSubmitted ? '#E5F1EA' : '#EFEBF5' }}>
+              {isSubmitted ? <CheckCircle size={18} color="#3A7D5C" /> : <ClipboardList size={18} color="#6E5A94" />}
+            </div>
+          )}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <span style={{ fontWeight: 700, fontSize: '0.72rem', color: '#6E5A94', background: '#EFEBF5', borderRadius: 6, padding: '2px 7px', flexShrink: 0 }}>{i + 1}</span>
-              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{hw.title}</span>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontWeight: 700, fontSize: '0.72rem', color: '#6E5A94', background: '#EFEBF5', borderRadius: 6, padding: '2px 7px', flexShrink: 0, marginTop: 2 }}>{i + 1}</span>
+              <span style={{ fontWeight: 700, fontSize: '0.95rem', flex: 1, minWidth: 0, lineHeight: 1.35 }}>{hw.title}</span>
               {isSubmitted && <span className="badge badge-green">Đã nộp</span>}
               {!canSubmit && !isSubmitted && <span className="badge badge-gray">Hết hạn</span>}
               {!canSubmit && isSubmitted && !isOverdue && attemptsExhausted && <span className="badge badge-gray">Hết lượt nộp</span>}
             </div>
             {hw.description && <p style={{ margin: '0 0 8px', fontSize: '0.82rem', color: '#6E6E73', lineHeight: 1.5 }}>{hw.description}</p>}
 
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: '0.78rem', color: '#6E6E73' }}>
+            <div style={{ display: 'flex', gap: '4px 14px', flexWrap: 'wrap', fontSize: '0.78rem', color: '#6E6E73' }}>
               <span>Thang điểm: {hw.max_score}</span>
-              {hw.due_date && <span><Clock size={11} style={{ verticalAlign: 'middle' }} /> HH: {new Date(hw.due_date).toLocaleString('vi-VN')}</span>}
-              {hasAttemptLimit && <span><Upload size={11} style={{ verticalAlign: 'middle' }} /> Lượt nộp: {hw.max_attempts - hw.attempts_left}/{hw.max_attempts}</span>}
+              {hw.due_date && (
+                <span style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <Clock size={11} /> Hạn nộp: {new Date(hw.due_date).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })}
+                </span>
+              )}
+              {hasAttemptLimit && <span style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 4 }}><Upload size={11} /> Lượt nộp: {hw.max_attempts - hw.attempts_left}/{hw.max_attempts}</span>}
             </div>
             {hw.exam_type === 'hsa' ? (() => {
               const cfg = parseHsaConfig(hw.hsa_config);
@@ -330,30 +345,28 @@ export default function StudentClassDetail() {
 
             {/* Grade display */}
             {hasGrade && (
-              <div style={{ marginTop: 12, background: '#F7F7F9', borderRadius: 10, padding: '0.75rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.1rem', background: hw.score / hw.max_score >= 0.8 ? '#E5F1EA' : hw.score / hw.max_score >= 0.5 ? '#FBEEE6' : '#F8E6DF', color: hw.score / hw.max_score >= 0.8 ? '#3A7D5C' : hw.score / hw.max_score >= 0.5 ? '#B8673E' : '#B04A2A' }}>
-                    {hw.score}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.78rem', color: '#6E6E73' }}>Điểm đạt được</div>
-                    <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{hw.score}/{hw.max_score}</div>
-                  </div>
-                  {/* Góc trên bên phải: nhãn AI chấm + nút Chi tiết (mở/đóng nhận xét & từng câu) */}
-                  <div style={{ marginLeft: 'auto', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {/* !! ép cờ 0/1 từ CSDL về true/false — không thì số 0 bị in ra màn hình */}
-                    {!!hw.graded_by_ai && <span className="badge badge-purple"><Bot size={10} style={{ marginRight: 4 }} />AI chấm</span>}
-                    {!!hw.can_see_answer && !!(hw.feedback || hw.grading_details) && (
-                      <button className="btn btn-ghost btn-sm" onClick={() => setOpenGradeDetails((prev) => {
-                        const next = new Set(prev);
-                        if (next.has(hw.id)) next.delete(hw.id); else next.add(hw.id);
-                        return next;
-                      })}>
-                        {openGradeDetails.has(hw.id) ? <ChevronUp size={13} /> : <ChevronDown size={13} />} Chi tiết
-                      </button>
-                    )}
-                  </div>
+              <div style={{ marginTop: 12, background: '#F7F7F9', borderRadius: 12, padding: '0.75rem 0.9rem' }}>
+                {/* Nhãn + AI chấm ở trên, điểm to bên dưới — gọn trên điện thoại, không phải ép nhiều thứ vào 1 hàng */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.78rem', color: '#6E6E73' }}>
+                  Điểm đạt được
+                  {/* !! ép cờ 0/1 từ CSDL về true/false — không thì số 0 bị in ra màn hình */}
+                  {!!hw.graded_by_ai && <span className="badge badge-purple" style={{ marginLeft: 'auto' }}><Bot size={10} style={{ marginRight: 4 }} />AI chấm</span>}
                 </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 2 }}>
+                  <span style={{ fontWeight: 800, fontSize: '1.7rem', letterSpacing: '-0.02em', color: hw.score / hw.max_score >= 0.8 ? '#3A7D5C' : hw.score / hw.max_score >= 0.5 ? '#B8673E' : '#B04A2A' }}>{hw.score}</span>
+                  <span style={{ fontWeight: 600, fontSize: '0.95rem', color: '#86868B' }}>/{hw.max_score}</span>
+                </div>
+                {/* Mở/đóng nhận xét & kết quả từng câu: một dòng riêng ở đáy ô điểm, bấm dễ bằng ngón tay */}
+                {!!hw.can_see_answer && !!(hw.feedback || hw.grading_details) && (
+                  <button type="button" onClick={() => setOpenGradeDetails((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(hw.id)) next.delete(hw.id); else next.add(hw.id);
+                    return next;
+                  })}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, width: '100%', marginTop: 8, padding: '8px 0 2px', border: 'none', borderTop: '1px solid #E8E8ED', background: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.84rem', fontWeight: 600, color: '#1F5C68' }}>
+                    {openGradeDetails.has(hw.id) ? <>Ẩn nhận xét <ChevronUp size={15} /></> : <>Xem nhận xét &amp; từng câu <ChevronDown size={15} /></>}
+                  </button>
+                )}
                 {/* Nhận xét + chi tiết sai câu nào: chỉ hiện sau khi mở đáp án (theo "Thời gian xem đáp án")
                     VÀ học sinh bấm nút "Chi tiết" — mặc định ẩn cho gọn */}
                 {hw.can_see_answer ? (
@@ -404,35 +417,22 @@ export default function StudentClassDetail() {
           </div>
           </div>
 
-          {/* Actions */}
-          <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', flexWrap: 'wrap', gap: 6, alignItems: 'center', justifyContent: isMobile ? 'flex-start' : 'flex-end', flexShrink: 0, width: isMobile ? '100%' : 'auto' }}>
-            {hw.pdf_file && (
-              <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles([fileUrl(`/uploads/homework/${hw.pdf_file}`)])}>
-                <FileText size={13} /> Xem đề
+          {/* Actions — máy tính: cột nút bên phải. Điện thoại (.hw-actions-m): lưới 2 cột đều nhau, nút chính
+              (Nộp bài / Làm bài) lên đầu rộng cả hàng; số nút phụ lẻ thì nút cuối rộng cả hàng cho cân */}
+          <div className={isMobile ? 'hw-actions-m' : undefined}
+            style={isMobile ? undefined : { display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: 6, alignItems: 'center', justifyContent: 'flex-end', flexShrink: 0 }}>
+            {secondaryActions.map((a, k) => (
+              <button key={a.key} className={`btn ${a.cls} btn-sm${isMobile && secondaryActions.length % 2 === 1 && k === secondaryActions.length - 1 ? ' hw-wide' : ''}`} onClick={a.onClick}>
+                {a.icon} {a.label}
               </button>
-            )}
-            {isSubmitted && submittedFileUrls(hw).length > 0 && (
-              <button className="btn btn-ghost btn-sm" onClick={() => setViewFiles(submittedFileUrls(hw))}>
-                <Eye size={13} /> Bài đã nộp ({submittedFileUrls(hw).length})
-              </button>
-            )}
-            {!!hw.can_see_answer && !!hw.answer_file && (
-              <button className="btn btn-success btn-sm" onClick={() => setViewFiles([fileUrl(`/uploads/homework/${hw.answer_file}`)])}>
-                <Eye size={13} /> Đáp án
-              </button>
-            )}
-            {!!hw.can_see_answer && !!hw.solution_video_url && (
-              <button className="btn btn-secondary btn-sm" onClick={() => setSolutionVideo({ title: hw.title, url: hw.solution_video_url })}>
-                <Video size={13} /> Video chữa
-              </button>
-            )}
+            ))}
             {!hw.can_see_answer && hw.answer_visible_date && (
-              <span style={{ fontSize: '0.72rem', color: '#86868B', display: 'flex', alignItems: 'center', gap: 3 }}>
+              <span className="hw-wide" style={{ fontSize: '0.72rem', color: '#86868B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
                 <Lock size={11} /> Đáp án mở lúc {new Date(hw.answer_visible_date).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
               </span>
             )}
             {canSubmit ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+              <div className="hw-primary" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                 {hw.exam_type === 'hsa' ? (
                   <button className="btn btn-primary btn-sm" onClick={() => startExam(hw)}>
                     <Timer size={13} /> {hw.attempt_started_at ? 'Tiếp tục làm bài' : isSubmitted ? 'Làm lại' : 'Làm bài'}
@@ -469,9 +469,9 @@ export default function StudentClassDetail() {
                 )}
               </div>
             ) : !isSubmitted ? (
-              <span style={{ fontSize: '0.78rem', color: '#B04A2A' }}>Hết hạn</span>
+              !isMobile && <span style={{ fontSize: '0.78rem', color: '#B04A2A' }}>Hết hạn</span> // điện thoại: đã có nhãn "Hết hạn" cạnh tên bài
             ) : !isOverdue && attemptsExhausted && (
-              <span style={{ fontSize: '0.78rem', color: '#B04A2A' }}>Đã hết lượt nộp lại (tối đa {hw.max_attempts} lần)</span>
+              <span className="hw-wide" style={{ fontSize: '0.78rem', color: '#B04A2A', textAlign: 'center' }}>Đã hết lượt nộp lại (tối đa {hw.max_attempts} lần)</span>
             )}
           </div>
         </div>
@@ -487,7 +487,8 @@ export default function StudentClassDetail() {
     const lessonsKey = `${group.key}-lessons`, hwKey = `${group.key}-homework`;
     const lessonsOpen = expandedSections.has(lessonsKey), hwOpen = expandedSections.has(hwKey);
     return (
-      <div style={{ padding: standalone ? '1.25rem' : '0 1.25rem 1.25rem', display: 'flex', flexDirection: 'column', gap: 16, borderTop: standalone ? 'none' : '1px solid #EDEDF0' }}>
+      // Điện thoại: lề trong mỏng hơn để thẻ bài tập lồng bên trong không bị hẹp
+      <div style={{ padding: standalone ? (isMobile ? '0.85rem' : '1.25rem') : (isMobile ? '0 0.7rem 0.85rem' : '0 1.25rem 1.25rem'), display: 'flex', flexDirection: 'column', gap: 16, borderTop: standalone ? 'none' : '1px solid #EDEDF0' }}>
         <div style={{ marginTop: standalone ? 0 : 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, cursor: lc > 0 ? 'pointer' : 'default' }} onClick={() => lc > 0 && toggleSection(lessonsKey)}>
             {lc > 0 && (lessonsOpen ? <ChevronDown size={14} color="#A1A1A6" /> : <ChevronRight size={14} color="#A1A1A6" />)}
@@ -515,7 +516,7 @@ export default function StudentClassDetail() {
     const lc = group.lessons.length, hc = group.homework.length;
     return (
       <div key={group.key} className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div onClick={() => toggleChapter(group.key)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '1rem 1.25rem', cursor: 'pointer' }}>
+        <div onClick={() => toggleChapter(group.key)} style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 10 : 12, padding: isMobile ? '0.9rem 0.95rem' : '1rem 1.25rem', cursor: 'pointer' }}>
           {open ? <ChevronDown size={18} color="#6E6E73" /> : <ChevronRight size={18} color="#6E6E73" />}
           <div style={{ width: 36, height: 36, background: '#E6F0F3', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <span style={{ fontWeight: 700, color: '#2F6F82', fontSize: '0.9rem' }}>{idx + 1}</span>

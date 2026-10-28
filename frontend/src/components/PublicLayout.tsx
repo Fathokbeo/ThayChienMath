@@ -101,11 +101,11 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         position: 'sticky', top: 0, zIndex: 100,
         background: '#FFFFFF',
         borderBottom: `1px solid ${scrolled ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.06)'}`,
-        transition: 'border-color 0.2s', padding: '0 22px',
+        transition: 'border-color 0.2s', padding: 'var(--sa-top) 22px 0',
       }}>
         <div style={{ maxWidth: PAGE_MAX, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52 }}>
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', color: '#1D1D1F', fontWeight: 700, letterSpacing: '-0.02em' }}>
-            <img src="/logo.svg" alt="Thầy Chiến Math" style={{ width: 28, height: 28, borderRadius: 7 }} />
+            <img src="/logo.png" alt="Thầy Chiến Math" style={{ width: 28, height: 28, borderRadius: 7 }} />
             Thầy Chiến Math
           </Link>
 
