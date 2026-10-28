@@ -4,6 +4,9 @@
 # Script hỏi: tên miền, email (cho chứng chỉ HTTPS), tài khoản quản trị, API key chấm bài AI.
 # Chạy lại lần nữa vẫn an toàn: bước nào đã xong thì bỏ qua (không ghi đè backend/.env đã có).
 set -euo pipefail
+# Quyền tạo file mặc định: ai cũng đọc được (pm2, thư viện cài -g phải đọc được bằng user chạy web).
+# File bí mật (.env) được khóa riêng bên dưới.
+umask 022
 
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_USER="thaychien"
