@@ -16,7 +16,10 @@ echo "==> Sao lưu trước khi cập nhật"
 bash deploy/backup.sh
 
 echo "==> Lấy code mới"
-git pull --ff-only
+# Lấy đúng bản trên GitHub (bỏ thay đổi lặt vặt trên server, vd package-lock do npm install sửa).
+# Database, file tải lên, backend/.env không nằm trong git nên không bị ảnh hưởng.
+git fetch -q origin main
+git reset -q --hard origin/main
 
 echo "==> Build"
 npm run build

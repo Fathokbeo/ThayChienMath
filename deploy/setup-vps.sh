@@ -156,9 +156,18 @@ cat > /etc/cron.d/thaychienmath-backup <<EOF
 EOF
 chmod 644 /etc/cron.d/thaychienmath-backup
 
+# ── 12. Tự động deploy: push lên GitHub là web tự cập nhật (kiểm tra mỗi phút) ──
+say "Bật tự động deploy khi có code mới trên GitHub"
+touch /var/log/thaychienmath-deploy.log && chown "$APP_USER:$APP_USER" /var/log/thaychienmath-deploy.log
+cat > /etc/cron.d/thaychienmath-deploy <<EOF
+* * * * * $APP_USER bash $APP_DIR/deploy/auto-deploy.sh >> /var/log/thaychienmath-deploy.log 2>&1
+EOF
+chmod 644 /etc/cron.d/thaychienmath-deploy
+
 say "XONG!"
 echo "  Web:          https://$DOMAIN"
 echo "  Xem log:      sudo -u $APP_USER pm2 logs $APP_NAME"
-echo "  Cập nhật:     sudo bash $APP_DIR/deploy/update.sh"
+echo "  Cập nhật:     tự động sau khi push lên GitHub (1–5 phút) — log: /var/log/thaychienmath-deploy.log"
+echo "                (cập nhật ngay bằng tay: sudo bash $APP_DIR/deploy/update.sh)"
 echo "  Sao lưu tại:  $BACKUP_DIR (mỗi đêm 2:30)"
 echo "  Quên mật khẩu quản trị:  cd $APP_DIR/backend && sudo -u $APP_USER npm run admin:password"
