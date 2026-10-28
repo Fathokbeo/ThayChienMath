@@ -58,7 +58,9 @@ fi
 say "Cài phần mềm hệ thống (nginx, certbot, git, công cụ build...)"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
-apt-get install -y curl ca-certificates git nginx rsync build-essential python3 ufw certbot python3-certbot-nginx
+# cron: Ubuntu bản thu gọn (minimized) không có sẵn — thiếu thì sao lưu hằng đêm & tự động deploy không chạy
+apt-get install -y curl ca-certificates git nginx rsync build-essential python3 ufw certbot python3-certbot-nginx cron sudo openssl
+systemctl enable --now cron
 
 if ! command -v node >/dev/null || [[ "$(node -v)" != v22* ]]; then
   say "Cài Node.js 22"
