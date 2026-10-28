@@ -377,8 +377,11 @@ button.list-row { width: 100%; border: none; background: #fff; font-family: inhe
 }
 
 /* ── Thanh điều hướng trang công khai ────────────────────── */
-.desktop-nav { display: flex; align-items: center; gap: 2px; }
-.mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; padding: 6px; border-radius: 8px; }
+/* Máy tính: chữ đầy đủ. Điện thoại: cùng các nút nhưng chỉ còn biểu tượng (xem khối @media bên dưới). */
+.pub-nav { display: flex; align-items: center; gap: 2px; }
+.pub-icon { display: none; }
+.pub-drop { position: absolute; right: 0; top: 100%; padding-top: 8px; z-index: 130; }
+.pub-drop > .menu-panel { position: static; width: 290px; }
 
 /* ── Điện thoại ──────────────────────────────────────────── */
 @media (max-width: 768px) {
@@ -387,8 +390,14 @@ button.list-row { width: 100%; border: none; background: #fff; font-family: inhe
   .search-pill .search-text, .search-pill .kbd { display: none; }
   .search-pill { width: 36px; padding: 0; justify-content: center; background: transparent; }
   .content-area { padding: 1.4rem 16px calc(var(--tc-tabbar-h) + env(safe-area-inset-bottom) + 1.5rem); }
-  .desktop-nav { display: none; }
-  .mobile-menu-btn { display: flex; }
+  .pub-nav { gap: 6px; }
+  .pub-label { display: none; }
+  .pub-icon { display: block; }
+  .pub-btn { width: 40px; height: 40px; padding: 0 !important; justify-content: center; }
+  .pub-account { padding: 3px !important; }
+  /* Menu thả xuống: trải gần hết chiều ngang, ngay dưới thanh trên cùng (thanh cao 52px) */
+  .pub-drop { position: fixed; left: 10px; right: 10px; top: 52px; }
+  .pub-drop > .menu-panel { width: auto; }
   .card { padding: 1.15rem; border-radius: 16px; }
   .page-title { font-size: 1.8rem; }
 

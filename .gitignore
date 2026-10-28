@@ -26,6 +26,9 @@ dist/
 *.keystore
 build/
 
+# ── Cấu hình riêng của IDE (Android Studio / IntelliJ) ──
+.idea/
+
 # ── Logs / tạm ──────────────────────────────────
 *.log
 npm-debug.log*

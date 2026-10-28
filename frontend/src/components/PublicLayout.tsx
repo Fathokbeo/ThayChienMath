@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 import { PAGE_MAX } from '../lib/layout';
-import { Phone, MapPin, Clock, Mail, ExternalLink, Menu, X, LogIn, LogOut, ChevronDown, Home, BookOpen, GraduationCap, Trophy, Award, LayoutDashboard, type LucideIcon } from 'lucide-react';
+import { Phone, MapPin, Clock, Mail, ExternalLink, LogIn, LogOut, ChevronDown, Home, BookOpen, GraduationCap, Trophy, Award, LayoutDashboard, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { ENTER_LABEL, roleColors, accountSubtitle } from '../lib/navigation';
 
 // Các mục của trang chủ — gom vào 1 nút "Trang chủ" thả xuống
@@ -39,7 +39,6 @@ function MenuLink({ item, onPick, style }: { item: (typeof HOME_MENU)[number]; o
 export default function PublicLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
-  const [navOpen, setNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [settings, setSettings] = useState<any>({});
   const [homeOpen, setHomeOpen] = useState(false);
@@ -78,10 +77,8 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
-  const handleLogout = () => { logout(); setNavOpen(false); setAccountOpen(false); };
+  const handleLogout = () => { logout(); setAccountOpen(false); };
   const dashLink = user ? `/${user.role}` : '/login';
-  // Thanh điều hướng luôn nền trơn; khi cuộn thêm đường viền mảnh
-  const solid = true;
   const [avBg, avFg] = roleColors(user?.role);
   const avatar = (size: number) => (
     <span className="avatar" style={{ width: size, height: size, background: avBg, color: avFg, fontSize: size > 34 ? '1rem' : '0.82rem' }}>{user?.full_name?.[0] || 'U'}</span>
@@ -112,21 +109,26 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             Thầy Chiến Math
           </Link>
 
-          {/* Desktop nav */}
-          <div className="desktop-nav">
+          {/* Thanh công cụ: máy tính hiện chữ; điện thoại chỉ hiện biểu tượng (.pub-label ẩn, .pub-icon hiện) */}
+          <div className="pub-nav">
+            {/* Rê chuột chỉ áp dụng cho chuột thật — trên điện thoại một lần chạm sẽ vừa "rê vào" vừa bấm, menu mở rồi đóng ngay */}
             <div ref={homeRef} style={{ position: 'relative' }}
-              onMouseEnter={() => setHomeOpen(true)} onMouseLeave={() => setHomeOpen(false)}>
-              <button type="button" onClick={() => setHomeOpen((v) => !v)} aria-haspopup="menu" aria-expanded={homeOpen}
+              onPointerEnter={(e) => { if (e.pointerType === 'mouse') setHomeOpen(true); }}
+              onPointerLeave={(e) => { if (e.pointerType === 'mouse') setHomeOpen(false); }}>
+              <button type="button" className="pub-btn" onClick={() => { setHomeOpen((v) => !v); setAccountOpen(false); }}
+                aria-haspopup="menu" aria-expanded={homeOpen} aria-label="Trang chủ" title="Trang chủ"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 4, background: homeOpen ? '#F2F2F4' : 'transparent', border: 'none', cursor: 'pointer',
                   color: '#1D1D1F', fontFamily: 'inherit', fontWeight: 600, fontSize: '0.88rem', padding: '7px 12px', borderRadius: 99,
                 }}>
-                Trang chủ <ChevronDown size={15} style={{ transition: 'transform 0.2s', transform: homeOpen ? 'rotate(180deg)' : 'none' }} />
+                <LayoutGrid size={21} className="pub-icon" />
+                <span className="pub-label">Trang chủ</span>
+                <ChevronDown size={15} className="pub-label" style={{ transition: 'transform 0.2s', transform: homeOpen ? 'rotate(180deg)' : 'none' }} />
               </button>
               {homeOpen && (
                 // paddingTop tạo "cầu nối" để rê chuột từ nút xuống danh sách không bị đóng
-                <div style={{ position: 'absolute', right: 0, top: '100%', paddingTop: 8, zIndex: 130 }}>
-                  <div className="menu-panel" role="menu" style={{ position: 'static', width: 290 }}>
+                <div className="pub-drop">
+                  <div className="menu-panel" role="menu">
                     {HOME_MENU.map((it, i) => (
                       <div key={it.to}>
                         {i === 1 && <div className="menu-sep" />}
@@ -141,18 +143,19 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             {user ? (
               // Nút tài khoản → menu: thông tin tài khoản, vào hệ thống (theo vai trò), đăng xuất
               <div ref={accountRef} style={{ position: 'relative', marginLeft: 8 }}>
-                <button type="button" onClick={() => setAccountOpen((v) => !v)} aria-haspopup="menu" aria-expanded={accountOpen} title="Tài khoản"
+                <button type="button" className="pub-account" onClick={() => { setAccountOpen((v) => !v); setHomeOpen(false); }}
+                  aria-haspopup="menu" aria-expanded={accountOpen} aria-label="Tài khoản" title="Tài khoản"
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8, background: accountOpen ? '#F2F2F4' : 'transparent', border: '1px solid #E5E5EA',
                     borderRadius: 99, padding: '3px 10px 3px 3px', cursor: 'pointer', fontFamily: 'inherit', color: '#1D1D1F',
                   }}>
-                  {avatar(30)}
-                  <span style={{ fontWeight: 600, fontSize: '0.88rem', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.full_name}</span>
-                  <ChevronDown size={15} color="#6E6E73" style={{ transition: 'transform 0.2s', transform: accountOpen ? 'rotate(180deg)' : 'none' }} />
+                  {avatar(32)}
+                  <span className="pub-label" style={{ fontWeight: 600, fontSize: '0.88rem', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.full_name}</span>
+                  <ChevronDown size={15} color="#6E6E73" className="pub-label" style={{ transition: 'transform 0.2s', transform: accountOpen ? 'rotate(180deg)' : 'none' }} />
                 </button>
                 {accountOpen && (
-                  <div style={{ position: 'absolute', right: 0, top: '100%', paddingTop: 8, zIndex: 130 }}>
-                    <div className="menu-panel" role="menu" style={{ position: 'static', width: 280 }}>
+                  <div className="pub-drop">
+                    <div className="menu-panel" role="menu">
                       {accountHeader}
                       <div className="menu-sep" />
                       <Link to={dashLink} className="menu-item" role="menuitem" onClick={() => setAccountOpen(false)} style={{ color: '#1F5C68', fontWeight: 600 }}>
@@ -166,39 +169,13 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                 )}
               </div>
             ) : (
-              <Link to="/login" className="btn btn-primary btn-sm" style={{ marginLeft: 8 }}><LogIn size={14} /> Đăng nhập</Link>
+              <Link to="/login" className="btn btn-primary btn-sm pub-btn" style={{ marginLeft: 8 }} aria-label="Đăng nhập" title="Đăng nhập">
+                <LogIn size={14} className="pub-label" /><span className="pub-label">Đăng nhập</span>
+                <LogIn size={19} className="pub-icon" />
+              </Link>
             )}
           </div>
-
-          {/* Mobile hamburger */}
-          <button onClick={() => setNavOpen(!navOpen)} style={{ color: solid ? '#2C2C2E' : 'white' }} className="mobile-menu-btn">
-            {navOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
         </div>
-
-        {/* Mobile menu */}
-        {navOpen && (
-          <div style={{ background: 'white', borderTop: '1px solid #E8E8ED', padding: '1rem 2rem' }}>
-            <div style={{ fontSize: '0.74rem', fontWeight: 600, color: '#86868B', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0.2rem 0 0.4rem' }}>Trang chủ</div>
-            {HOME_MENU.map((it, i) => (
-              <MenuLink key={it.to} item={it} onPick={() => setNavOpen(false)} style={{ marginLeft: i === 0 ? 0 : 14 }} />
-            ))}
-            <div style={{ height: 1, background: '#E8E8ED', margin: '0.6rem 0' }} />
-            {user ? (
-              <>
-                <div style={{ margin: '0 -10px' }}>{accountHeader}</div>
-                <Link to={dashLink} onClick={() => setNavOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0.6rem 0', color: '#1F5C68', fontWeight: 600 }}>
-                  <LayoutDashboard size={17} /> {ENTER_LABEL[user.role]}
-                </Link>
-                <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', padding: '0.6rem 0', color: '#B04A2A', fontWeight: 500, fontSize: 'inherit', fontFamily: 'inherit', cursor: 'pointer', width: '100%', textAlign: 'left' }}>
-                  <LogOut size={17} /> Đăng xuất
-                </button>
-              </>
-            ) : (
-              <Link to="/login" onClick={() => setNavOpen(false)} style={{ display: 'block', padding: '0.6rem 0', color: '#1F5C68', fontWeight: 600 }}>Đăng nhập</Link>
-            )}
-          </div>
-        )}
       </nav>
 
       {/* Page content */}
