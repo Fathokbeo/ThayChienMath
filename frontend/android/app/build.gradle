@@ -7,8 +7,9 @@ android {
         applicationId "vn.thaychienmath.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        // Mỗi lần gửi bản mới lên Google Play: versionCode +1 (bắt buộc, số nguyên tăng dần), versionName là số hiện cho người dùng
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

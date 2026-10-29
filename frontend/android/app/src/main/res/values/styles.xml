@@ -16,7 +16,10 @@
     </style>
 
 
+    <!-- Màn chờ khi mở app: logo A+ trên nền trắng (Android 12+ dùng windowSplashScreen*, bản cũ dùng background) -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">@android:color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
     </style>
 </resources>

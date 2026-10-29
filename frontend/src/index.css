@@ -469,3 +469,9 @@ button.list-row { width: 100%; border: none; background: #fff; font-family: inhe
 .grade-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
 .grade-chips > * { flex-shrink: 0; white-space: nowrap; }
 .grade-chips::-webkit-scrollbar { display: none; }
+
+/* Trang chính sách bảo mật */
+.policy ul { list-style: disc; padding-left: 1.2rem; margin: 0.4rem 0; }
+.policy li { margin: 0.25rem 0; }
+.policy p { margin: 0.6rem 0; }
+.policy a { color: var(--tc-accent); }

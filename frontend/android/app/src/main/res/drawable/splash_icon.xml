@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Biểu tượng màn chờ hệ thống Android 12+: khung 240dp, hệ thống chỉ hiện phần tròn đường kính ~160dp ở giữa
+     → chừa lề 40dp mỗi bên để logo tròn A+ nằm trọn trong vòng tròn -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/splash_logo"
+    android:inset="40dp" />

@@ -216,6 +216,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
       {/* Footer */}
       <footer style={{ background: '#1F5C68', color: 'rgba(255,255,255,0.7)', textAlign: 'center', padding: '1.5rem', fontSize: '0.82rem' }}>
         © {new Date().getFullYear()} Thầy Chiến Math. All rights reserved.
+        <div style={{ marginTop: 6 }}><Link to="/chinh-sach-bao-mat" style={{ color: 'rgba(255,255,255,0.85)' }}>Chính sách bảo mật</Link></div>
       </footer>
     </div>
   );
