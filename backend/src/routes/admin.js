@@ -200,15 +200,15 @@ function resolveTeacherId(db, teacherId) {
 }
 
 router.post('/courses', (req, res) => {
-  const { title, description, teacher_id } = req.body;
+  const { title, description, teacher_id, price, open_registration } = req.body;
   if (!title) return res.status(400).json({ message: 'Cần tiêu đề khóa học' });
   const db = getDb();
   // created_by = giáo viên được chỉ định (để khóa hiện trong "Khóa học của tôi" của GV đó), hoặc admin nếu bỏ trống.
   const tid = resolveTeacherId(db, teacher_id);
   if (tid === undefined) return res.status(400).json({ message: 'Giáo viên không hợp lệ' });
   const result = db.prepare(
-    'INSERT INTO courses (title,description,created_by) VALUES (?,?,?)'
-  ).run(title, description || null, tid || req.user.id);
+    'INSERT INTO courses (title,description,created_by,price,open_registration) VALUES (?,?,?,?,?)'
+  ).run(title, description || null, tid || req.user.id, String(price || '').trim().slice(0, 80) || null, open_registration === false ? 0 : 1);
   res.status(201).json({ id: result.lastInsertRowid, title });
 });
 
@@ -220,11 +220,13 @@ router.post('/courses/:id/thumbnail', uploadCourseThumbnail.single('thumbnail'),
 });
 
 router.put('/courses/:id', (req, res) => {
-  const { title, description, active, teacher_id } = req.body;
+  const { title, description, active, teacher_id, price, open_registration } = req.body;
   const db = getDb();
   const sets = []; const vals = [];
   if (title) { sets.push('title=?'); vals.push(title); }
   if (description !== undefined) { sets.push('description=?'); vals.push(description); }
+  if (price !== undefined) { sets.push('price=?'); vals.push(String(price || '').trim().slice(0, 80) || null); }
+  if (open_registration !== undefined) { sets.push('open_registration=?'); vals.push(open_registration ? 1 : 0); }
   if (active !== undefined) { sets.push('active=?'); vals.push(active ? 1 : 0); }
   // Chỉ định lại giáo viên phụ trách khóa (created_by). Bỏ trống → admin quản lý.
   let newTeacherId;

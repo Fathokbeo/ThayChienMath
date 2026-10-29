@@ -232,20 +232,20 @@ function SettingsForm() {
   );
 }
 
+// "Học sinh tiêu biểu" và "Kinh nghiệm & Thành tích" đã bỏ khỏi trang chủ (thay bằng Khóa học + Đề và chuyên môn)
+// nên không còn tab ở đây; dữ liệu cũ vẫn giữ trong database.
 const TABS = [
-  { key: 'featured-students', label: 'Học sinh tiêu biểu' },
   { key: 'staff', label: 'Giáo viên & Trợ giảng' },
-  { key: 'achievements', label: 'Kinh nghiệm' },
   { key: 'settings', label: 'Liên hệ & Trang chủ' },
 ];
 
 export default function SiteContent() {
-  const [tab, setTab] = useState('featured-students');
+  const [tab, setTab] = useState('staff');
   return (
     <div className="fade-in">
       <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Nội dung trang giới thiệu</h1>
       <p style={{ margin: '0 0 1.25rem', color: '#6E6E73', fontSize: '0.86rem' }}>
-        Mục <b>Khóa học tiêu biểu</b> trên trang chủ lấy thẳng từ <b>Quản lý khóa học</b>, không cần nhập riêng ở đây nữa.
+        Mục <b>Khóa học</b> trên trang chủ (học phí, nút đăng ký) lấy từ <b>Quản lý khóa học</b>; mục <b>Đề và chuyên môn</b> quản lý ở trang <b>Đề thi</b>.
       </p>
 
       <div style={{ display: 'flex', gap: 4, background: '#F2F2F4', padding: 4, borderRadius: 10, marginBottom: '1.5rem', flexWrap: 'wrap', width: 'fit-content' }}>

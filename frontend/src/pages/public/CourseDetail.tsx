@@ -4,7 +4,8 @@ import PublicLayout from '../../components/PublicLayout';
 import api from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from '../../components/Toast';
-import { BookOpen, Users, GraduationCap, LogIn, Lock } from 'lucide-react';
+import { BookOpen, Users, GraduationCap, LogIn, Lock, ClipboardCheck } from 'lucide-react';
+import CourseRegisterModal from '../../components/CourseRegisterModal';
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +14,7 @@ export default function CourseDetail() {
   const [course, setCourse] = useState<any>(null);
   const [notEnrolled, setNotEnrolled] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [registering, setRegistering] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,13 +52,23 @@ export default function CourseDetail() {
 
   return (
     <PublicLayout>
-      <div style={{ background: 'linear-gradient(135deg, #1D1D1F, #1F5C68)', padding: '3rem 2rem', textAlign: 'center', color: 'white' }}>
+      <div style={{ background: 'linear-gradient(135deg, #1D1D1F, #1F5C68)', padding: '2.75rem 1.25rem', textAlign: 'center', color: 'white' }}>
         <BookOpen size={40} style={{ marginBottom: 12 }} />
-        <h1 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>{course.title}</h1>
+        <h1 style={{ margin: 0, fontSize: 'clamp(1.6rem, 4vw, 2rem)', fontWeight: 800 }}>{course.title}</h1>
         {course.description && <p style={{ margin: '8px 0 0', color: 'rgba(255,255,255,0.85)' }}>{course.description}</p>}
+        <div style={{ marginTop: 14, fontSize: '1.05rem' }}>
+          Học phí: <strong style={{ fontSize: '1.2rem' }}>{course.price || 'Liên hệ'}</strong>
+        </div>
+        {!!course.open_registration && (
+          <button type="button" className="btn btn-lg" onClick={() => setRegistering(true)}
+            style={{ marginTop: 16, background: '#fff', color: '#1F5C68', fontWeight: 700 }}>
+            <ClipboardCheck size={18} /> Đăng ký học & thi thử đầu vào
+          </button>
+        )}
       </div>
+      <CourseRegisterModal course={registering ? course : null} onClose={() => setRegistering(false)} />
 
-      <section style={{ maxWidth: 900, margin: '0 auto', padding: '2.5rem 2rem' }}>
+      <section style={{ maxWidth: 900, margin: '0 auto', padding: '2rem 16px 2.5rem' }}>
         {notEnrolled && (
           <div style={{ background: '#FBEEE6', border: '1px solid #F5D7C3', borderRadius: 12, padding: '1rem 1.25rem', marginBottom: '1.5rem', color: '#B8673E', fontSize: '0.9rem' }}>
             Bạn chưa có trong lớp học nào của khóa này. Vui lòng liên hệ trung tâm để được đăng ký.

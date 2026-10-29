@@ -49,6 +49,7 @@ app.use('/uploads', uploadsAuth, express.static(path.join(__dirname, '../uploads
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/public', require('./routes/public'));
 app.use('/api/admin/content', require('./routes/content'));  // trước /api/admin
+app.use('/api/admin/site', require('./routes/siteAdmin')); // tuyển sinh + đề thi (trước /api/admin)
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/teacher', require('./routes/teacher'));
 app.use('/api/student', require('./routes/student'));

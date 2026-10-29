@@ -3,16 +3,15 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 import { PAGE_MAX } from '../lib/layout';
-import { Phone, MapPin, Clock, Mail, ExternalLink, LogIn, LogOut, ChevronDown, Home, BookOpen, GraduationCap, Trophy, Award, LayoutDashboard, LayoutGrid, type LucideIcon } from 'lucide-react';
+import { Phone, MapPin, Clock, Mail, ExternalLink, LogIn, LogOut, ChevronDown, Home, BookOpen, GraduationCap, FileStack, LayoutDashboard, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { ENTER_LABEL, roleColors, accountSubtitle } from '../lib/navigation';
 
 // Các mục của trang chủ — gom vào 1 nút "Trang chủ" thả xuống
 const HOME_MENU: { to: string; label: string; sub: string; icon: LucideIcon }[] = [
   { to: '/', label: 'Trang chủ', sub: 'Về đầu trang giới thiệu', icon: Home },
-  { to: '/#khoa-hoc', label: 'Khóa học', sub: 'Các khóa học đang mở', icon: BookOpen },
+  { to: '/#khoa-hoc', label: 'Khóa học & đăng ký', sub: 'Học phí, đăng ký thi thử đầu vào', icon: BookOpen },
+  { to: '/de-thi', label: 'Đề và chuyên môn', sub: 'Kho đề Toán theo từng lớp', icon: FileStack },
   { to: '/#giao-vien', label: 'Đội ngũ', sub: 'Giáo viên & trợ giảng', icon: GraduationCap },
-  { to: '/#hoc-sinh', label: 'Học sinh tiêu biểu', sub: 'Gương mặt xuất sắc', icon: Trophy },
-  { to: '/#kinh-nghiem', label: 'Kinh nghiệm & Thành tích', sub: 'Hành trình phát triển', icon: Award },
   { to: '#contact', label: 'Liên hệ', sub: 'Địa chỉ, điện thoại, giờ học', icon: Phone },
 ];
 

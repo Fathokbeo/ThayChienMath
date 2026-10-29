@@ -7,6 +7,8 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import CourseDetail from './pages/public/CourseDetail';
+import ExamList from './pages/public/ExamList';
+import ExamDetail from './pages/public/ExamDetail';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
@@ -15,6 +17,8 @@ import CourseManagement from './pages/admin/CourseManagement';
 import AdminCourseDetail from './pages/admin/AdminCourseDetail';
 import ClassManagement from './pages/admin/ClassManagement';
 import SiteContent from './pages/admin/SiteContent';
+import Registrations from './pages/admin/Registrations';
+import ExamManagement from './pages/admin/ExamManagement';
 
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import TeacherCourses from './pages/teacher/TeacherCourses';
@@ -55,11 +59,13 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Home />} />
       {/* Các mục giới thiệu nằm ngay trên trang chủ: giữ đường dẫn cũ, chuyển hướng về đúng mục */}
-      <Route path="/hoc-sinh" element={<Navigate to="/#hoc-sinh" replace />} />
+      <Route path="/hoc-sinh" element={<Navigate to="/#khoa-hoc" replace />} />
       <Route path="/giao-vien" element={<Navigate to="/#giao-vien" replace />} />
       <Route path="/khoa-hoc" element={<Navigate to="/#khoa-hoc" replace />} />
-      <Route path="/kinh-nghiem" element={<Navigate to="/#kinh-nghiem" replace />} />
+      <Route path="/kinh-nghiem" element={<Navigate to="/" replace />} />
       <Route path="/courses/:id" element={<CourseDetail />} />
+      <Route path="/de-thi" element={<ExamList />} />
+      <Route path="/de-thi/:id" element={<ExamDetail />} />
       <Route path="/login" element={user ? <Navigate to={`/${user.role}`} replace /> : <Login />} />
 
       {/* Admin */}
@@ -71,6 +77,8 @@ function AppRoutes() {
         <Route path="classes" element={<ClassManagement />} />
         <Route path="content" element={<SiteContent />} />
         <Route path="ads" element={<AdManagement />} />
+        <Route path="registrations" element={<Registrations />} />
+        <Route path="exams" element={<ExamManagement />} />
       </Route>
 
       {/* Teacher (admin cũng vào được) */}

@@ -9,6 +9,8 @@ interface Course {
   id: number;
   title: string;
   description: string;
+  price: string | null;
+  open_registration: number;
   thumbnail: string;
   creator_name: string;
   created_by: number | null;
@@ -23,7 +25,7 @@ export default function CourseManagement() {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState<Course | null>(null);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ title: '', description: '', teacher_id: '' });
+  const [form, setForm] = useState({ title: '', description: '', teacher_id: '', price: '', open_registration: true });
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
@@ -40,7 +42,7 @@ export default function CourseManagement() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ title: '', description: '', teacher_id: '' });
+    setForm({ title: '', description: '', teacher_id: '', price: '', open_registration: true });
     setFile(null);
     setPreview('');
     setModal(true);
@@ -50,7 +52,7 @@ export default function CourseManagement() {
     setEditing(c);
     // Chỉ pre-select khi khóa đang thuộc một giáo viên (created_by là GV); admin-quản-lý → bỏ trống.
     const ownedByTeacher = teachers.some((t) => t.id === c.created_by);
-    setForm({ title: c.title, description: c.description || '', teacher_id: ownedByTeacher ? String(c.created_by) : '' });
+    setForm({ title: c.title, description: c.description || '', teacher_id: ownedByTeacher ? String(c.created_by) : '', price: c.price || '', open_registration: c.open_registration !== 0 });
     setFile(null);
     setPreview(c.thumbnail ? fileUrl(`/uploads/courses/${c.thumbnail}`) : '');
     setModal(true);
@@ -61,7 +63,7 @@ export default function CourseManagement() {
     setLoading(true);
     try {
       let courseId: number;
-      const payload = { title: form.title, description: form.description, teacher_id: form.teacher_id || null };
+      const payload = { title: form.title, description: form.description, teacher_id: form.teacher_id || null, price: form.price, open_registration: form.open_registration };
       if (editing) {
         await api.put(`/admin/courses/${editing.id}`, payload);
         courseId = editing.id;
@@ -114,6 +116,10 @@ export default function CourseManagement() {
             <div style={{ padding: '1rem' }}>
               <h3 style={{ margin: '0 0 6px', fontSize: '1rem', fontWeight: 700 }}>{c.title}</h3>
               {c.description && <p style={{ margin: '0 0 10px', fontSize: '0.83rem', color: '#6E6E73', lineHeight: 1.5 }}>{c.description}</p>}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: '0.85rem', marginBottom: 8 }}>
+                <strong style={{ color: '#B8673E' }}>{c.price || 'Chưa đặt học phí'}</strong>
+                {!c.open_registration && <span className="badge badge-gray">Không nhận đăng ký</span>}
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: '0.78rem', color: '#86868B', marginBottom: 10 }}>
                 <span><School size={12} style={{ verticalAlign: 'middle' }} /> {c.class_count} lớp</span>
                 <span><Users size={12} style={{ verticalAlign: 'middle' }} /> {c.creator_name}</span>
@@ -162,6 +168,14 @@ export default function CourseManagement() {
         <div className="form-group">
           <label className="label">Mô tả</label>
           <textarea className="input" placeholder="Mô tả khóa học..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
+        </div>
+        <div className="form-group">
+          <label className="label">Học phí (hiện ở trang chủ)</label>
+          <input className="input" placeholder="vd 800.000đ/tháng — để trống sẽ hiện “Liên hệ”" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} maxLength={80} />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: '0.9rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={form.open_registration} onChange={(e) => setForm({ ...form, open_registration: e.target.checked })} />
+            Đang nhận đăng ký (hiện nút “Đăng ký” ở trang chủ)
+          </label>
         </div>
         <div className="form-group">
           <label className="label">Giáo viên phụ trách</label>

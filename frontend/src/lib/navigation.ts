@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Users, BookOpen, GraduationCap, Image, School, LayoutTemplate, UserCog, Bell,
+  LayoutDashboard, Users, BookOpen, GraduationCap, Image, School, LayoutTemplate, UserCog, Bell, ClipboardCheck, FileStack,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -9,9 +9,11 @@ export type NavItem = { to: string; icon: LucideIcon; label: string; short: stri
 
 const ADMIN: NavItem[] = [
   { to: '/admin', icon: LayoutDashboard, label: 'Tổng quan', short: 'Tổng quan' },
+  { to: '/admin/registrations', icon: ClipboardCheck, label: 'Đăng ký học', short: 'Đăng ký' },
   { to: '/admin/users', icon: Users, label: 'Quản lý tài khoản', short: 'Tài khoản' },
   { to: '/admin/courses', icon: BookOpen, label: 'Khóa học', short: 'Khóa học' },
   { to: '/admin/classes', icon: School, label: 'Lớp học', short: 'Lớp học' },
+  { to: '/admin/exams', icon: FileStack, label: 'Đề thi', short: 'Đề thi' },
   { to: '/teacher/assistants', icon: UserCog, label: 'Trợ giảng', short: 'Trợ giảng' },
   { to: '/admin/content', icon: LayoutTemplate, label: 'Nội dung trang', short: 'Nội dung' },
   { to: '/admin/ads', icon: Image, label: 'Quảng cáo', short: 'Quảng cáo' },

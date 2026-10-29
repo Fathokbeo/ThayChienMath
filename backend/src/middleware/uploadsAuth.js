@@ -2,7 +2,7 @@ const { getDb } = require('../db/database');
 const { userFromRequest, userFromFileTicket } = require('../services/security');
 
 // Ảnh của trang giới thiệu công khai (trang chủ, khóa tiêu biểu, giáo viên...) — khách vãng lai xem được.
-const PUBLIC_DIRS = new Set(['ads', 'courses', 'featured_students', 'staff', 'featured_courses', 'achievements']);
+const PUBLIC_DIRS = new Set(['ads', 'courses', 'featured_students', 'staff', 'featured_courses', 'achievements', 'exams']);
 
 // Thư mục cần đăng nhập + đúng quyền: đề bài, đáp án, bài nộp, video và tài liệu bài giảng, ảnh trợ giảng.
 const PROTECTED_DIRS = new Set(['homework', 'submissions', 'videos', 'lessons', 'assistants']);

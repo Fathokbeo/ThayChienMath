@@ -132,4 +132,15 @@ const uploadContent = {
   'achievements': makeImageUpload('achievements'),
 };
 
-module.exports = { uploadAd, uploadHomework, uploadSubmission, uploadVideo, uploadCourseThumbnail, uploadContent, uploadLessonFile, uploadAssistantPhoto };
+// Đề thi (mục "Đề và chuyên môn"): 1 ảnh bìa + 1 file PDF
+const uploadExam = multer({
+  storage: createStorage('exams'),
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === 'thumbnail' && isRasterImage(file)) cb(null, true);
+    else if (file.fieldname === 'pdf' && file.mimetype === 'application/pdf') cb(null, true);
+    else cb(new Error(file.fieldname === 'pdf' ? 'Đề thi phải là file PDF' : 'Ảnh bìa phải là file ảnh'));
+  },
+  limits: { fileSize: 30 * 1024 * 1024 },
+}).fields([{ name: 'thumbnail', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]);
+
+module.exports = { uploadExam, uploadAd, uploadHomework, uploadSubmission, uploadVideo, uploadCourseThumbnail, uploadContent, uploadLessonFile, uploadAssistantPhoto };

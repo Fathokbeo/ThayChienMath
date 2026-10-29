@@ -499,6 +499,57 @@ function initSchema() {
     )
   `);
 
+  // ── Tuyển sinh & đề thi (trang công khai) ─────────────────────────────
+  // Học phí (chữ tự do, vd "800.000đ/tháng") + bật/tắt nút "Đăng ký" của từng khóa ở trang chủ
+  const courseCols = db.prepare('PRAGMA table_info(courses)').all();
+  if (!courseCols.some(c => c.name === 'price')) db.exec('ALTER TABLE courses ADD COLUMN price TEXT');
+  if (!courseCols.some(c => c.name === 'open_registration')) db.exec('ALTER TABLE courses ADD COLUMN open_registration INTEGER DEFAULT 1');
+  db.exec(`
+    -- Ca thi thử đầu vào do admin tạo; người đăng ký học chọn 1 ca. capacity NULL = không giới hạn chỗ
+    CREATE TABLE IF NOT EXISTS placement_slots (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      start_at TEXT NOT NULL,            -- ISO (UTC)
+      location TEXT,
+      capacity INTEGER,
+      note TEXT,
+      active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Đơn đăng ký học từ trang chủ (khách không cần tài khoản). Lưu kèm tên khóa / giờ ca thi tại lúc đăng ký,
+    -- để khóa hay ca thi bị xóa sau đó thì đơn vẫn đọc được.
+    CREATE TABLE IF NOT EXISTS course_registrations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      course_id INTEGER REFERENCES courses(id) ON DELETE SET NULL,
+      course_title TEXT,
+      student_name TEXT NOT NULL,
+      parent_phone TEXT NOT NULL,
+      school TEXT NOT NULL,
+      class_name TEXT NOT NULL,
+      last_score REAL,
+      slot_id INTEGER REFERENCES placement_slots(id) ON DELETE SET NULL,
+      slot_start_at TEXT,
+      note TEXT,
+      status TEXT DEFAULT 'new',         -- new | contacted | enrolled | cancelled
+      admin_note TEXT,
+      ip TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Mục "Đề và chuyên môn": đề thi / tài liệu công khai, lọc theo lớp (danh sách lớp: site_settings.exam_grades)
+    CREATE TABLE IF NOT EXISTS exam_papers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      grade TEXT,
+      description TEXT,
+      thumbnail TEXT,
+      pdf_file TEXT,
+      published_at TEXT,                 -- YYYY-MM-DD, ngày hiện trên trang
+      active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
   // Tài khoản quản trị đầu tiên (chỉ khi database chưa có admin nào):
   // - ADMIN_USERNAME / ADMIN_PASSWORD trong .env → tạo đúng tài khoản đó (mật khẩu không lưu dạng chữ thường).
   // - Không đặt: máy cá nhân / bản demo vẫn tạo admin / admin123 cho tiện; còn bản chạy thật (NODE_ENV=production,
