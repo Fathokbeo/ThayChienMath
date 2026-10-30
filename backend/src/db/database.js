@@ -579,4 +579,19 @@ function initSchema() {
   if (created) console.log(`Đã tạo ${created} tài khoản phụ huynh còn thiếu`);
 }
 
-module.exports = { getDb, DB_PATH };
+// Chế độ WAL ghi mọi thay đổi vào mathweb.db-wal trước; SQLite chỉ tự gộp về mathweb.db khi file nhật ký đủ
+// ~4MB hoặc khi database được đóng đúng cách. Web nhỏ + pm2 tắt/khởi động lại mỗi lần deploy → có thể mãi
+// không gộp, mathweb.db gần như trống và toàn bộ dữ liệu nằm trong -wal (chép/xóa nhầm file -wal là mất hết).
+// Gộp chủ động khi khởi động, định kỳ, và đóng database khi tắt server.
+function checkpointDb() {
+  if (!db) return;
+  try { db.pragma('wal_checkpoint(TRUNCATE)'); } catch (err) { console.error('[db] checkpoint lỗi:', err.message); }
+}
+
+function closeDb() {
+  if (!db) return;
+  try { db.close(); } catch (err) { console.error('[db] đóng database lỗi:', err.message); }
+  db = null;
+}
+
+module.exports = { getDb, DB_PATH, checkpointDb, closeDb };

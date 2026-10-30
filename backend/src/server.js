@@ -57,7 +57,11 @@ app.use('/api/parent', require('./routes/parent'));
 app.use('/api', require('./routes/homework'));
 
 // Initialize DB (creates tables + default admin)
-const db = require('./db/database').getDb();
+const { getDb, checkpointDb, closeDb } = require('./db/database');
+const db = getDb();
+// Gộp nhật ký WAL về file database chính: ngay khi khởi động + mỗi 10 phút (xem checkpointDb)
+checkpointDb();
+setInterval(checkpointDb, 10 * 60 * 1000).unref();
 
 // Bản xem thử (vd Render gói free — dữ liệu mất sau mỗi lần khởi động lại): database còn trống thì tự nạp
 // dữ liệu demo (giáo viên, học sinh, phụ huynh, bài tập + kết quả chấm thật). Bật khi SEED_DEMO=1, hoặc mặc
@@ -88,7 +92,18 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ message: safe });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`✅ Server chạy tại http://localhost:${PORT}`);
   console.log(`📐 THẦY CHIẾN MATH`);
 });
+
+// pm2 gửi SIGINT khi restart/reload/stop (deploy): ngừng nhận request mới, đóng database đúng cách để
+// SQLite gộp hết nhật ký WAL vào mathweb.db rồi mới thoát. Request đang chạy dở quá 1,5s thì thôi chờ.
+function shutdown(signal) {
+  console.log(`[server] Nhận ${signal}, đang tắt...`);
+  server.close();
+  setTimeout(() => { closeDb(); process.exit(0); }, 1500).unref();
+  server.once('close', () => { closeDb(); process.exit(0); });
+}
+process.once('SIGINT', () => shutdown('SIGINT'));
+process.once('SIGTERM', () => shutdown('SIGTERM'));
