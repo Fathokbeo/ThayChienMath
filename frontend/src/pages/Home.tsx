@@ -10,15 +10,14 @@ import api, { fileUrl } from '../lib/api';
 import { PAGE_MAX } from '../lib/layout';
 import { gradeLabel } from '../lib/publicSite';
 import useIsMobile from '../lib/useIsMobile';
-import { BookOpen, ChevronRight, ChevronDown, Users, GraduationCap, Award, UserCircle, Phone, Sparkles, Smartphone, LineChart, FileStack, ClipboardCheck } from 'lucide-react';
+import { BookOpen, ChevronRight, ChevronDown, Users, GraduationCap, UserCircle, Phone, Sparkles, Smartphone, LineChart, FileStack, ClipboardCheck } from 'lucide-react';
 
-/* Mỗi ô thống kê ở trên = lối tắt cuộn xuống 1 khối nội dung ngay trên trang chủ (không mở trang khác). */
-const SECTIONS = [
-  { id: 'khoa-hoc', nav: 'Đăng ký học', statLabel: 'Học sinh', statKey: 'stats_students', statFallback: '500+', icon: Users, color: '#1F5C68' },
-  { id: 'giao-vien', nav: 'Đội ngũ giáo viên', statLabel: 'Giáo viên', statKey: 'stats_teachers', statFallback: '20+', icon: GraduationCap, color: '#2F6F82' },
-  { id: 'khoa-hoc', nav: 'Xem khóa học', statLabel: 'Khóa học', statKey: 'stats_courses', statFallback: '15+', icon: BookOpen, color: '#3A7D5C' },
-  { id: 'de-thi', nav: 'Đề & chuyên môn', statLabel: 'Năm kinh nghiệm', statKey: 'stats_years', statFallback: '10+', icon: Award, color: '#B8673E' },
-];
+/* 3 ô số liệu ở trên (đếm thật từ dữ liệu) = lối tắt cuộn xuống mục Khóa học / Đội ngũ / Đề và chuyên môn ngay trên trang chủ. */
+const STATS = [
+  { id: 'khoa-hoc', key: 'courses', nav: 'Xem khóa học & đăng ký', statLabel: 'Khóa học', icon: BookOpen, color: '#3A7D5C' },
+  { id: 'giao-vien', key: 'teachers', nav: 'Đội ngũ giáo viên', statLabel: 'Giáo viên', icon: GraduationCap, color: '#2F6F82' },
+  { id: 'de-thi', key: 'exams', nav: 'Xem kho đề', statLabel: 'Đề thi', icon: FileStack, color: '#1F5C68' },
+] as const;
 
 const SCROLL_OFFSET = 86; // chừa chỗ cho thanh điều hướng dính ở trên
 
@@ -111,7 +110,8 @@ export default function Home() {
     Promise.all([
       api.get('/public/courses').then((r) => setCourses(r.data)).catch(() => {}),
       api.get('/public/staff').then((r) => setStaff(r.data)).catch(() => {}),
-      api.get('/public/exams', { params: { limit: 6 } }).then((r) => setExams(r.data)).catch(() => {}),
+      // Lấy đủ danh sách để đếm số đề cho ô số liệu; mục Đề và chuyên môn chỉ hiện 6 đề mới nhất
+      api.get('/public/exams').then((r) => setExams(r.data)).catch(() => {}),
       api.get('/public/exam-grades').then((r) => setGrades(r.data)).catch(() => {}),
     ]).finally(() => setReady(true));
   }, []);
@@ -150,25 +150,30 @@ export default function Home() {
         </section>
       )}
 
-      {/* Thống kê — mỗi ô là lối tắt cuộn xuống mục tương ứng bên dưới. Điện thoại: lưới 2×2 cho gọn */}
+      {/* Số khóa học, giáo viên, đề (đếm thật) — mỗi ô là lối tắt cuộn xuống mục tương ứng bên dưới.
+          Điện thoại: 3 ô trên 1 hàng, bỏ dòng chữ dẫn link cho gọn (cả ô vẫn bấm được) */}
       <section style={{ maxWidth: PAGE_MAX, margin: '0 auto', padding: isMobile ? '1.5rem 16px 0' : '2.5rem 22px 0.5rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(190px, 1fr))', gap: isMobile ? 10 : 12 }}>
-          {SECTIONS.map(({ id, nav, statLabel, statKey, statFallback, icon: Icon, color }) => (
-            <a key={statLabel} href={`#${id}`} onClick={(e) => { e.preventDefault(); scrollToSection(id); }}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: isMobile ? 8 : 12 }}>
+          {STATS.map(({ id, key, nav, statLabel, icon: Icon, color }) => (
+            <a key={key} href={`#${id}`} onClick={(e) => { e.preventDefault(); scrollToSection(id); }}
               style={{ textDecoration: 'none', display: 'block' }}>
               <div style={{
-                background: 'white', borderRadius: 18, height: '100%', padding: isMobile ? '0.95rem 1rem' : '1.25rem 1.25rem 1.1rem',
+                background: 'white', borderRadius: 18, height: '100%', padding: isMobile ? '0.85rem 0.8rem' : '1.25rem 1.25rem 1.1rem',
                 display: 'flex', flexDirection: 'column', cursor: 'pointer', transition: 'background 0.15s',
               }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = '#FAFAFC'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7, color, fontWeight: 600, fontSize: isMobile ? '0.8rem' : '0.86rem' }}>
-                  <Icon size={isMobile ? 15 : 17} color={color} /> {statLabel}
+                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 5 : 7, color, fontWeight: 600, fontSize: isMobile ? '0.78rem' : '0.86rem', whiteSpace: 'nowrap' }}>
+                  <Icon size={isMobile ? 14 : 17} color={color} /> {statLabel}
                 </div>
-                <div style={{ fontSize: isMobile ? '1.7rem' : '2.2rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#1D1D1F', margin: isMobile ? '4px 0 4px' : '6px 0 8px' }}>{settings[statKey] || statFallback}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#1F5C68', fontSize: isMobile ? '0.78rem' : '0.86rem', fontWeight: 500, marginTop: 'auto' }}>
-                  {nav} <ChevronDown size={14} />
+                <div style={{ fontSize: isMobile ? '1.6rem' : '2.2rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#1D1D1F', margin: isMobile ? '4px 0 0' : '6px 0 8px' }}>
+                  {ready ? { teachers: teachers.length, courses: courses.length, exams: exams.length }[key] : '…'}
                 </div>
+                {!isMobile && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#1F5C68', fontSize: '0.86rem', fontWeight: 500, marginTop: 'auto' }}>
+                    {nav} <ChevronDown size={14} />
+                  </div>
+                )}
               </div>
             </a>
           ))}
@@ -226,7 +231,7 @@ export default function Home() {
         )}
         {exams.length === 0 ? <Empty text="Chưa có đề nào" /> : (
           <div className="exam-list" style={{ background: '#F5F5F7', ...(isMobile ? {} : { display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 32 }) }}>
-            {exams.map((e) => <ExamCard key={e.id} exam={e} />)}
+            {exams.slice(0, 6).map((e) => <ExamCard key={e.id} exam={e} />)}
           </div>
         )}
         <div style={{ textAlign: 'center', marginTop: 16 }}>

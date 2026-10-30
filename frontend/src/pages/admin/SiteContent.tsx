@@ -187,10 +187,6 @@ function CollectionManager({ collection }: { collection: string }) {
 const SETTING_FIELDS = [
   { key: 'hero_title', label: 'Tiêu đề trang chủ', area: 'Trang chủ' },
   { key: 'hero_subtitle', label: 'Khẩu hiệu (subtitle)', area: 'Trang chủ' },
-  { key: 'stats_students', label: 'Số liệu: Học sinh', area: 'Số liệu' },
-  { key: 'stats_teachers', label: 'Số liệu: Giáo viên', area: 'Số liệu' },
-  { key: 'stats_courses', label: 'Số liệu: Khóa học', area: 'Số liệu' },
-  { key: 'stats_years', label: 'Số liệu: Năm kinh nghiệm', area: 'Số liệu' },
   { key: 'contact_address', label: 'Địa chỉ', area: 'Liên hệ' },
   { key: 'contact_phone', label: 'Điện thoại', area: 'Liên hệ' },
   { key: 'contact_email', label: 'Email', area: 'Liên hệ' },
@@ -214,7 +210,7 @@ function SettingsForm() {
     } finally { setLoading(false); }
   };
 
-  const areas = ['Trang chủ', 'Số liệu', 'Liên hệ', 'Phụ huynh'];
+  const areas = ['Trang chủ', 'Liên hệ', 'Phụ huynh'];
   return (
     <div style={{ maxWidth: 640 }}>
       {areas.map((area) => (
