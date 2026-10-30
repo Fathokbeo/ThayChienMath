@@ -242,6 +242,12 @@ tbody tr:hover { background: var(--tc-surface-2); }
   border: none; background: #F2F2F4; color: var(--tc-ink-3); font-family: inherit; font-size: 0.85rem; cursor: pointer; transition: background 0.15s;
 }
 .search-pill:hover { background: var(--tc-fill); }
+/* Màn hình laptop (≤1360px): menu quản trị nhiều mục → ô Tìm nhanh chỉ còn biểu tượng để menu không bị cắt chữ */
+@media (max-width: 1360px) {
+  .search-pill { flex-shrink: 0; }
+  .search-pill .search-text, .search-pill .kbd { display: none; }
+  .search-pill { width: 36px; padding: 0; justify-content: center; }
+}
 .kbd { font-size: 0.72rem; color: var(--tc-ink-3); border: 1px solid var(--tc-line-strong); border-radius: 6px; padding: 0 5px; line-height: 1.5; }
 .avatar { width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; flex-shrink: 0; }
 

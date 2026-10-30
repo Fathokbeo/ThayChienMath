@@ -35,3 +35,6 @@ npm-debug.log*
 backend/test-tmp/
 .DS_Store
 Thumbs.db
+
+# Video hướng dẫn (file nặng, không đưa lên git)
+video/
