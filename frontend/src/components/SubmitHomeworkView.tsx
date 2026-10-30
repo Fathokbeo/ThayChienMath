@@ -260,7 +260,7 @@ export default function SubmitHomeworkView({
               {deadlineRemainMs > 0 ? `Thời gian còn lại: ${formatDeadlineRemaining(deadlineRemainMs)}` : 'Đã hết hạn nộp'}
             </span>
           )}
-          <button className="btn btn-primary btn-sm" onClick={handleSubmitClick} disabled={loading || !canDoSubmit}>
+          <button className="btn btn-submit" style={{ minWidth: 0, minHeight: 38 }} onClick={handleSubmitClick} disabled={loading || !canDoSubmit}>
             {loading ? 'Đang nộp...' : `Nộp bài${submitFiles.length > 0 ? ` (${submitFiles.length} file)` : ''}`}
           </button>
         </div>

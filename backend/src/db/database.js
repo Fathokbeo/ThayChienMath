@@ -257,7 +257,7 @@ function initSchema() {
 
   // Seed cấu hình trang mặc định
   const defaults = {
-    hero_title: 'Thầy Chiến Math',
+    hero_title: 'EduGrade Aplus',
     hero_subtitle: 'Học Toán vững vàng — tự tin chinh phục mọi kỳ thi',
     stats_students: '500+',
     stats_teachers: '20+',
@@ -504,6 +504,8 @@ function initSchema() {
   const courseCols = db.prepare('PRAGMA table_info(courses)').all();
   if (!courseCols.some(c => c.name === 'price')) db.exec('ALTER TABLE courses ADD COLUMN price TEXT');
   if (!courseCols.some(c => c.name === 'open_registration')) db.exec('ALTER TABLE courses ADD COLUMN open_registration INTEGER DEFAULT 1');
+  // Admin chọn khóa nào hiện ở mục "Các khóa học" trang chủ (khóa ẩn vẫn dạy bình thường)
+  if (!courseCols.some(c => c.name === 'show_on_home')) db.exec('ALTER TABLE courses ADD COLUMN show_on_home INTEGER DEFAULT 1');
   db.exec(`
     -- Ca thi thử đầu vào do admin tạo; người đăng ký học chọn 1 ca. capacity NULL = không giới hạn chỗ
     CREATE TABLE IF NOT EXISTS placement_slots (

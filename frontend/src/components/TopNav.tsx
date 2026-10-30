@@ -5,11 +5,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { navItemsFor, navEnd, roleColors } from '../lib/navigation';
 import AccountMenu from './AccountMenu';
 import { openPalette } from './CommandPalette';
+import { useBrandName } from '../lib/brand';
 
 // Thanh điều hướng ngang trên cùng: logo · các mục chính · tìm nhanh (Ctrl+K) · ảnh đại diện (menu tài khoản).
 // Trên điện thoại các mục chính chuyển xuống thanh dưới đáy (TabBar).
 export default function TopNav() {
   const { user } = useAuth();
+  const brand = useBrandName();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bg, fg] = roleColors(user?.role);
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
@@ -19,7 +21,7 @@ export default function TopNav() {
       <div className="topnav-inner">
         <Link to={`/${user?.role || ''}`} className="topnav-brand">
           <img src="/logo.png" alt="" style={{ width: 28, height: 28, borderRadius: 7 }} />
-          <span>Thầy Chiến Math</span>
+          <span>{brand}</span>
         </Link>
 
         <nav className="topnav-links" aria-label="Điều hướng chính">

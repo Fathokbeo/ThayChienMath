@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import api, { fileUrl } from '../../lib/api';
 import Modal from '../../components/Modal';
 import { toast } from '../../components/Toast';
-import { Plus, Edit, Trash2, BookOpen, School, Users, ChevronRight } from 'lucide-react';
+import { Plus, Edit, Trash2, BookOpen, School, Users, ChevronRight, Home } from 'lucide-react';
 
 interface Course {
   id: number;
@@ -11,6 +11,7 @@ interface Course {
   description: string;
   price: string | null;
   open_registration: number;
+  show_on_home: number;
   thumbnail: string;
   creator_name: string;
   created_by: number | null;
@@ -25,7 +26,7 @@ export default function CourseManagement() {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState<Course | null>(null);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ title: '', description: '', teacher_id: '', price: '', open_registration: true });
+  const [form, setForm] = useState({ title: '', description: '', teacher_id: '', price: '', open_registration: true, show_on_home: true });
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
@@ -42,7 +43,7 @@ export default function CourseManagement() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ title: '', description: '', teacher_id: '', price: '', open_registration: true });
+    setForm({ title: '', description: '', teacher_id: '', price: '', open_registration: true, show_on_home: true });
     setFile(null);
     setPreview('');
     setModal(true);
@@ -52,7 +53,7 @@ export default function CourseManagement() {
     setEditing(c);
     // Chỉ pre-select khi khóa đang thuộc một giáo viên (created_by là GV); admin-quản-lý → bỏ trống.
     const ownedByTeacher = teachers.some((t) => t.id === c.created_by);
-    setForm({ title: c.title, description: c.description || '', teacher_id: ownedByTeacher ? String(c.created_by) : '', price: c.price || '', open_registration: c.open_registration !== 0 });
+    setForm({ title: c.title, description: c.description || '', teacher_id: ownedByTeacher ? String(c.created_by) : '', price: c.price || '', open_registration: c.open_registration !== 0, show_on_home: c.show_on_home !== 0 });
     setFile(null);
     setPreview(c.thumbnail ? fileUrl(`/uploads/courses/${c.thumbnail}`) : '');
     setModal(true);
@@ -63,7 +64,7 @@ export default function CourseManagement() {
     setLoading(true);
     try {
       let courseId: number;
-      const payload = { title: form.title, description: form.description, teacher_id: form.teacher_id || null, price: form.price, open_registration: form.open_registration };
+      const payload = { title: form.title, description: form.description, teacher_id: form.teacher_id || null, price: form.price, open_registration: form.open_registration, show_on_home: form.show_on_home };
       if (editing) {
         await api.put(`/admin/courses/${editing.id}`, payload);
         courseId = editing.id;
@@ -87,6 +88,19 @@ export default function CourseManagement() {
     }
   };
 
+  // Bật/tắt nhanh việc hiện khóa ở trang chủ ngay trên thẻ khóa học
+  const toggleHome = async (c: Course) => {
+    const next = c.show_on_home === 0;
+    setCourses((list) => list.map((x) => (x.id === c.id ? { ...x, show_on_home: next ? 1 : 0 } : x)));
+    try {
+      await api.put(`/admin/courses/${c.id}`, { show_on_home: next });
+      toast.success(next ? 'Đã hiện ở trang chủ' : 'Đã ẩn khỏi trang chủ');
+    } catch {
+      toast.error('Không lưu được');
+      fetchCourses();
+    }
+  };
+
   const deleteCourse = async (c: Course) => {
     if (!confirm(`Xóa khóa học "${c.title}"?\n\nTất cả lớp học trong khóa cùng bài giảng, bài tập, bài nộp sẽ bị xóa. Học sinh chỉ thuộc các lớp này sẽ bị xóa vĩnh viễn (tài khoản + dữ liệu). Không thể khôi phục.`)) return;
     await api.delete(`/admin/courses/${c.id}`);
@@ -96,8 +110,15 @@ export default function CourseManagement() {
 
   return (
     <div className="fade-in">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-        <h1 className="page-title" style={{ margin: 0 }}>Quản lý khóa học</h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+        <div>
+          <h1 className="page-title" style={{ margin: 0 }}>Quản lý khóa học</h1>
+          {courses.length > 0 && (
+            <div style={{ fontSize: '0.85rem', color: '#6E6E73', marginTop: 4 }}>
+              Đang hiện <strong>{courses.filter((c) => c.show_on_home !== 0).length}/{courses.length}</strong> khóa ở trang chủ — bấm biểu tượng <Home size={12} style={{ display: 'inline-block', verticalAlign: '-1px' }} /> trên mỗi khóa để hiện/ẩn.
+            </div>
+          )}
+        </div>
         <button className="btn btn-primary" onClick={openCreate}>
           <Plus size={16} /> Tạo khóa học
         </button>
@@ -105,7 +126,7 @@ export default function CourseManagement() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
         {courses.map((c) => (
-          <div key={c.id} style={{ background: 'white', borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+          <div key={c.id} style={{ background: 'white', borderRadius: 12, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', opacity: c.show_on_home === 0 ? 0.72 : 1 }}>
             {c.thumbnail ? (
               <img src={fileUrl(`/uploads/courses/${c.thumbnail}`)} alt={c.title} style={{ width: '100%', height: 140, objectFit: 'cover' }} />
             ) : (
@@ -119,6 +140,7 @@ export default function CourseManagement() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: '0.85rem', marginBottom: 8 }}>
                 <strong style={{ color: '#B8673E' }}>{c.price || 'Chưa đặt học phí'}</strong>
                 {!c.open_registration && <span className="badge badge-gray">Không nhận đăng ký</span>}
+                {c.show_on_home === 0 && <span className="badge badge-gray">Ẩn khỏi trang chủ</span>}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: '0.78rem', color: '#86868B', marginBottom: 10 }}>
                 <span><School size={12} style={{ verticalAlign: 'middle' }} /> {c.class_count} lớp</span>
@@ -130,6 +152,11 @@ export default function CourseManagement() {
                     <School size={13} /> Lớp học <ChevronRight size={12} />
                   </button>
                 </Link>
+                <button className="btn btn-ghost btn-sm btn-icon" onClick={() => toggleHome(c)}
+                  title={c.show_on_home === 0 ? 'Đang ẩn — bấm để hiện ở trang chủ' : 'Đang hiện ở trang chủ — bấm để ẩn'}
+                  style={c.show_on_home === 0 ? { color: '#AEAEB2' } : { color: '#3A7D5C', background: '#E8F3EC' }}>
+                  <Home size={14} />
+                </button>
                 <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEdit(c)} title="Sửa">
                   <Edit size={14} />
                 </button>
@@ -175,6 +202,10 @@ export default function CourseManagement() {
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: '0.9rem', cursor: 'pointer' }}>
             <input type="checkbox" checked={form.open_registration} onChange={(e) => setForm({ ...form, open_registration: e.target.checked })} />
             Đang nhận đăng ký (hiện nút “Đăng ký” ở trang chủ)
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, fontSize: '0.9rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={form.show_on_home} onChange={(e) => setForm({ ...form, show_on_home: e.target.checked })} />
+            Hiện khóa này ở mục “Các khóa học” trang chủ
           </label>
         </div>
         <div className="form-group">

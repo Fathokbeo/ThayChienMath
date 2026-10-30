@@ -431,27 +431,26 @@ export default function StudentClassDetail() {
 
           {/* Actions — máy tính: cột nút bên phải. Điện thoại (.hw-actions-m): lưới 2 cột đều nhau, nút chính
               (Nộp bài / Làm bài) lên đầu rộng cả hàng; số nút phụ lẻ thì nút cuối rộng cả hàng cho cân */}
-          <div className={isMobile ? 'hw-actions-m' : undefined}
-            style={isMobile ? undefined : { display: 'flex', flexDirection: 'column', flexWrap: 'wrap', gap: 6, alignItems: 'center', justifyContent: 'flex-end', flexShrink: 0 }}>
+          <div className={isMobile ? 'hw-actions-m' : 'hw-actions-d'}>
             {secondaryActions.map((a, k) => (
               <button key={a.key} className={`btn ${a.cls} btn-sm${isMobile && secondaryActions.length % 2 === 1 && k === secondaryActions.length - 1 ? ' hw-wide' : ''}`} onClick={a.onClick}>
                 {a.icon} {a.label}
               </button>
             ))}
             {!hw.can_see_answer && hw.answer_visible_date && (
-              <span className="hw-wide" style={{ fontSize: '0.72rem', color: '#86868B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+              <span className="hw-wide hw-note" style={{ fontSize: '0.72rem', color: '#86868B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
                 <Lock size={11} /> Đáp án mở lúc {new Date(hw.answer_visible_date).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
               </span>
             )}
             {canSubmit ? (
               <div className="hw-primary" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                 {hw.exam_type === 'hsa' ? (
-                  <button className="btn btn-primary btn-sm" onClick={() => startExam(hw)}>
-                    <Timer size={13} /> {hw.attempt_started_at ? 'Tiếp tục làm bài' : isSubmitted ? 'Làm lại' : 'Làm bài'}
+                  <button className={`btn btn-submit${isSubmitted ? '' : ' is-new'}`} onClick={() => startExam(hw)}>
+                    <Timer size={16} /> {hw.attempt_started_at ? 'Tiếp tục làm bài' : isSubmitted ? 'Làm lại' : 'Làm bài'}
                   </button>
                 ) : (
-                  <button className="btn btn-primary btn-sm" onClick={() => { setExamDeadline(null); openSubmit(hw); }}>
-                    <Upload size={13} /> {isSubmitted ? 'Nộp lại' : 'Nộp bài'}
+                  <button className={`btn btn-submit${isSubmitted ? '' : ' is-new'}`} onClick={() => { setExamDeadline(null); openSubmit(hw); }}>
+                    <Upload size={16} /> {isSubmitted ? 'Nộp lại' : 'Nộp bài'}
                   </button>
                 )}
                 {hw.due_date && (() => {
@@ -481,7 +480,7 @@ export default function StudentClassDetail() {
                 )}
               </div>
             ) : !isSubmitted ? (
-              !isMobile && <span style={{ fontSize: '0.78rem', color: '#B04A2A' }}>Hết hạn</span> // điện thoại: đã có nhãn "Hết hạn" cạnh tên bài
+              !isMobile && <span style={{ fontSize: '0.78rem', color: '#B04A2A', textAlign: 'center' }}>Hết hạn</span> // điện thoại: đã có nhãn "Hết hạn" cạnh tên bài
             ) : !isOverdue && attemptsExhausted && (
               <span className="hw-wide" style={{ fontSize: '0.78rem', color: '#B04A2A', textAlign: 'center' }}>Đã hết lượt nộp lại (tối đa {hw.max_attempts} lần)</span>
             )}

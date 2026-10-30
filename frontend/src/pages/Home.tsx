@@ -10,6 +10,7 @@ import api, { fileUrl } from '../lib/api';
 import { PAGE_MAX } from '../lib/layout';
 import { gradeLabel } from '../lib/publicSite';
 import useIsMobile from '../lib/useIsMobile';
+import { BRAND_DEFAULT } from '../lib/brand';
 import { BookOpen, ChevronRight, ChevronDown, Users, GraduationCap, UserCircle, Phone, Sparkles, Smartphone, LineChart, FileStack, ClipboardCheck } from 'lucide-react';
 
 /* 3 ô số liệu ở trên (đếm thật từ dữ liệu) = lối tắt cuộn xuống mục Khóa học / Đội ngũ / Đề và chuyên môn ngay trên trang chủ. */
@@ -130,9 +131,9 @@ export default function Home() {
     <PublicLayout>
       {/* Mở đầu: tiêu đề lớn ở giữa + 2 nút; ảnh quảng cáo (nếu có) ngay bên dưới */}
       <section style={{ background: '#fff', textAlign: 'center', padding: isMobile ? '2.75rem 16px 2.25rem' : '4.5rem 22px 3.5rem' }}>
-        <img src="/logo.png" alt="Thầy Chiến Math" style={{ width: 64, height: 64, borderRadius: 16, margin: '0 auto' }} />
+        <img src="/logo.png" alt={settings.hero_title || BRAND_DEFAULT} style={{ width: 64, height: 64, borderRadius: 16, margin: '0 auto' }} />
         <h1 style={{ fontSize: 'clamp(2.2rem, 6vw, 4rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: '18px auto 14px', maxWidth: 900, color: '#1D1D1F' }}>
-          {settings.hero_title || 'Thầy Chiến Math'}
+          {settings.hero_title || BRAND_DEFAULT}
         </h1>
         <p style={{ color: '#6E6E73', fontSize: 'clamp(1.02rem, 2.2vw, 1.35rem)', maxWidth: 640, margin: '0 auto', lineHeight: 1.45 }}>
           {settings.hero_subtitle || 'Học Toán vững vàng — tự tin chinh phục mọi kỳ thi'}
@@ -247,7 +248,7 @@ export default function Home() {
       {/* Features */}
       <section style={{ background: '#fff', padding: isMobile ? '2.75rem 16px' : '4.5rem 22px' }}>
         <div style={{ maxWidth: PAGE_MAX, margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ color: '#1D1D1F', fontWeight: 700, fontSize: 'clamp(1.6rem, 3.6vw, 2.5rem)', letterSpacing: '-0.03em', margin: isMobile ? '0 0 1.5rem' : '0 0 2.5rem' }}>Vì sao chọn Thầy Chiến Math?</h2>
+          <h2 style={{ color: '#1D1D1F', fontWeight: 700, fontSize: 'clamp(1.6rem, 3.6vw, 2.5rem)', letterSpacing: '-0.03em', margin: isMobile ? '0 0 1.5rem' : '0 0 2.5rem' }}>Vì sao chọn {settings.hero_title || BRAND_DEFAULT}?</h2>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(210px, 1fr))', gap: isMobile ? 22 : 32 }}>
             {[
               { icon: GraduationCap, title: 'Giáo viên giỏi', desc: 'Đội ngũ giáo viên giàu kinh nghiệm, nhiệt tình' },

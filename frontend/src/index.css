@@ -51,7 +51,7 @@
   --tc-ink-3: #86868B;
 
   --tc-radius: 18px;
-  --tc-maxw: 1200px;
+  --tc-maxw: 100%; /* trang quản lý kéo hết chiều ngang màn hình */
   --tc-nav-h: 56px;
   --tc-tabbar-h: 62px;
   --tc-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -219,7 +219,7 @@ tbody tr:hover { background: var(--tc-surface-2); }
 }
 .topnav-inner {
   max-width: var(--tc-maxw); margin: 0 auto; height: var(--tc-nav-h);
-  padding: 0 22px; display: flex; align-items: center; gap: 18px;
+  padding: 0 clamp(16px, 2.5vw, 40px); display: flex; align-items: center; gap: 18px;
 }
 .topnav-brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--tc-ink); font-weight: 700; font-size: 1rem; letter-spacing: -0.02em; white-space: nowrap; }
 .topnav-links { display: flex; align-items: stretch; gap: 2px; height: 100%; margin-left: 10px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
@@ -266,7 +266,7 @@ tbody tr:hover { background: var(--tc-surface-2); }
 .menu-sep { height: 1px; background: var(--tc-line); margin: 6px 4px; }
 
 /* ── Vùng nội dung ───────────────────────────────────────── */
-.content-area { max-width: var(--tc-maxw); margin: 0 auto; padding: 2.25rem 22px 4rem; }
+.content-area { max-width: var(--tc-maxw); margin: 0 auto; padding: 2.25rem clamp(16px, 2.5vw, 40px) 4rem; }
 .content-area > * { animation: rise 0.25s ease; }
 
 /* Nhóm danh sách (inset grouped): khối trắng, mỗi dòng ngăn bằng đường mảnh */
@@ -402,6 +402,36 @@ button.list-row { width: 100%; border: none; background: #fff; font-family: inhe
 .hw-actions-m > .hw-primary { grid-column: 1 / -1; order: -1; align-items: stretch !important; text-align: center; }
 .hw-actions-m > .hw-primary > .btn { width: 100%; justify-content: center; min-height: 44px; }
 .hw-actions-m > .hw-primary > span { justify-content: center; }
+.hw-actions-m > .hw-primary > .btn-submit { min-height: 50px; font-size: 1rem; }
+
+/* ── Máy tính: cột nút bên phải rộng cố định, mọi nút cùng bề rộng; nút chính (Nộp bài / Làm bài) lên đầu ── */
+.hw-actions-d { display: flex; flex-direction: column; gap: 6px; width: 190px; flex-shrink: 0; }
+.hw-actions-d > .btn { width: 100%; justify-content: center; white-space: nowrap; }
+.hw-actions-d > .hw-note { font-size: 0.72rem; text-align: center; }
+.hw-actions-d > .hw-primary { order: -1; align-items: stretch !important; text-align: center; padding-bottom: 8px; margin-bottom: 2px; border-bottom: 1px solid var(--tc-line); }
+.hw-actions-d > .hw-primary:last-child { border-bottom: none; padding-bottom: 0; }
+.hw-actions-d > .hw-primary > .btn { width: 100%; justify-content: center; min-width: 0; }
+.hw-actions-d > .hw-primary > span { justify-content: center; }
+.hw-actions-d > .hw-primary > .btn-submit { min-height: 46px; font-size: 1rem; }
+
+/* Nút chính "Nộp bài / Làm bài" của học sinh: màu cam nổi hẳn so với các nút xanh phụ, to và đậm hơn.
+   Bài chưa nộp (.is-new) có vòng sáng nhấp nháy nhẹ để học sinh thấy ngay. */
+.btn-submit {
+  min-height: 42px; min-width: 150px; padding: 0.5rem 1.3rem; font-size: 0.95rem; font-weight: 700;
+  background: linear-gradient(135deg, #E06A22, #B94C12); color: #fff;
+  box-shadow: 0 4px 14px rgba(201, 86, 24, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.btn-submit:hover:not(:disabled) { filter: brightness(1.07); box-shadow: 0 6px 18px rgba(201, 86, 24, 0.45); transform: translateY(-1px); }
+.btn-submit:active:not(:disabled) { transform: translateY(0); box-shadow: 0 2px 8px rgba(201, 86, 24, 0.35); }
+.btn-submit:disabled { box-shadow: none; }
+.btn-submit.is-new { animation: submit-pulse 2.2s ease-out infinite; }
+@keyframes submit-pulse {
+  0% { box-shadow: 0 4px 14px rgba(201, 86, 24, 0.35), 0 0 0 0 rgba(224, 106, 34, 0.45); }
+  70% { box-shadow: 0 4px 14px rgba(201, 86, 24, 0.35), 0 0 0 10px rgba(224, 106, 34, 0); }
+  100% { box-shadow: 0 4px 14px rgba(201, 86, 24, 0.35), 0 0 0 0 rgba(224, 106, 34, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .btn-submit.is-new { animation: none; } }
 
 /* ── Thanh điều hướng trang công khai ────────────────────── */
 /* Máy tính: chữ đầy đủ. Điện thoại: cùng các nút nhưng chỉ còn biểu tượng (xem khối @media bên dưới). */

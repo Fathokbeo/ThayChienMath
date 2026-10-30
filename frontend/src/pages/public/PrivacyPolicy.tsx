@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import PublicLayout from '../../components/PublicLayout';
 import api from '../../lib/api';
+import { useBrandName } from '../../lib/brand';
 import useIsMobile from '../../lib/useIsMobile';
 
 // Chính sách bảo mật cho website edugrade.vn và app Android (Google Play bắt buộc có URL công khai).
@@ -15,6 +16,7 @@ function H({ id, children }: { id?: string; children: ReactNode }) {
 export default function PrivacyPolicy() {
   const isMobile = useIsMobile();
   const [s, setS] = useState<any>({});
+  const brand = useBrandName();
   useEffect(() => { api.get('/public/settings').then((r) => setS(r.data)).catch(() => {}); }, []);
 
   const contact = (
@@ -33,7 +35,7 @@ export default function PrivacyPolicy() {
         <h1 style={{ margin: '6px 0 4px', fontSize: 'clamp(1.6rem, 3.6vw, 2.2rem)', fontWeight: 700, letterSpacing: '-0.02em', color: '#1D1D1F' }}>Chính sách bảo mật</h1>
         <p style={{ margin: 0, color: '#86868B' }}>Cập nhật lần cuối: {UPDATED}</p>
 
-        <p>Chính sách này áp dụng cho website <strong>edugrade.vn</strong> và ứng dụng Android <strong>Thầy Chiến Math</strong> (mã ứng dụng <code>vn.thaychienmath.app</code>), do trung tâm <strong>Thầy Chiến Math</strong> vận hành (sau đây gọi là “trung tâm”). Chúng tôi chỉ thu thập dữ liệu cần thiết để dạy học, chấm bài và tư vấn tuyển sinh; <strong>không bán dữ liệu, không hiển thị quảng cáo và không dùng công cụ theo dõi của bên thứ ba</strong>.</p>
+        <p>Chính sách này áp dụng cho website <strong>edugrade.vn</strong> và ứng dụng Android <strong>{brand}</strong> (mã ứng dụng <code>vn.thaychienmath.app</code>), do trung tâm <strong>{brand}</strong> vận hành (sau đây gọi là “trung tâm”). Chúng tôi chỉ thu thập dữ liệu cần thiết để dạy học, chấm bài và tư vấn tuyển sinh; <strong>không bán dữ liệu, không hiển thị quảng cáo và không dùng công cụ theo dõi của bên thứ ba</strong>.</p>
 
         <H>1. Dữ liệu chúng tôi thu thập</H>
         <ul>
@@ -94,7 +96,7 @@ export default function PrivacyPolicy() {
         <p>Khi chính sách thay đổi, chúng tôi cập nhật trang này và ngày “Cập nhật lần cuối” ở đầu trang.</p>
 
         <H>11. Liên hệ</H>
-        <p>Trung tâm Thầy Chiến Math</p>
+        <p>Trung tâm {brand}</p>
         {contact}
       </article>
     </PublicLayout>

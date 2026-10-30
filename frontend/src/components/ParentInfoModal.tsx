@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Copy, KeyRound, MessageSquareQuote, HeartHandshake } from 'lucide-react';
 import api from '../lib/api';
+import { useBrandName } from '../lib/brand';
 import Modal from './Modal';
 import { toast } from './Toast';
 
@@ -15,11 +16,12 @@ export default function ParentInfoModal({ classId, student, onClose, onSaved }: 
   const [comment, setComment] = useState('');
   const [newPw, setNewPw] = useState('');
   const [saving, setSaving] = useState(false);
+  const brand = useBrandName();
 
   useEffect(() => { setComment(student?.comment || ''); setNewPw(''); }, [student]);
   if (!student) return null;
 
-  const loginText = `Đăng nhập web Thầy Chiến Math, chọn mục "Phụ huynh"\nTên đăng nhập: ${student.username}\nMật khẩu: ${student.parent_password || '(đã đổi)'}`;
+  const loginText = `Đăng nhập web ${brand}, chọn mục "Phụ huynh"\nTên đăng nhập: ${student.username}\nMật khẩu: ${student.parent_password || '(đã đổi)'}`;
   const copy = () => navigator.clipboard?.writeText(loginText).then(() => toast.success('Đã sao chép thông tin đăng nhập'), () => toast.error('Không sao chép được'));
 
   const saveComment = async () => {

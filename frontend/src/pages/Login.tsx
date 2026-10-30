@@ -6,6 +6,7 @@ import type { Portal } from '../contexts/AuthContext';
 import { Eye, EyeOff, ArrowRight, Presentation, GraduationCap, HeartHandshake } from 'lucide-react';
 import { toast } from '../components/Toast';
 import api from '../lib/api';
+import { useBrandName } from '../lib/brand';
 
 // 3 mục đăng nhập. Phụ huynh gõ TÊN ĐĂNG NHẬP CỦA CON + mật khẩu phụ huynh (không phải nhớ thêm tên nào).
 const PORTALS: { key: Portal; label: string; icon: typeof Presentation; user: string; pass: string; hint: string }[] = [
@@ -24,6 +25,7 @@ type DemoAccounts = {
 
 // Đăng nhập: một cột ở giữa, nền trắng, ô nhập lớn, nút tròn — gọn và rõ ràng.
 export default function Login() {
+  const brand = useBrandName();
   const [params] = useSearchParams();
   const [portal, setPortal] = useState<Portal>(() => {
     const fromUrl = params.get('muc');
@@ -78,9 +80,9 @@ export default function Login() {
   return (
     <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', flexDirection: 'column' }}>
       <header style={{ borderBottom: '1px solid rgba(0,0,0,0.08)', paddingTop: 'var(--sa-top)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', height: 52, padding: '0 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ height: 52, padding: '0 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', color: '#1D1D1F', fontWeight: 700, letterSpacing: '-0.02em' }}>
-            <img src="/logo.png" alt="" style={{ width: 26, height: 26, borderRadius: 7 }} /> Thầy Chiến Math
+            <img src="/logo.png" alt="" style={{ width: 26, height: 26, borderRadius: 7 }} /> {brand}
           </Link>
           <Link to="/" style={{ color: '#6E6E73', fontSize: '0.88rem', textDecoration: 'none' }}>Trang chủ</Link>
         </div>
@@ -88,7 +90,7 @@ export default function Login() {
 
       <main className="fade-in" style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '9vh 20px 3rem' }}>
         <div style={{ width: '100%', maxWidth: 400, textAlign: 'center' }}>
-          <img src="/logo.png" alt="Thầy Chiến Math" style={{ width: 72, height: 72, borderRadius: 18, margin: '0 auto' }} />
+          <img src="/logo.png" alt={brand} style={{ width: 72, height: 72, borderRadius: 18, margin: '0 auto' }} />
           <h1 style={{ margin: '22px 0 8px', fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#1D1D1F' }}>Đăng nhập</h1>
           <p style={{ margin: '0 0 26px', color: '#6E6E73', fontSize: '1.02rem' }}>Học Toán cùng Thầy Chiến — mọi bài giảng, bài tập và điểm số ở một nơi.</p>
 
@@ -164,7 +166,7 @@ export default function Login() {
       </main>
 
       <footer style={{ textAlign: 'center', color: '#AEAEB2', fontSize: '0.78rem', padding: '1.25rem' }}>
-        © {new Date().getFullYear()} Thầy Chiến Math
+        © {new Date().getFullYear()} {brand}
       </footer>
     </div>
   );

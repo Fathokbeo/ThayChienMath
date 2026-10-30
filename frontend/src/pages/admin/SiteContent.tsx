@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api, { fileUrl } from '../../lib/api';
+import { setBrandName } from '../../lib/brand';
 import Modal from '../../components/Modal';
 import { toast } from '../../components/Toast';
 import { Plus, Edit, Trash2, Eye, EyeOff, ImageIcon } from 'lucide-react';
@@ -185,7 +186,7 @@ function CollectionManager({ collection }: { collection: string }) {
 }
 
 const SETTING_FIELDS = [
-  { key: 'hero_title', label: 'Tiêu đề trang chủ', area: 'Trang chủ' },
+  { key: 'hero_title', label: 'Tên thương hiệu / Tiêu đề trang chủ (hiện cả ở thanh trên cùng, trang đăng nhập, tab trình duyệt)', area: 'Trang chủ' },
   { key: 'hero_subtitle', label: 'Khẩu hiệu (subtitle)', area: 'Trang chủ' },
   { key: 'contact_address', label: 'Địa chỉ', area: 'Liên hệ' },
   { key: 'contact_phone', label: 'Điện thoại', area: 'Liên hệ' },
@@ -204,6 +205,7 @@ function SettingsForm() {
     setLoading(true);
     try {
       await api.put('/admin/content/settings', s);
+      if (s.hero_title !== undefined) setBrandName(s.hero_title || '');
       toast.success('Đã lưu thông tin');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Lỗi');

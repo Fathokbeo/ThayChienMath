@@ -5,7 +5,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 // Tách khỏi dist (bản web mà backend phục vụ) để build app không ghi đè bản web.
 const config: CapacitorConfig = {
   appId: 'vn.thaychienmath.app',
-  appName: 'Thầy Chiến Math',
+  appName: 'EduGrade Aplus',
   webDir: 'dist-android',
   android: {
     // Mặc định Capacitor chạy ở https://localhost — backend đã cho phép origin này trong CORS.

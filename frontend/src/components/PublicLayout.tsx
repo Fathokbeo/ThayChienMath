@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
+import { useBrandName } from '../lib/brand';
 import { PAGE_MAX } from '../lib/layout';
 import { Phone, MapPin, Clock, Mail, ExternalLink, LogIn, LogOut, ChevronDown, Home, BookOpen, GraduationCap, FileStack, LayoutDashboard, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { ENTER_LABEL, roleColors, accountSubtitle } from '../lib/navigation';
@@ -36,6 +37,7 @@ function MenuLink({ item, onPick, style }: { item: (typeof HOME_MENU)[number]; o
 }
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
+  const brand = useBrandName();
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
   const [scrolled, setScrolled] = useState(false);
@@ -104,8 +106,8 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
       }}>
         <div style={{ maxWidth: PAGE_MAX, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52 }}>
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', color: '#1D1D1F', fontWeight: 700, letterSpacing: '-0.02em' }}>
-            <img src="/logo.png" alt="Thầy Chiến Math" style={{ width: 28, height: 28, borderRadius: 7 }} />
-            Thầy Chiến Math
+            <img src="/logo.png" alt={brand} style={{ width: 28, height: 28, borderRadius: 7 }} />
+            {brand}
           </Link>
 
           {/* Thanh công cụ: máy tính hiện chữ; điện thoại chỉ hiện biểu tượng (.pub-label ẩn, .pub-icon hiện) */}
@@ -215,7 +217,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
 
       {/* Footer */}
       <footer style={{ background: '#1F5C68', color: 'rgba(255,255,255,0.7)', textAlign: 'center', padding: '1.5rem', fontSize: '0.82rem' }}>
-        © {new Date().getFullYear()} Thầy Chiến Math. All rights reserved.
+        © {new Date().getFullYear()} {brand}. All rights reserved.
         <div style={{ marginTop: 6 }}><Link to="/chinh-sach-bao-mat" style={{ color: 'rgba(255,255,255,0.85)' }}>Chính sách bảo mật</Link></div>
       </footer>
     </div>
