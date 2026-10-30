@@ -14,15 +14,12 @@ import { saveWorkbook } from '../../lib/native';
 import { sortByVietnameseName, matchesNameSearch, normalizeVietnamese } from '../../lib/vietnameseName';
 import { parseAttachments, isViewableFile } from '../../lib/attachments';
 import { emptyPartsConfig, normalizePartsConfig, computeMaxScore, anyPartEnabled, type PartsConfig, PART_LABELS, PART_ORDER, type PartKey, emptyHsaConfig, parseHsaConfig, hsaMaxScore, type HsaConfig, type ExamType } from '../../lib/homeworkParts';
-import type { AssistantSchedule } from '../../lib/assistantSchedule';
-import AssistantScheduleModal from '../../components/AssistantScheduleModal';
-import FacebookIcon from '../../components/FacebookIcon';
 import ParentInfoModal from '../../components/ParentInfoModal';
 import {
   Users, BookOpen, ClipboardList, Edit, Trash2,
   UserPlus, UserMinus, Play, File, ChevronLeft, Upload, Clock, Eye, EyeOff, Layers, Video, Search,
   ChevronDown, ChevronRight, Trophy, FileSpreadsheet, Download, Paperclip, FileText, X, Plus, GripVertical,
-  UserCog, Phone, Camera, Calendar, Repeat, HeartHandshake, MessageSquareQuote
+  Repeat, HeartHandshake, MessageSquareQuote
 } from 'lucide-react';
 
 // Giờ nhập ở ô datetime-local là GIỜ ĐỊA PHƯƠNG. Lưu dạng ISO (UTC) để khi so "đến hạn"
@@ -64,7 +61,7 @@ export default function ClassDetail() {
   const [searchParams] = useSearchParams();
   const [cls, setCls] = useState<any>(null);
   const [allStudents, setAllStudents] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'students' | 'content' | 'assistants' | 'ranking'>('content');
+  const [activeTab, setActiveTab] = useState<'students' | 'content' | 'ranking'>('content');
   const [lessonModal, setLessonModal] = useState(false);
   const [editingLesson, setEditingLesson] = useState<any>(null);
   const [hwModal, setHwModal] = useState(false);
@@ -110,19 +107,6 @@ export default function ClassDetail() {
   const [excelResult, setExcelResult] = useState<any>(null);
   const excelRef = useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
-  // Trợ giảng: thông tin liên hệ + lịch làm việc trong tuần
-  const [assistantModal, setAssistantModal] = useState(false);
-  const [editingAssistant, setEditingAssistant] = useState<any>(null);
-  const [assistantForm, setAssistantForm] = useState({ full_name: '', phone: '', facebook_url: '' });
-  const [assistantPhoto, setAssistantPhoto] = useState<File | null>(null);
-  const [assistantPhotoPreview, setAssistantPhotoPreview] = useState('');
-  const assistantPhotoRef = useRef<HTMLInputElement>(null);
-  const [scheduleAssistantId, setScheduleAssistantId] = useState<number | null>(null);
-  // Thêm trợ giảng đã có sẵn (từng tạo ở lớp khác) thay vì nhập lại từ đầu
-  const [assistantAddMode, setAssistantAddMode] = useState<'new' | 'existing'>('new');
-  const [allAssistants, setAllAssistants] = useState<any[]>([]);
-  const [existingAssistantSearch, setExistingAssistantSearch] = useState('');
-  const [selectedAssistantId, setSelectedAssistantId] = useState('');
   useEffect(() => { fetchClass(); }, [id]);
 
   // Khi mở lớp: nếu lớp chưa dùng chương thì mở sẵn nhóm "Chưa phân chương", còn lại để thu gọn
@@ -167,11 +151,6 @@ export default function ClassDetail() {
   const fetchAllStudents = async () => {
     const { data } = await api.get('/teacher/all-students');
     setAllStudents(data);
-  };
-
-  const fetchAllAssistants = async () => {
-    const { data } = await api.get('/teacher/all-assistants', { params: { exclude_class_id: id } });
-    setAllAssistants(data);
   };
 
   // Add/remove student
@@ -418,86 +397,6 @@ export default function ClassDetail() {
     fetchClass();
   };
 
-  // Trợ giảng CRUD
-  const openCreateAssistant = () => {
-    setEditingAssistant(null);
-    setAssistantForm({ full_name: '', phone: '', facebook_url: '' });
-    setAssistantPhoto(null);
-    setAssistantPhotoPreview('');
-    setAssistantAddMode('new');
-    setSelectedAssistantId('');
-    setExistingAssistantSearch('');
-    fetchAllAssistants();
-    setAssistantModal(true);
-  };
-
-  const openEditAssistant = (a: any) => {
-    setEditingAssistant(a);
-    setAssistantForm({ full_name: a.full_name, phone: a.phone || '', facebook_url: a.facebook_url || '' });
-    setAssistantPhoto(null);
-    setAssistantPhotoPreview(a.photo ? fileUrl(`/uploads/assistants/${a.photo}`) : '');
-    setAssistantModal(true);
-  };
-
-  const saveAssistant = async () => {
-    if (!editingAssistant && assistantAddMode === 'existing') {
-      if (!selectedAssistantId) { toast.error('Chọn trợ giảng'); return; }
-      setLoading(true);
-      try {
-        await api.post(`/teacher/classes/${id}/assistants/reuse`, { source_id: selectedAssistantId });
-        toast.success('Đã thêm trợ giảng');
-        setAssistantModal(false);
-        fetchClass();
-      } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Lỗi');
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-    if (!assistantForm.full_name) { toast.error('Cần họ tên trợ giảng'); return; }
-    setLoading(true);
-    try {
-      let assistantId: number;
-      if (editingAssistant) {
-        await api.put(`/teacher/assistants/${editingAssistant.id}`, assistantForm);
-        assistantId = editingAssistant.id;
-        toast.success('Đã cập nhật trợ giảng');
-      } else {
-        const { data } = await api.post(`/teacher/classes/${id}/assistants`, assistantForm);
-        assistantId = data.id;
-        toast.success('Đã thêm trợ giảng');
-      }
-      if (assistantPhoto) {
-        const fd = new FormData();
-        fd.append('photo', assistantPhoto);
-        await api.post(`/teacher/assistants/${assistantId}/photo`, fd);
-      }
-      setAssistantModal(false);
-      fetchClass();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Lỗi');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteAssistant = async (a: any) => {
-    if (!confirm(
-      `Gỡ trợ giảng "${a.full_name}" khỏi lớp này?\n\n` +
-      `Các lớp khác của trợ giảng này không bị ảnh hưởng. ` +
-      `Nếu họ không còn dạy lớp nào khác thì hồ sơ (ảnh, thông tin, lịch làm việc) sẽ bị xóa hẳn.`
-    )) return;
-    await api.delete(`/teacher/classes/${id}/assistants/${a.id}`);
-    toast.success('Đã gỡ trợ giảng khỏi lớp');
-    fetchClass();
-  };
-
-  const saveAssistantSchedule = async (assistantId: number, schedule: AssistantSchedule) => {
-    await api.put(`/teacher/assistants/${assistantId}/schedule`, { schedule });
-    fetchClass();
-  };
-
   // Lesson CRUD — truyền chapterId để form chọn sẵn chương (nút + ở từng chương)
   const openCreateLesson = (chapterId?: number) => {
     setEditingLesson(null);
@@ -676,12 +575,6 @@ export default function ClassDetail() {
     (s: any) => s.full_name || ''
   );
 
-  // Trợ giảng đã có ở lớp khác, có thể gán thêm vào lớp này (server đã loại người đã có trong lớp)
-  const availableAssistants = sortByVietnameseName(
-    (allAssistants || []).filter((a: any) => matchesNameSearch(a.full_name || '', existingAssistantSearch)),
-    (a: any) => a.full_name || ''
-  );
-
   // Nội dung lớp gom theo chương: Đại số → Hình học → các phần "Khác" do giáo viên tự đặt tên.
   // Phần nào không có chương nào thì không hiện. Cuối cùng là nhóm "Chưa phân chương" nếu có bài lẻ
   // chưa gán chương — nhóm này chỉ giáo viên thấy, học sinh chỉ thấy thẳng bài giảng & bài tập bên trong.
@@ -835,11 +728,8 @@ export default function ClassDetail() {
   const tabs = [
     { key: 'students', label: `Học sinh (${cls.students?.length || 0})`, icon: Users },
     { key: 'content', label: `Nội dung (${chapters.length} chương)`, icon: Layers },
-    { key: 'assistants', label: `Trợ giảng (${cls.assistants?.length || 0})`, icon: UserCog },
     { key: 'ranking', label: 'Xếp hạng', icon: Trophy },
   ];
-
-  const scheduleAssistant = (cls.assistants || []).find((a: any) => a.id === scheduleAssistantId) || null;
 
 
   return (
@@ -1016,68 +906,6 @@ export default function ClassDetail() {
         </div>
       )}
 
-      {/* Assistants tab: trợ giảng của lớp — thông tin liên hệ + lịch làm việc trong tuần */}
-      {activeTab === 'assistants' && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-            <button className="btn btn-primary" onClick={openCreateAssistant}><Plus size={15} /> Thêm trợ giảng</button>
-          </div>
-          {(cls.assistants || []).length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#86868B', padding: '2rem', background: 'white', borderRadius: 12 }}>
-              <UserCog size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
-              <div>Chưa có trợ giảng nào</div>
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20 }}>
-              {cls.assistants.map((a: any) => (
-                <div key={a.id} style={{ background: 'white', borderRadius: 14, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', textAlign: 'center', position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 4, zIndex: 1 }}>
-                    <button onClick={() => openEditAssistant(a)} title="Sửa"
-                      style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}>
-                      <Edit size={13} color="#515154" />
-                    </button>
-                    <button onClick={() => deleteAssistant(a)} title="Xóa"
-                      style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}>
-                      <Trash2 size={13} color="#B04A2A" />
-                    </button>
-                  </div>
-                  {a.photo ? (
-                    <img src={fileUrl(`/uploads/assistants/${a.photo}`)} alt={a.full_name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ height: 220, background: 'linear-gradient(135deg, #EFEBF5, #D9D0E8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <UserCog size={56} color="#6E5A94" />
-                    </div>
-                  )}
-                  <div style={{ padding: '1rem' }}>
-                    <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1D1D1F' }}>{a.full_name}</h3>
-                    <div style={{ color: '#6E5A94', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>Trợ giảng</div>
-                    {(a.phone || a.facebook_url) && (
-                      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 4, marginBottom: 12, flexWrap: 'wrap' }}>
-                        {a.phone && (
-                          <a href={`tel:${String(a.phone).replace(/[^+\d]/g, '')}`}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E5F1EA', color: '#3A7D5C', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
-                            <Phone size={13} /> {a.phone}
-                          </a>
-                        )}
-                        {a.facebook_url && (
-                          <a href={a.facebook_url} target="_blank" rel="noopener noreferrer"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E6F0F3', color: '#2F6F82', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
-                            <FacebookIcon size={13} /> Facebook
-                          </a>
-                        )}
-                      </div>
-                    )}
-                    <button className="btn btn-outline btn-sm" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setScheduleAssistantId(a.id)}>
-                      <Calendar size={13} /> Xem lịch làm việc
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Ranking tab: xếp hạng theo tháng, top 3 gắn huy chương vàng/bạc/đồng */}
       {activeTab === 'ranking' && <RankingBoard url={`/teacher/classes/${id}/ranking`} />}
 
@@ -1201,106 +1029,6 @@ export default function ClassDetail() {
           <div style={{ fontSize: '0.75rem', color: '#6E6E73', marginTop: 4 }}>Số nhỏ hiển thị trước. Mỗi phần (Đại số, Hình học, và từng tên phần trong mục Khác) đánh số độc lập với nhau.</div>
         </div>
       </Modal>
-
-      {/* Assistant Modal */}
-      <Modal open={assistantModal} onClose={() => setAssistantModal(false)} title={editingAssistant ? 'Sửa trợ giảng' : 'Thêm trợ giảng'}
-        footer={<><button className="btn btn-ghost" onClick={() => setAssistantModal(false)}>Hủy</button><button className="btn btn-primary" onClick={saveAssistant} disabled={loading}>{loading ? 'Đang lưu...' : assistantAddMode === 'existing' && !editingAssistant ? 'Thêm vào lớp' : 'Lưu'}</button></>}>
-        {!editingAssistant && (
-          <div style={{ display: 'flex', gap: 4, background: '#F2F2F4', padding: 4, borderRadius: 10, marginBottom: '1rem' }}>
-            <button className="btn" style={{ flex: 1, background: assistantAddMode === 'new' ? 'white' : 'transparent', boxShadow: assistantAddMode === 'new' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: assistantAddMode === 'new' ? '#1F5C68' : '#6E6E73', border: 'none' }} onClick={() => setAssistantAddMode('new')}>
-              <UserPlus size={14} /> Trợ giảng mới
-            </button>
-            <button className="btn" style={{ flex: 1, background: assistantAddMode === 'existing' ? 'white' : 'transparent', boxShadow: assistantAddMode === 'existing' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none', color: assistantAddMode === 'existing' ? '#1F5C68' : '#6E6E73', border: 'none' }} onClick={() => setAssistantAddMode('existing')}>
-              <UserCog size={14} /> Chọn có sẵn
-            </button>
-          </div>
-        )}
-
-        {editingAssistant && editingAssistant.class_count > 1 && (
-          <div style={{ background: '#E6F0F3', color: '#2F6F82', borderRadius: 8, padding: '0.6rem 0.75rem', fontSize: '0.8rem', marginBottom: '1rem' }}>
-            Trợ giảng này đang dạy {editingAssistant.class_count} lớp. Thông tin và lịch làm việc dùng chung nên thay đổi sẽ áp dụng cho tất cả các lớp đó.
-          </div>
-        )}
-
-        {!editingAssistant && assistantAddMode === 'existing' ? (
-          <div className="form-group">
-            <label className="label">Chọn trợ giảng đã tạo ở lớp khác</label>
-            <div style={{ position: 'relative', marginBottom: 8 }}>
-              <Search size={15} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#86868B' }} />
-              <input
-                className="input"
-                style={{ paddingLeft: 32 }}
-                placeholder="Gõ tên để tìm trợ giảng..."
-                value={existingAssistantSearch}
-                onChange={(e) => setExistingAssistantSearch(e.target.value)}
-              />
-            </div>
-            <div style={{ maxHeight: 260, overflowY: 'auto', border: '1px solid #E8E8ED', borderRadius: 8 }}>
-              {availableAssistants.map((a: any) => (
-                <div key={a.id}
-                  onClick={() => setSelectedAssistantId(String(a.id))}
-                  style={{
-                    padding: '0.5rem 0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10,
-                    background: selectedAssistantId === String(a.id) ? '#E4EFF1' : 'transparent',
-                    borderBottom: '1px solid #F2F2F4',
-                  }}>
-                  {a.photo ? (
-                    <img src={fileUrl(`/uploads/assistants/${a.photo}`)} alt={a.full_name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-                  ) : (
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#EFEBF5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <UserCog size={16} color="#6E5A94" />
-                    </div>
-                  )}
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{a.full_name}</div>
-                    <div style={{ fontSize: '0.76rem', color: '#86868B' }}>Đang dạy: {a.class_titles || '—'}{a.phone ? ` · ${a.phone}` : ''}</div>
-                  </div>
-                </div>
-              ))}
-              {availableAssistants.length === 0 && (
-                <div style={{ padding: '0.75rem', textAlign: 'center', color: '#86868B', fontSize: '0.85rem' }}>Không tìm thấy trợ giảng nào khác</div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="form-group">
-              <label className="label">Họ và tên *</label>
-              <input className="input" placeholder="Nguyễn Văn A" value={assistantForm.full_name} onChange={(e) => setAssistantForm({ ...assistantForm, full_name: e.target.value })} />
-            </div>
-            <div className="form-group">
-              <label className="label">Số điện thoại</label>
-              <input className="input" type="tel" placeholder="vd: 0912 345 678" value={assistantForm.phone} onChange={(e) => setAssistantForm({ ...assistantForm, phone: e.target.value })} />
-            </div>
-            <div className="form-group">
-              <label className="label">Link Facebook</label>
-              <input className="input" placeholder="https://facebook.com/..." value={assistantForm.facebook_url} onChange={(e) => setAssistantForm({ ...assistantForm, facebook_url: e.target.value })} />
-            </div>
-            <div className="form-group">
-              <label className="label">Ảnh đại diện</label>
-              <div className="dropzone" onClick={() => assistantPhotoRef.current?.click()}>
-                {assistantPhotoPreview ? (
-                  <img src={assistantPhotoPreview} alt="preview" style={{ maxHeight: 120, borderRadius: '50%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ fontSize: '0.88rem' }}><Camera size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} />Click để chọn ảnh</div>
-                )}
-              </div>
-              <input ref={assistantPhotoRef} type="file" accept="image/*" hidden onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) { setAssistantPhoto(f); setAssistantPhotoPreview(URL.createObjectURL(f)); }
-              }} />
-            </div>
-          </>
-        )}
-      </Modal>
-
-      <AssistantScheduleModal
-        open={scheduleAssistantId !== null}
-        onClose={() => setScheduleAssistantId(null)}
-        assistant={scheduleAssistant}
-        editable
-        onSave={(schedule) => saveAssistantSchedule(scheduleAssistantId as number, schedule)}
-      />
 
       {/* Lesson Modal */}
       <Modal open={lessonModal} onClose={() => setLessonModal(false)} title={editingLesson ? 'Sửa bài giảng' : 'Thêm bài giảng'} size="lg"

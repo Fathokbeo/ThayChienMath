@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, ChevronDown, ChevronRight, Lock, Eye, FileCheck2, Bot, Phone, MessageSquareQuote, UserCog } from 'lucide-react';
+import { ChevronLeft, ChevronDown, ChevronRight, Lock, Eye, FileCheck2, Bot, Phone, MessageSquareQuote } from 'lucide-react';
 import api, { fileUrl } from '../../lib/api';
 import { PageHeader, SectionHeader, EmptyState, scoreTone } from '../../components/ui';
 import GradingDetails from '../../components/GradingDetails';
 import FileViewer from '../../components/FileViewer';
-import FacebookIcon from '../../components/FacebookIcon';
 import { useChildren, withChild, classLabel, fmtScore, fmtDate, monthLabel, STATUS } from '../../lib/parent';
 
 type Filter = 'all' | 'todo' | 'graded' | 'missed';
@@ -14,7 +13,7 @@ const FILTERS: { key: Filter; label: string }[] = [
 ];
 
 // Một lớp của con: điểm + hạng tháng này, nhận xét của thầy cô, từng bài tập (bấm để xem nhận xét và
-// chi tiết từng câu), điểm/hạng các tháng trước, liên hệ trợ giảng.
+// chi tiết từng câu), điểm/hạng các tháng trước, số điện thoại liên hệ.
 export default function ParentClassDetail() {
   const { id } = useParams();
   const [params] = useSearchParams();
@@ -172,23 +171,18 @@ export default function ParentClassDetail() {
         </section>
       )}
 
-      {cls.assistants.length > 0 && (
+      {cls.contact_phone && (
         <section>
-          <SectionHeader title="Liên hệ trợ giảng" />
+          <SectionHeader title="Liên hệ" />
           <div className="list">
-            {cls.assistants.map((a: any) => (
-              <div key={a.id} className="list-row">
-                {a.photo
-                  ? <img src={fileUrl(`/uploads/assistants/${a.photo}`)} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
-                  : <span style={{ width: 40, height: 40, borderRadius: '50%', background: '#EFEBF5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><UserCog size={18} color="#6E5A94" /></span>}
-                <div className="list-row-main">
-                  <div className="list-row-title">{a.full_name}</div>
-                  <div className="list-row-sub">Trợ giảng {classLabel(cls.title, true)}</div>
-                </div>
-                {a.phone && <a href={`tel:${a.phone.replace(/\s/g, '')}`} className="btn btn-secondary btn-sm"><Phone size={13} /> {a.phone}</a>}
-                {a.facebook_url && <a href={a.facebook_url} target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm btn-icon" title="Facebook"><FacebookIcon size={15} /></a>}
+            <div className="list-row">
+              <span style={{ width: 40, height: 40, borderRadius: '50%', background: '#E5F1EA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Phone size={18} color="#3A7D5C" /></span>
+              <div className="list-row-main">
+                <div className="list-row-title">Số điện thoại liên hệ</div>
+                <div className="list-row-sub">Hỏi về việc học của con {classLabel(cls.title, true)}</div>
               </div>
-            ))}
+              <a href={`tel:${String(cls.contact_phone).replace(/[^+\d]/g, '')}`} className="btn btn-secondary btn-sm"><Phone size={13} /> {cls.contact_phone}</a>
+            </div>
           </div>
         </section>
       )}

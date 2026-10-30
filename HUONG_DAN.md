@@ -48,9 +48,9 @@ Các test tạo dữ liệu thử trong database. Trước khi dùng thật, xó
 (và file trong `backend/uploads/*`) để bắt đầu với database sạch.
 
 ## Tính năng
-- Admin: quản lý tài khoản, khóa học, lớp học, trợ giảng, nội dung trang giới thiệu, quảng cáo
+- Admin: quản lý tài khoản, khóa học, lớp học, nội dung trang giới thiệu (kể cả SĐT liên hệ cho phụ huynh), quảng cáo
 - Giáo viên: khóa học, lớp, chương, bài giảng, bài tập (trắc nghiệm / đúng-sai / trả lời ngắn / tự luận / HSA),
-  AI chấm bài, nhận xét lớp (xuất PDF / Excel), xếp hạng tháng, trợ giảng
+  AI chấm bài, nhận xét lớp (xuất PDF / Excel), xếp hạng tháng
 - Phụ huynh (tự tạo cùng học sinh; đăng nhập mục Phụ huynh bằng tên đăng nhập của con): điểm, thứ hạng,
   tiến độ nộp bài, bài sắp đến hạn, nhận xét tổng quát + nhận xét từng bài, biểu đồ điểm, thông báo hoạt động của con
 - Học sinh: bài giảng, bài tập cần làm, làm & nộp bài (nhiều lần — lấy điểm cao nhất), xem điểm,

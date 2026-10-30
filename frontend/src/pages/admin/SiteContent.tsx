@@ -17,11 +17,10 @@ const COLLECTIONS: Record<string, { label: string; dir: string; titleKey: string
     ],
   },
   'staff': {
-    label: 'Giáo viên & Trợ giảng', dir: 'staff', titleKey: 'name',
+    label: 'Giáo viên', dir: 'staff', titleKey: 'name',
     fields: [
       { key: 'name', label: 'Họ tên', type: 'text', required: true },
       { key: 'role_title', label: 'Chức danh', type: 'text', placeholder: 'vd: Giáo viên Toán' },
-      { key: 'staff_type', label: 'Loại', type: 'select', options: [{ value: 'teacher', label: 'Giáo viên' }, { value: 'assistant', label: 'Trợ giảng' }] },
       { key: 'phone', label: 'Số điện thoại', type: 'text', placeholder: 'vd: 0912 345 678' },
       { key: 'facebook_url', label: 'Link Facebook', type: 'text', placeholder: 'vd: https://facebook.com/ten.giao.vien' },
       { key: 'description', label: 'Giới thiệu', type: 'textarea' },
@@ -131,7 +130,8 @@ function CollectionManager({ collection }: { collection: string }) {
                 {!it.active && <span className="badge badge-gray" style={{ fontSize: '0.68rem' }}>Ẩn</span>}
               </div>
               {it.exam && <span className="badge badge-red" style={{ fontSize: '0.7rem' }}>{it.exam}</span>}
-              {it.role_title && <div style={{ fontSize: '0.8rem', color: '#2F6F82', fontWeight: 600 }}>{it.role_title}{it.staff_type === 'assistant' ? ' · Trợ giảng' : ''}</div>}
+              {it.role_title && <div style={{ fontSize: '0.8rem', color: '#2F6F82', fontWeight: 600 }}>{it.role_title}</div>}
+              {it.staff_type === 'assistant' && <span className="badge badge-gray" style={{ fontSize: '0.68rem' }}>Trợ giảng · không hiện trên trang chủ</span>}
               {it.phone && <div style={{ fontSize: '0.78rem', color: '#3A7D5C', fontWeight: 600 }}>SĐT: {it.phone}</div>}
               {it.facebook_url && <div style={{ fontSize: '0.75rem', color: '#6E6E73', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>FB: {it.facebook_url}</div>}
               {it.student_count && <div style={{ fontSize: '0.8rem', color: '#3A7D5C', fontWeight: 600 }}>{it.student_count}</div>}
@@ -196,6 +196,7 @@ const SETTING_FIELDS = [
   { key: 'contact_email', label: 'Email', area: 'Liên hệ' },
   { key: 'contact_hours', label: 'Giờ học', area: 'Liên hệ' },
   { key: 'contact_facebook', label: 'Link Facebook', area: 'Liên hệ' },
+  { key: 'parent_contact_phone', label: 'SĐT liên hệ (hiện ở trang lớp học của phụ huynh; để trống thì dùng số Điện thoại ở trên)', area: 'Phụ huynh' },
 ];
 
 function SettingsForm() {
@@ -213,7 +214,7 @@ function SettingsForm() {
     } finally { setLoading(false); }
   };
 
-  const areas = ['Trang chủ', 'Số liệu', 'Liên hệ'];
+  const areas = ['Trang chủ', 'Số liệu', 'Liên hệ', 'Phụ huynh'];
   return (
     <div style={{ maxWidth: 640 }}>
       {areas.map((area) => (
@@ -235,7 +236,7 @@ function SettingsForm() {
 // "Học sinh tiêu biểu" và "Kinh nghiệm & Thành tích" đã bỏ khỏi trang chủ (thay bằng Khóa học + Đề và chuyên môn)
 // nên không còn tab ở đây; dữ liệu cũ vẫn giữ trong database.
 const TABS = [
-  { key: 'staff', label: 'Giáo viên & Trợ giảng' },
+  { key: 'staff', label: 'Giáo viên' },
   { key: 'settings', label: 'Liên hệ & Trang chủ' },
 ];
 

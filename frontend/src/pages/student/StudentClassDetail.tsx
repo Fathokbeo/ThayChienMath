@@ -12,12 +12,10 @@ import useIsMobile from '../../lib/useIsMobile';
 import { toast } from '../../components/Toast';
 import { parsePartsConfig, hasObjectiveParts, hasEssay, emptyStudentAnswers, PART_LABELS, PART_ORDER, type PartKey, parseHsaConfig, emptyHsaStudentAnswers, type HsaConfig, formatRemainingMs, formatDeadlineRemaining } from '../../lib/homeworkParts';
 import { parseAttachments, isViewableFile } from '../../lib/attachments';
-import AssistantScheduleModal from '../../components/AssistantScheduleModal';
 import RankingBoard from '../../components/RankingBoard';
-import FacebookIcon from '../../components/FacebookIcon';
 import {
   ChevronLeft, Play, ClipboardList, BookOpen, Upload, CheckCircle, Clock, Eye, Bot, Lock, FileText, Layers, Video,
-  ChevronDown, ChevronRight, ChevronUp, Trophy, Star, Paperclip, Download, UserCog, Phone, Calendar, Timer
+  ChevronDown, ChevronRight, ChevronUp, Trophy, Star, Paperclip, Download, Timer
 } from 'lucide-react';
 
 // Khóa lưu tạm đáp án đang làm dở của 1 bài, để không mất khi lỡ thoát ra giữa chừng.
@@ -34,12 +32,11 @@ function submittedFileUrls(hw: any): string[] {
 export default function StudentClassDetail() {
   const { id } = useParams();
   const [cls, setCls] = useState<any>(null);
-  // ?tab=todo|assistants|ranking: mở thẳng tab đó (vd từ "Việc cần làm" ở trang Tổng quan)
+  // ?tab=todo|ranking: mở thẳng tab đó (vd từ "Việc cần làm" ở trang Tổng quan)
   const [searchParams] = useSearchParams();
   const initialTab = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<'content' | 'todo' | 'assistants' | 'ranking'>(
-    initialTab === 'todo' || initialTab === 'assistants' || initialTab === 'ranking' ? initialTab : 'content');
-  const [scheduleAssistantId, setScheduleAssistantId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<'content' | 'todo' | 'ranking'>(
+    initialTab === 'todo' || initialTab === 'ranking' ? initialTab : 'content');
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
   // Danh sách bài giảng/bài tập nào (theo key "<chương>-lessons"/"-homework") đang được bung ra trong 1 chương —
   // mặc định thu gọn, chỉ hiện khi bấm mở.
@@ -243,7 +240,6 @@ export default function StudentClassDetail() {
   const todoHomework = homeworkAll
     .filter((hw) => hw.due_date && hw.can_submit && !hw.submission_id)
     .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
-  const scheduleAssistant = (cls.assistants || []).find((a: any) => a.id === scheduleAssistantId) || null;
 
   const toggleChapter = (key: string) => setExpandedChapters((prev) => {
     const next = new Set(prev);
@@ -595,12 +591,11 @@ export default function StudentClassDetail() {
         </div>
       </div>
 
-      {/* Tabs: Nội dung / Bài tập cần làm / Trợ giảng / Xếp hạng */}
+      {/* Tabs: Nội dung / Bài tập cần làm / Xếp hạng */}
       <div style={{ display: 'flex', gap: 4, background: '#F2F2F4', padding: 4, borderRadius: 10, marginBottom: '1.25rem', width: isMobile ? '100%' : 'fit-content', flexWrap: 'wrap' }}>
         {[
           { key: 'content' as const, label: 'Nội dung', icon: Layers },
           { key: 'todo' as const, label: `Bài tập cần làm (${todoHomework.length})`, icon: ClipboardList },
-          { key: 'assistants' as const, label: `Trợ giảng (${cls.assistants?.length || 0})`, icon: UserCog },
           { key: 'ranking' as const, label: 'Xếp hạng', icon: Trophy },
         ].map(({ key, label, icon: Icon }) => (
           <button key={key} onClick={() => setActiveTab(key)} className="btn"
@@ -652,53 +647,6 @@ export default function StudentClassDetail() {
 
       {/* Xếp hạng cả lớp theo tháng (giống giáo viên, ẩn tên đăng nhập của các bạn, tô dòng của mình) */}
       {activeTab === 'ranking' && <RankingBoard url={`/student/my-classes/${id}/ranking`} />}
-
-      {/* Trợ giảng: chỉ xem thông tin liên hệ + lịch làm việc, không sửa được */}
-      {activeTab === 'assistants' && (
-        (cls.assistants || []).length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#86868B', padding: '2rem', background: 'white', borderRadius: 12 }}>
-            <UserCog size={36} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
-            <div>Lớp chưa có trợ giảng</div>
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20 }}>
-            {cls.assistants.map((a: any) => (
-              <div key={a.id} style={{ background: 'white', borderRadius: 14, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', textAlign: 'center' }}>
-                {a.photo ? (
-                  <img src={fileUrl(`/uploads/assistants/${a.photo}`)} alt={a.full_name} style={{ width: '100%', height: 220, objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ height: 220, background: 'linear-gradient(135deg, #EFEBF5, #D9D0E8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <UserCog size={56} color="#6E5A94" />
-                  </div>
-                )}
-                <div style={{ padding: '1rem' }}>
-                  <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1D1D1F' }}>{a.full_name}</h3>
-                  <div style={{ color: '#6E5A94', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>Trợ giảng</div>
-                  {(a.phone || a.facebook_url) && (
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 4, marginBottom: 12, flexWrap: 'wrap' }}>
-                      {a.phone && (
-                        <a href={`tel:${String(a.phone).replace(/[^+\d]/g, '')}`}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E5F1EA', color: '#3A7D5C', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
-                          <Phone size={13} /> {a.phone}
-                        </a>
-                      )}
-                      {a.facebook_url && (
-                        <a href={a.facebook_url} target="_blank" rel="noopener noreferrer"
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E6F0F3', color: '#2F6F82', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
-                          <FacebookIcon size={13} /> Facebook
-                        </a>
-                      )}
-                    </div>
-                  )}
-                  <button className="btn btn-outline btn-sm" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setScheduleAssistantId(a.id)}>
-                    <Calendar size={13} /> Xem lịch làm việc
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )
-      )}
 
       {/* View Lesson Modal */}
       <Modal open={viewLessonModal} onClose={() => setViewLessonModal(false)} title={viewingLesson?.title || ''} size="xl">
@@ -759,13 +707,6 @@ export default function StudentClassDetail() {
 
       {/* File Viewer */}
       {viewFiles && <FileViewer files={viewFiles} onClose={() => setViewFiles(null)} />}
-
-      <AssistantScheduleModal
-        open={scheduleAssistantId !== null}
-        onClose={() => setScheduleAssistantId(null)}
-        assistant={scheduleAssistant}
-        editable={false}
-      />
     </div>
   );
 }

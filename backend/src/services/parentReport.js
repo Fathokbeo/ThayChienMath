@@ -311,14 +311,13 @@ function childClassDetail(db, student, classId) {
 
   const order = (h) => h.due_date || h.created_at || '';
   const homework = hws.sort((a, b) => (order(a) < order(b) ? 1 : -1)).map((h) => ({ ...strip(h), class_avg10: clsAvg.get(h.id) ?? null }));
-  const assistants = db.prepare(`
-    SELECT a.id, a.full_name, a.photo, a.phone, a.facebook_url FROM class_assistants ca JOIN assistants a ON ca.assistant_id=a.id
-    WHERE ca.class_id=? ORDER BY ca.created_at
-  `).all(classId);
+  // SĐT liên hệ cho phụ huynh: admin đặt ở "Nội dung trang"; chưa đặt thì dùng SĐT liên hệ chung của trang
+  const setting = (k) => (db.prepare('SELECT value FROM site_settings WHERE key=?').get(k)?.value || '').trim();
+  const contact_phone = setting('parent_contact_phone') || setting('contact_phone');
 
   return {
     ...cls, my_avg: summary.my_avg ?? null, my_rank: summary.my_rank ?? null, rank_total: summary.rank_total ?? 0,
-    class_avg: summary.class_avg ?? null, history, homework, assistants,
+    class_avg: summary.class_avg ?? null, history, homework, contact_phone,
     teacher_comment: teacherCommentsFor(db, student.id, classId)[0] || null,
     student: { id: student.id, full_name: student.full_name },
   };

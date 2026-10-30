@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
-import { Users, BookOpen, School, ClipboardList, FileCheck, GraduationCap, LayoutTemplate, Image, UserCog, ChevronRight, ClipboardCheck, FileStack } from 'lucide-react';
+import { Users, BookOpen, School, ClipboardList, FileCheck, GraduationCap, LayoutTemplate, Image, ChevronRight, ClipboardCheck, FileStack } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import TeachingOverview from '../../components/TeachingOverview';
@@ -28,7 +28,6 @@ export default function AdminDashboard() {
   const shortcuts = [
     { to: '/admin/users', icon: Users, title: 'Quản lý tài khoản', sub: 'Tạo, sửa, khóa tài khoản giáo viên và học sinh' },
     { to: '/admin/courses', icon: BookOpen, title: 'Khóa học', sub: 'Khóa học, lớp học và giáo viên phụ trách' },
-    { to: '/teacher/assistants', icon: UserCog, title: 'Trợ giảng', sub: 'Thông tin liên hệ và lịch làm việc' },
     { to: '/admin/registrations', icon: ClipboardCheck, title: 'Đăng ký học', sub: 'Đơn đăng ký từ trang chủ, ca thi thử đầu vào' },
     { to: '/admin/exams', icon: FileStack, title: 'Đề và chuyên môn', sub: 'Đăng đề PDF theo từng lớp lên trang chủ' },
     { to: '/admin/content', icon: LayoutTemplate, title: 'Nội dung trang giới thiệu', sub: 'Đội ngũ, liên hệ, số liệu trang chủ' },

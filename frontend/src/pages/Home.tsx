@@ -125,7 +125,6 @@ export default function Home() {
   }, [ready, hash]);
 
   const teachers = staff.filter((s) => s.staff_type !== 'assistant');
-  const assistants = staff.filter((s) => s.staff_type === 'assistant');
 
   return (
     <PublicLayout>
@@ -235,24 +234,9 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* 3. Đội ngũ giáo viên & trợ giảng */}
-      <Section id="giao-vien" title="Đội ngũ Giáo viên & Trợ giảng" subtitle="Tận tâm, giàu kinh nghiệm, đồng hành cùng học sinh" icon={GraduationCap} color="#2F6F82">
-        {staff.length === 0 ? <Empty text="Chưa có thông tin đội ngũ" /> : (
-          <>
-            {teachers.length > 0 && (
-              <>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1D1D1F', margin: '0 0 1rem' }}>Giáo viên</h3>
-                <StaffGrid list={teachers} />
-              </>
-            )}
-            {assistants.length > 0 && (
-              <>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1D1D1F', margin: '2rem 0 1rem' }}>Trợ giảng</h3>
-                <StaffGrid list={assistants} />
-              </>
-            )}
-          </>
-        )}
+      {/* 3. Đội ngũ giáo viên (tính năng trợ giảng đã bỏ — mục này chỉ hiện giáo viên) */}
+      <Section id="giao-vien" title="Đội ngũ Giáo viên" subtitle="Tận tâm, giàu kinh nghiệm, đồng hành cùng học sinh" icon={GraduationCap} color="#2F6F82">
+        {teachers.length === 0 ? <Empty text="Chưa có thông tin đội ngũ" /> : <StaffGrid list={teachers} />}
       </Section>
 
       {/* Features */}

@@ -65,7 +65,7 @@ export default function PrivacyPolicy() {
         <ul>
           <li>Học sinh: bài làm và kết quả của chính mình.</li>
           <li>Phụ huynh: kết quả học tập của con.</li>
-          <li>Giáo viên, trợ giảng: học sinh trong lớp mình phụ trách.</li>
+          <li>Giáo viên: học sinh trong lớp mình phụ trách.</li>
           <li>Quản trị viên của trung tâm: toàn bộ dữ liệu để vận hành.</li>
         </ul>
         <p>Chúng tôi không chia sẻ dữ liệu cho bên nào khác, trừ nhà cung cấp AI ở mục 4, nhà cung cấp máy chủ lưu trữ dữ liệu, hoặc khi pháp luật yêu cầu.</p>
