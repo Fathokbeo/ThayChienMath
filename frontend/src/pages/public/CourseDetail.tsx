@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import PublicLayout from '../../components/PublicLayout';
-import api from '../../lib/api';
+import api, { fileUrl } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from '../../components/Toast';
 import { BookOpen, Users, GraduationCap, LogIn, Lock, ClipboardCheck } from 'lucide-react';
 import CourseRegisterModal from '../../components/CourseRegisterModal';
+import useIsMobile from '../../lib/useIsMobile';
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +16,7 @@ export default function CourseDetail() {
   const [notEnrolled, setNotEnrolled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     let cancelled = false;
@@ -52,19 +54,32 @@ export default function CourseDetail() {
 
   return (
     <PublicLayout>
-      <div style={{ background: 'linear-gradient(135deg, #1D1D1F, #1F5C68)', padding: '2.75rem 1.25rem', textAlign: 'center', color: 'white' }}>
-        <BookOpen size={40} style={{ marginBottom: 12 }} />
-        <h1 style={{ margin: 0, fontSize: 'clamp(1.6rem, 4vw, 2rem)', fontWeight: 800 }}>{course.title}</h1>
-        {course.description && <p style={{ margin: '8px 0 0', color: 'rgba(255,255,255,0.85)' }}>{course.description}</p>}
-        <div style={{ marginTop: 14, fontSize: '1.05rem' }}>
-          Học phí: <strong style={{ fontSize: '1.2rem' }}>{course.price || 'Liên hệ'}</strong>
+      {/* Đầu trang: có ảnh khóa học (giống thẻ ở trang chủ) thì hiện ảnh cạnh thông tin, điện thoại thì ảnh ở trên */}
+      <div style={{ background: 'linear-gradient(135deg, #1D1D1F, #1F5C68)', padding: isMobile ? '1.5rem 16px 2rem' : '2.75rem 1.25rem', color: 'white' }}>
+        <div style={{
+          maxWidth: 900, margin: '0 auto', display: 'flex', alignItems: 'center', gap: isMobile ? 20 : 36,
+          flexDirection: isMobile || !course.thumbnail ? 'column' : 'row', textAlign: isMobile || !course.thumbnail ? 'center' : 'left',
+        }}>
+          {course.thumbnail ? (
+            <img src={fileUrl(`/uploads/courses/${course.thumbnail}`)} alt={course.title}
+              style={{ width: isMobile ? '100%' : 400, maxWidth: '100%', aspectRatio: '16 / 10', objectFit: 'cover', borderRadius: 16, boxShadow: '0 10px 30px rgba(0,0,0,0.35)', flexShrink: 0, display: 'block' }} />
+          ) : (
+            <BookOpen size={40} />
+          )}
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ margin: 0, fontSize: 'clamp(1.6rem, 4vw, 2rem)', fontWeight: 800 }}>{course.title}</h1>
+            {course.description && <p style={{ margin: '8px 0 0', color: 'rgba(255,255,255,0.85)' }}>{course.description}</p>}
+            <div style={{ marginTop: 14, fontSize: '1.05rem' }}>
+              Học phí: <strong style={{ fontSize: '1.2rem' }}>{course.price || 'Liên hệ'}</strong>
+            </div>
+            {!!course.open_registration && (
+              <button type="button" className="btn btn-lg" onClick={() => setRegistering(true)}
+                style={{ marginTop: 16, background: '#fff', color: '#1F5C68', fontWeight: 700 }}>
+                <ClipboardCheck size={18} /> Đăng ký học & thi thử đầu vào
+              </button>
+            )}
+          </div>
         </div>
-        {!!course.open_registration && (
-          <button type="button" className="btn btn-lg" onClick={() => setRegistering(true)}
-            style={{ marginTop: 16, background: '#fff', color: '#1F5C68', fontWeight: 700 }}>
-            <ClipboardCheck size={18} /> Đăng ký học & thi thử đầu vào
-          </button>
-        )}
       </div>
       <CourseRegisterModal course={registering ? course : null} onClose={() => setRegistering(false)} />
 
