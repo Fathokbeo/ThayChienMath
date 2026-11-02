@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Edit, Trash2, Eye, EyeOff, FileText, ExternalLink } from 'lucide-react';
 import api, { fileUrl } from '../../lib/api';
@@ -6,6 +6,7 @@ import Modal from '../../components/Modal';
 import { toast } from '../../components/Toast';
 import { PageHeader, EmptyState } from '../../components/ui';
 import { fmtDay, gradeLabel } from '../../lib/publicSite';
+import { loadPdfjs } from '../../lib/pdfjs';
 
 type Exam = { id: number; title: string; grade: string | null; description: string | null; thumbnail: string | null; pdf_file: string | null; published_at: string | null; active: number; created_at: string };
 
@@ -13,11 +14,9 @@ const today = () => new Date().toISOString().slice(0, 10);
 const EMPTY = { title: '', grade: '', description: '', published_at: today() };
 
 // Vẽ trang đầu của file PDF thành ảnh JPEG làm ảnh bìa (khi admin không chọn ảnh bìa riêng)
-async function pdfFirstPageThumb(file: File): Promise<File | null> {
+async function pdfFirstPageThumb(file: Blob): Promise<File | null> {
   try {
-    const pdfjs = await import('pdfjs-dist');
-    const workerUrl = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
-    pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+    const pdfjs = await loadPdfjs();
     const doc = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
     const page = await doc.getPage(1);
     const base = page.getViewport({ scale: 1 });
@@ -29,7 +28,8 @@ async function pdfFirstPageThumb(file: File): Promise<File | null> {
     await page.render({ canvasContext: ctx, viewport, canvas } as any).promise;
     const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', 0.85));
     return blob ? new File([blob], 'bia.jpg', { type: 'image/jpeg' }) : null;
-  } catch {
+  } catch (err) {
+    console.error('[exam] Không vẽ được ảnh bìa từ PDF:', err);
     return null; // không vẽ được thì đề vẫn lưu, chỉ là không có ảnh bìa
   }
 }
@@ -47,6 +47,31 @@ export default function ExamManagement() {
   const [filter, setFilter] = useState('');
 
   const load = () => api.get('/admin/site/exams').then((r) => setExams(r.data)).catch(() => setExams([]));
+
+  // Đề có PDF mà chưa có ảnh bìa (vd đăng từ trình duyệt cũ không vẽ được trang đầu) → tự vẽ bù khi mở trang.
+  // Mỗi đề chỉ thử 1 lần trong phiên này để không lặp lại mãi nếu file PDF hỏng.
+  const coverTried = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    const missing = (exams || []).filter((e) => e.pdf_file && !e.thumbnail && !coverTried.current.has(e.id));
+    if (!missing.length) return;
+    missing.forEach((e) => coverTried.current.add(e.id));
+    (async () => {
+      let made = 0;
+      for (const e of missing) {
+        try {
+          const pdfBlob = await fetch(fileUrl(`/uploads/exams/${e.pdf_file}`)).then((r) => (r.ok ? r.blob() : Promise.reject(r.status)));
+          const cover = await pdfFirstPageThumb(pdfBlob);
+          if (!cover) continue;
+          const body = new FormData(); body.append('thumbnail', cover);
+          await api.put(`/admin/site/exams/${e.id}`, body);
+          made += 1;
+        } catch (err) {
+          console.error(`[exam] Tạo ảnh bìa cho đề ${e.id} lỗi:`, err);
+        }
+      }
+      if (made) { toast.success(`Đã tạo ảnh bìa từ PDF cho ${made} đề`); load(); }
+    })();
+  }, [exams]);
   const loadGrades = () => api.get('/public/exam-grades').then((r) => { setGrades(r.data); setGradesText(r.data.join(', ')); });
   useEffect(() => { load(); loadGrades(); }, []);
 
@@ -77,6 +102,7 @@ export default function ExamManagement() {
       // Không chọn ảnh bìa (và đề chưa có ảnh bìa) → tự lấy trang đầu của PDF
       const cover = thumb || (pdf && !editing?.thumbnail ? await pdfFirstPageThumb(pdf) : null);
       if (cover) body.append('thumbnail', cover);
+      else if (pdf && !editing?.thumbnail) toast.error('Không tạo được ảnh bìa từ PDF — đề vẫn được lưu, có thể chọn ảnh bìa riêng');
       if (editing) await api.put(`/admin/site/exams/${editing.id}`, body);
       else await api.post('/admin/site/exams', body);
       toast.success(editing ? 'Đã cập nhật đề' : 'Đã đăng đề');

@@ -4,6 +4,7 @@
 // tự tính lại khi khung đổi kích thước (vd học sinh kéo thanh chia đề/bài làm), nên zoom luôn có ý nghĩa
 // tương đối, không lệch khi đổi cỡ khung.
 import { useEffect, useRef, useState } from 'react';
+import { loadPdfjs } from '../lib/pdfjs';
 
 interface Props {
   url: string;
@@ -28,9 +29,7 @@ export default function PdfCanvasViewer({ url, zoom }: Props) {
     docRef.current = null;
     (async () => {
       try {
-        const pdfjs = await import('pdfjs-dist');
-        const workerUrl = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
-        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+        const pdfjs = await loadPdfjs();
         const doc = await pdfjs.getDocument({ url }).promise;
         if (cancelled) return;
         docRef.current = doc;
