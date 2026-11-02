@@ -3,8 +3,12 @@
 // Mức phóng to (zoom, prop ngoài truyền vào) là HỆ SỐ nhân lên trên mức "vừa khít chiều rộng khung" —
 // tự tính lại khi khung đổi kích thước (vd học sinh kéo thanh chia đề/bài làm), nên zoom luôn có ý nghĩa
 // tương đối, không lệch khi đổi cỡ khung.
+// Thu nhỏ tới TWO_UP_ZOOM (đề nhiều trang): xếp 2 trang cạnh nhau, mỗi trang vừa nửa khung.
 import { useEffect, useRef, useState } from 'react';
 import { loadPdfjs } from '../lib/pdfjs';
+
+export const TWO_UP_ZOOM = 0.5;
+const PAGE_GAP = 14;
 
 interface Props {
   url: string;
@@ -19,6 +23,8 @@ export default function PdfCanvasViewer({ url, zoom }: Props) {
   const renderTasksRef = useRef<Map<number, any>>(new Map());
   const [numPages, setNumPages] = useState(0);
   const [fitScale, setFitScale] = useState(1);
+  const [spreadScale, setSpreadScale] = useState(0.5); // mỗi trang vừa nửa khung (chế độ 2 trang)
+  const twoUp = zoom <= TWO_UP_ZOOM && numPages > 1;
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
   // Nạp file PDF khi đổi url
@@ -53,6 +59,7 @@ export default function PdfCanvasViewer({ url, zoom }: Props) {
       const naturalWidth = page.getViewport({ scale: 1 }).width;
       const available = Math.max(100, container.clientWidth - 32); // trừ padding 16px mỗi bên
       setFitScale(available / naturalWidth);
+      setSpreadScale((available - PAGE_GAP) / 2 / naturalWidth);
     };
     recompute();
     const ro = new ResizeObserver(() => recompute());
@@ -64,7 +71,7 @@ export default function PdfCanvasViewer({ url, zoom }: Props) {
   useEffect(() => {
     if (status !== 'ready' || !docRef.current || !containerRef.current) return;
     let cancelled = false;
-    const scale = fitScale * zoom;
+    const scale = twoUp ? spreadScale : fitScale * zoom;
     const tasks = renderTasksRef.current;
     (async () => {
       const container = containerRef.current!;
@@ -98,7 +105,7 @@ export default function PdfCanvasViewer({ url, zoom }: Props) {
       tasks.forEach((t) => t.cancel());
       tasks.clear();
     };
-  }, [status, numPages, fitScale, zoom]);
+  }, [status, numPages, fitScale, spreadScale, twoUp, zoom]);
 
   if (status === 'error') {
     return (
@@ -110,7 +117,12 @@ export default function PdfCanvasViewer({ url, zoom }: Props) {
   }
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: 16 }}>
+    <div ref={containerRef} style={{
+      width: '100%', height: '100%', overflow: 'auto', display: 'flex', gap: PAGE_GAP, padding: 16,
+      ...(twoUp
+        ? { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'flex-start', alignContent: 'flex-start' }
+        : { flexDirection: 'column', alignItems: 'center' }),
+    }}>
       {status === 'loading' && <div style={{ color: '#86868B', fontSize: '0.85rem', margin: 'auto' }}>Đang tải đề bài...</div>}
       {Array.from({ length: numPages }, (_, i) => i + 1).map((p) => (
         <canvas key={p} data-page={p} style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.18)', background: 'white', flexShrink: 0 }} />

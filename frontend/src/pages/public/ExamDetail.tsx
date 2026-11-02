@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ChevronLeft, Clock, Download, ZoomIn, ZoomOut } from 'lucide-react';
+import { ChevronLeft, Clock, Download, ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
 import PublicLayout from '../../components/PublicLayout';
-import PdfCanvasViewer from '../../components/PdfCanvasViewer';
+import PdfCanvasViewer, { TWO_UP_ZOOM } from '../../components/PdfCanvasViewer';
 import ExamCard, { type ExamItem } from '../../components/ExamCard';
 import api, { fileUrl } from '../../lib/api';
 import { PAGE_MAX } from '../../lib/layout';
@@ -18,6 +18,31 @@ export default function ExamDetail() {
   const [exam, setExam] = useState<Exam | null>(null);
   const [missing, setMissing] = useState(false);
   const [zoom, setZoom] = useState(1);
+  // Toàn màn hình: dùng Fullscreen API nếu có; iPhone (Safari không cho phóng toàn màn hình 1 khối div)
+  // thì phủ kín cửa sổ bằng CSS. Esc / nút thu nhỏ để thoát.
+  const viewerRef = useRef<HTMLDivElement>(null);
+  const [full, setFull] = useState(false);
+  useEffect(() => {
+    const onFsChange = () => { if (!document.fullscreenElement) setFull(false); };
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => document.removeEventListener('fullscreenchange', onFsChange);
+  }, []);
+  useEffect(() => {
+    if (!full) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFull(false); };
+    window.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
+  }, [full]);
+  const toggleFull = () => {
+    if (full) {
+      if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+      setFull(false);
+    } else {
+      setFull(true);
+      viewerRef.current?.requestFullscreen?.().catch(() => {});
+    }
+  };
 
   useEffect(() => {
     setExam(null); setMissing(false); setZoom(1);
@@ -55,11 +80,17 @@ export default function ExamDetail() {
             )}
 
             {pdf ? (
-              <div style={{ position: 'relative', height: isMobile ? '78vh' : '85vh', background: '#26343A', borderRadius: 16, overflow: 'hidden' }}>
+              <div ref={viewerRef} style={full
+                ? { position: 'fixed', inset: 0, zIndex: 2000, height: '100dvh', background: '#26343A' }
+                : { position: 'relative', height: isMobile ? '78vh' : '85vh', background: '#26343A', borderRadius: 16, overflow: 'hidden' }}>
                 <PdfCanvasViewer url={pdf} zoom={zoom} />
-                <div style={{ position: 'absolute', bottom: 14, right: 14, display: 'flex', gap: 4, background: 'rgba(32,32,40,0.72)', borderRadius: 99, padding: 3 }}>
-                  <button type="button" className="zoom-pill-btn" onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))} disabled={zoom <= 0.5} aria-label="Thu nhỏ"><ZoomOut size={17} /></button>
-                  <button type="button" className="zoom-pill-btn" onClick={() => setZoom((z) => Math.min(3, z + 0.25))} disabled={zoom >= 3} aria-label="Phóng to"><ZoomIn size={17} /></button>
+                <div style={{ position: 'absolute', bottom: 14, right: 14, display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(32,32,40,0.72)', borderRadius: 99, padding: 3 }}>
+                  <button type="button" className="zoom-pill-btn" onClick={() => setZoom((z) => Math.max(TWO_UP_ZOOM, z - 0.25))} disabled={zoom <= TWO_UP_ZOOM} aria-label="Thu nhỏ" title="Thu nhỏ (nhỏ nhất: xem 2 trang cạnh nhau)"><ZoomOut size={17} /></button>
+                  <span style={{ color: '#fff', fontSize: '0.75rem', fontWeight: 600, minWidth: 44, textAlign: 'center' }}>{zoom <= TWO_UP_ZOOM ? '2 trang' : `${Math.round(zoom * 100)}%`}</span>
+                  <button type="button" className="zoom-pill-btn" onClick={() => setZoom((z) => Math.min(3, z + 0.25))} disabled={zoom >= 3} aria-label="Phóng to" title="Phóng to"><ZoomIn size={17} /></button>
+                  <button type="button" className="zoom-pill-btn" onClick={toggleFull} aria-label={full ? 'Thoát toàn màn hình' : 'Toàn màn hình'} title={full ? 'Thoát toàn màn hình (Esc)' : 'Toàn màn hình'}>
+                    {full ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                  </button>
                 </div>
               </div>
             ) : exam.thumbnail ? (
