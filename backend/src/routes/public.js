@@ -1,6 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const fs = require('fs');
 const { getDb } = require('../db/database');
+const { userFromRequest, userFromFileTicket } = require('../services/security');
+const { EXAM_DOCS_DIR } = require('../middleware/upload');
+const { getFormFields, validateSubmission } = require('../services/registrationForm');
+
+const EXAMS_DIR = path.join(__dirname, '../../uploads/exams');
 
 router.get('/ads', (req, res) => {
   const db = getDb();
@@ -93,21 +100,17 @@ function tooManyRegistrations(ip) {
   return hit.count > 5;
 }
 
-const cleanText = (v, max) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
+// Các ô của biểu mẫu đăng ký (admin tùy chỉnh) — chỉ các ô đang bật
+router.get('/registration-form', (req, res) => {
+  res.json(getFormFields(getDb()).filter((f) => f.enabled).map(({ locked, enabled, ...f }) => f));
+});
 
 router.post('/registrations', (req, res) => {
   const db = getDb();
   const b = req.body || {};
-  const student_name = cleanText(b.student_name, 80);
-  const school = cleanText(b.school, 120);
-  const class_name = cleanText(b.class_name, 20);
-  const note = cleanText(b.note, 500) || null;
-  const phone = String(b.parent_phone ?? '').replace(/[\s.()-]/g, '');
-  const score = b.last_score === '' || b.last_score == null ? null : Number(String(b.last_score).replace(',', '.'));
-
-  if (!student_name || !school || !class_name) return res.status(400).json({ message: 'Vui lòng điền đủ họ tên học sinh, trường và lớp' });
-  if (!/^(0|\+84)\d{9,10}$/.test(phone)) return res.status(400).json({ message: 'Số điện thoại phụ huynh không hợp lệ' });
-  if (score === null || !Number.isFinite(score) || score < 0 || score > 10) return res.status(400).json({ message: 'Điểm tổng kết phải là số từ 0 đến 10' });
+  const checked = validateSubmission(getFormFields(db), b);
+  if (checked.error) return res.status(400).json({ message: checked.error });
+  const v = checked.values;
 
   const course = db.prepare('SELECT id,title,open_registration FROM courses WHERE id=? AND active=1').get(b.course_id);
   if (!course || !course.open_registration) return res.status(400).json({ message: 'Khóa học này hiện chưa nhận đăng ký' });
@@ -124,12 +127,29 @@ router.post('/registrations', (req, res) => {
   if (tooManyRegistrations(req.ip)) return res.status(429).json({ message: 'Bạn gửi quá nhiều đơn, vui lòng thử lại sau ít phút' });
 
   db.prepare(`INSERT INTO course_registrations
-    (course_id,course_title,student_name,parent_phone,school,class_name,last_score,slot_id,slot_start_at,note,ip)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?)`).run(
-    course.id, course.title, student_name, phone, school, class_name, score,
-    slot ? slot.id : null, slot ? slot.start_at : null, note, req.ip,
+    (course_id,course_title,student_name,parent_phone,school,class_name,last_score,slot_id,slot_start_at,note,extra,ip)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+    course.id, course.title, v.student_name, v.parent_phone, v.school, v.class_name, v.last_score,
+    slot ? slot.id : null, slot ? slot.start_at : null, v.note, v.extra.length ? JSON.stringify(v.extra) : null, req.ip,
   );
   res.status(201).json({ message: 'Đã gửi đăng ký', slot_start_at: slot ? slot.start_at : null });
+});
+
+// ── Tin tức ───────────────────────────────────────────────────────────
+const NEWS_ORDER = 'ORDER BY COALESCE(published_at, created_at) DESC, id DESC';
+
+// ?limit=6 — danh sách không kèm nội dung đầy đủ cho nhẹ
+router.get('/news', (req, res) => {
+  const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 100, 1), 200);
+  res.json(getDb().prepare(`SELECT id,title,summary,image,published_at,created_at FROM news_posts WHERE active=1 ${NEWS_ORDER} LIMIT ${limit}`).all());
+});
+
+router.get('/news/:id', (req, res) => {
+  const db = getDb();
+  const post = db.prepare('SELECT id,title,summary,content,image,published_at,created_at FROM news_posts WHERE id=? AND active=1').get(req.params.id);
+  if (!post) return res.status(404).json({ message: 'Không tìm thấy bài viết' });
+  const related = db.prepare(`SELECT id,title,summary,image,published_at,created_at FROM news_posts WHERE active=1 AND id<>? ${NEWS_ORDER} LIMIT 3`).all(post.id);
+  res.json({ ...post, related });
 });
 
 // ── Đề và chuyên môn ──────────────────────────────────────────────────
@@ -151,20 +171,48 @@ router.get('/exams', (req, res) => {
   if (req.query.q) { where.push('(title LIKE ? OR description LIKE ?)'); const q = `%${String(req.query.q).slice(0, 80)}%`; vals.push(q, q); }
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 200, 1), 200);
   res.json(db.prepare(`
-    SELECT id,title,grade,thumbnail,pdf_file,published_at,created_at FROM exam_papers
+    SELECT id,title,grade,thumbnail,pdf_file,(docx_file IS NOT NULL) has_docx,published_at,created_at FROM exam_papers
     WHERE ${where.join(' AND ')} ORDER BY COALESCE(published_at, created_at) DESC, id DESC LIMIT ${limit}
   `).all(...vals));
 });
 
 router.get('/exams/:id', (req, res) => {
   const db = getDb();
-  const exam = db.prepare('SELECT id,title,grade,description,thumbnail,pdf_file,published_at,created_at FROM exam_papers WHERE id=? AND active=1').get(req.params.id);
-  if (!exam) return res.status(404).json({ message: 'Không tìm thấy đề' });
+  const row = db.prepare('SELECT * FROM exam_papers WHERE id=? AND active=1').get(req.params.id);
+  if (!row) return res.status(404).json({ message: 'Không tìm thấy đề' });
+  // Không trả tên file Word ra ngoài: bản Word chỉ tải qua /exams/:id/file/docx (có kiểm tra quyền)
+  const exam = {
+    id: row.id, title: row.title, grade: row.grade, description: row.description, thumbnail: row.thumbnail,
+    pdf_file: row.pdf_file, published_at: row.published_at, created_at: row.created_at, has_docx: !!row.docx_file,
+    pdf_download: row.pdf_file ? (row.pdf_download || 'all') : 'none',
+    docx_download: row.docx_file ? (row.docx_download || 'all') : 'none',
+  };
   const related = db.prepare(`
     SELECT id,title,grade,thumbnail,published_at,created_at FROM exam_papers
     WHERE active=1 AND id<>? AND grade IS ? ORDER BY COALESCE(published_at, created_at) DESC LIMIT 4
   `).all(exam.id, exam.grade);
   res.json({ ...exam, related });
+});
+
+// Tải đề theo quyền admin đặt cho từng bản (PDF / Word). Dùng được với link thường (<a href>):
+// web gửi kèm cookie phiên, app gắn vé ?t= (xem fileUrl ở frontend). Admin luôn tải được.
+router.get('/exams/:id/file/:kind', (req, res) => {
+  const kind = req.params.kind;
+  if (kind !== 'pdf' && kind !== 'docx') return res.status(404).json({ message: 'Không tìm thấy file' });
+  const exam = getDb().prepare('SELECT * FROM exam_papers WHERE id=? AND active=1').get(req.params.id);
+  const file = exam && (kind === 'pdf' ? exam.pdf_file : exam.docx_file);
+  if (!file) return res.status(404).json({ message: 'Không tìm thấy file' });
+  const mode = (kind === 'pdf' ? exam.pdf_download : exam.docx_download) || 'all';
+  const user = userFromRequest(req) || userFromFileTicket(req);
+  if (user?.role !== 'admin') {
+    if (mode === 'none') return res.status(403).json({ message: 'Đề này không cho tải về' });
+    if (mode === 'login' && !user) return res.status(401).json({ message: 'Vui lòng đăng nhập để tải đề này' });
+  }
+  const full = path.join(kind === 'pdf' ? EXAMS_DIR : EXAM_DOCS_DIR, path.basename(file));
+  if (!fs.existsSync(full)) return res.status(404).json({ message: 'Không tìm thấy file' });
+  const safeTitle = String(exam.title || '').replace(/[\\/:*?"<>|\r\n]+/g, ' ').trim().slice(0, 150) || 'de-thi';
+  res.setHeader('Cache-Control', 'private, no-store');
+  res.download(full, safeTitle + path.extname(file));
 });
 
 // Bản demo: danh sách tài khoản thử để hiện ở trang đăng nhập. Database thật (không nạp demo) → null

@@ -552,6 +552,32 @@ function initSchema() {
     );
   `);
 
+  // Ô do admin tự thêm vào biểu mẫu đăng ký học (xem services/registrationForm.js): [{label, value}]
+  const regCols = db.prepare('PRAGMA table_info(course_registrations)').all();
+  if (!regCols.some(c => c.name === 'extra')) db.exec('ALTER TABLE course_registrations ADD COLUMN extra TEXT');
+
+  // Tin tức (thay cho mục "Đội ngũ giáo viên" ở trang chủ): bài đăng có ảnh bìa, tóm tắt, nội dung
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS news_posts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      summary TEXT,
+      content TEXT,
+      image TEXT,
+      published_at TEXT,                 -- YYYY-MM-DD, ngày hiện trên trang
+      display_order INTEGER DEFAULT 0,
+      active INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // Đề có thể kèm bản Word (đăng song song với PDF). Quyền tải riêng cho từng bản:
+  // 'all' = ai cũng tải được, 'login' = phải đăng nhập, 'none' = không cho tải (PDF vẫn xem trên web).
+  const examCols = db.prepare('PRAGMA table_info(exam_papers)').all();
+  if (!examCols.some(c => c.name === 'docx_file')) db.exec('ALTER TABLE exam_papers ADD COLUMN docx_file TEXT');
+  if (!examCols.some(c => c.name === 'pdf_download')) db.exec("ALTER TABLE exam_papers ADD COLUMN pdf_download TEXT DEFAULT 'all'");
+  if (!examCols.some(c => c.name === 'docx_download')) db.exec("ALTER TABLE exam_papers ADD COLUMN docx_download TEXT DEFAULT 'all'");
+
   // Tài khoản quản trị đầu tiên (chỉ khi database chưa có admin nào):
   // - ADMIN_USERNAME / ADMIN_PASSWORD trong .env → tạo đúng tài khoản đó (mật khẩu không lưu dạng chữ thường).
   // - Không đặt: máy cá nhân / bản demo vẫn tạo admin / admin123 cho tiện; còn bản chạy thật (NODE_ENV=production,

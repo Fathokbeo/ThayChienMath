@@ -5,9 +5,18 @@ import Modal from '../../components/Modal';
 import { toast } from '../../components/Toast';
 import { Plus, Edit, Trash2, Eye, EyeOff, ImageIcon } from 'lucide-react';
 
-type Field = { key: string; label: string; type: 'text' | 'textarea' | 'select'; required?: boolean; options?: { value: string; label: string }[]; placeholder?: string };
+type Field = { key: string; label: string; type: 'text' | 'textarea' | 'select' | 'date'; required?: boolean; options?: { value: string; label: string }[]; placeholder?: string; rows?: number };
 
-const COLLECTIONS: Record<string, { label: string; dir: string; titleKey: string; fields: Field[] }> = {
+const COLLECTIONS: Record<string, { label: string; dir: string; titleKey: string; fields: Field[]; noOrder?: boolean }> = {
+  'news': {
+    label: 'Bài tin tức', dir: 'news', titleKey: 'title', noOrder: true,
+    fields: [
+      { key: 'title', label: 'Tiêu đề', type: 'text', required: true, placeholder: 'vd: Khai giảng lớp 6 năm học 2026 – 2027' },
+      { key: 'published_at', label: 'Ngày đăng', type: 'date' },
+      { key: 'summary', label: 'Tóm tắt (hiện ở thẻ tin trên trang chủ)', type: 'textarea', rows: 2 },
+      { key: 'content', label: 'Nội dung bài viết', type: 'textarea', rows: 12, placeholder: 'Gõ nội dung, xuống dòng bình thường — trang tin hiện đúng như vậy.' },
+    ],
+  },
   'featured-students': {
     label: 'Học sinh tiêu biểu', dir: 'featured_students', titleKey: 'name',
     fields: [
@@ -55,6 +64,7 @@ function CollectionManager({ collection }: { collection: string }) {
     setEditing(null);
     const init: any = { display_order: '0' };
     if (collection === 'staff') init.staff_type = 'teacher';
+    if (collection === 'news') init.published_at = new Date().toISOString().slice(0, 10);
     setForm(init);
     setFile(null); setPreview('');
     setModal(true);
@@ -137,6 +147,8 @@ function CollectionManager({ collection }: { collection: string }) {
               {it.facebook_url && <div style={{ fontSize: '0.75rem', color: '#6E6E73', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>FB: {it.facebook_url}</div>}
               {it.student_count && <div style={{ fontSize: '0.8rem', color: '#3A7D5C', fontWeight: 600 }}>{it.student_count}</div>}
               {it.year && <div style={{ fontSize: '0.8rem', color: '#B8673E', fontWeight: 700 }}>{it.year}</div>}
+              {it.published_at && <div style={{ fontSize: '0.8rem', color: '#86868B' }}>{it.published_at.split('-').reverse().join('/')}</div>}
+              {it.summary && <div style={{ fontSize: '0.8rem', color: '#6E6E73', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{it.summary}</div>}
               {it.achievement && <div style={{ fontSize: '0.82rem', color: '#1F5C68', fontWeight: 600, marginTop: 2 }}>{it.achievement}</div>}
               <div style={{ display: 'flex', gap: 4, marginTop: 10 }}>
                 <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={() => openEdit(it)}><Edit size={13} /> Sửa</button>
@@ -166,7 +178,9 @@ function CollectionManager({ collection }: { collection: string }) {
           <div className="form-group" key={f.key}>
             <label className="label">{f.label}{f.required ? ' *' : ''}</label>
             {f.type === 'textarea' ? (
-              <textarea className="input" rows={3} value={form[f.key] || ''} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
+              <textarea className="input" rows={f.rows || 3} placeholder={f.placeholder} value={form[f.key] || ''} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
+            ) : f.type === 'date' ? (
+              <input className="input" type="date" value={form[f.key] || ''} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
             ) : f.type === 'select' ? (
               <select className="input" value={form[f.key] || ''} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}>
                 {f.options!.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -176,10 +190,12 @@ function CollectionManager({ collection }: { collection: string }) {
             )}
           </div>
         ))}
-        <div className="form-group">
-          <label className="label">Thứ tự hiển thị</label>
-          <input className="input" type="number" min={0} value={form.display_order || '0'} onChange={(e) => setForm({ ...form, display_order: e.target.value })} />
-        </div>
+        {!cfg.noOrder && (
+          <div className="form-group">
+            <label className="label">Thứ tự hiển thị</label>
+            <input className="input" type="number" min={0} value={form.display_order || '0'} onChange={(e) => setForm({ ...form, display_order: e.target.value })} />
+          </div>
+        )}
       </Modal>
     </div>
   );
@@ -231,15 +247,15 @@ function SettingsForm() {
   );
 }
 
-// "Học sinh tiêu biểu" và "Kinh nghiệm & Thành tích" đã bỏ khỏi trang chủ (thay bằng Khóa học + Đề và chuyên môn)
-// nên không còn tab ở đây; dữ liệu cũ vẫn giữ trong database.
+// "Học sinh tiêu biểu", "Kinh nghiệm & Thành tích" và "Giáo viên" đã bỏ khỏi trang chủ (thay bằng Khóa học,
+// Đề và chuyên môn, Tin tức) nên không còn tab ở đây; dữ liệu cũ vẫn giữ trong database.
 const TABS = [
-  { key: 'staff', label: 'Giáo viên' },
+  { key: 'news', label: 'Tin tức' },
   { key: 'settings', label: 'Liên hệ & Trang chủ' },
 ];
 
 export default function SiteContent() {
-  const [tab, setTab] = useState('staff');
+  const [tab, setTab] = useState('news');
   return (
     <div className="fade-in">
       <h1 className="page-title" style={{ marginBottom: '0.5rem' }}>Nội dung trang giới thiệu</h1>

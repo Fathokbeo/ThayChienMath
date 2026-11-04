@@ -8,10 +8,19 @@ import { PageHeader, EmptyState } from '../../components/ui';
 import { fmtDay, gradeLabel } from '../../lib/publicSite';
 import { loadPdfjs } from '../../lib/pdfjs';
 
-type Exam = { id: number; title: string; grade: string | null; description: string | null; thumbnail: string | null; pdf_file: string | null; published_at: string | null; active: number; created_at: string };
+type DownloadMode = 'all' | 'login' | 'none';
+type Exam = {
+  id: number; title: string; grade: string | null; description: string | null; thumbnail: string | null; pdf_file: string | null;
+  docx_file: string | null; pdf_download: DownloadMode | null; docx_download: DownloadMode | null; published_at: string | null; active: number; created_at: string;
+};
+const DOWNLOAD_OPTIONS: { value: DownloadMode; label: string }[] = [
+  { value: 'all', label: 'Ai cũng tải được' },
+  { value: 'login', label: 'Phải đăng nhập mới tải' },
+  { value: 'none', label: 'Không cho tải (chỉ xem trên web)' },
+];
 
 const today = () => new Date().toISOString().slice(0, 10);
-const EMPTY = { title: '', grade: '', description: '', published_at: today() };
+const EMPTY = { title: '', grade: '', description: '', published_at: today(), pdf_download: 'all' as DownloadMode, docx_download: 'all' as DownloadMode };
 
 // Vẽ trang đầu của file PDF thành ảnh JPEG làm ảnh bìa (khi admin không chọn ảnh bìa riêng)
 async function pdfFirstPageThumb(file: Blob): Promise<File | null> {
@@ -42,6 +51,7 @@ export default function ExamManagement() {
   const [modal, setModal] = useState<Exam | 'new' | null>(null);
   const [form, setForm] = useState(EMPTY);
   const [pdf, setPdf] = useState<File | null>(null);
+  const [docx, setDocx] = useState<File | null>(null);
   const [thumb, setThumb] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState('');
@@ -85,20 +95,22 @@ export default function ExamManagement() {
 
   const open = (e: Exam | 'new') => {
     setForm(e === 'new' ? { ...EMPTY, grade: grades[0] || '' }
-      : { title: e.title, grade: e.grade || '', description: e.description || '', published_at: e.published_at || today() });
-    setPdf(null); setThumb(null);
+      : { title: e.title, grade: e.grade || '', description: e.description || '', published_at: e.published_at || today(),
+        pdf_download: e.pdf_download || 'all', docx_download: e.docx_download || 'all' });
+    setPdf(null); setDocx(null); setThumb(null);
     setModal(e);
   };
 
   const save = async () => {
     if (!form.title.trim()) { toast.error('Cần tên đề'); return; }
     const editing = modal !== 'new' ? (modal as Exam) : null;
-    if (!editing && !pdf) { toast.error('Chọn file PDF của đề'); return; }
+    if (!editing && !pdf && !docx) { toast.error('Chọn file đề (PDF và/hoặc Word)'); return; }
     setSaving(true);
     try {
       const body = new FormData();
       Object.entries(form).forEach(([k, v]) => body.append(k, v));
       if (pdf) body.append('pdf', pdf);
+      if (docx) body.append('docx', docx);
       // Không chọn ảnh bìa (và đề chưa có ảnh bìa) → tự lấy trang đầu của PDF
       const cover = thumb || (pdf && !editing?.thumbnail ? await pdfFirstPageThumb(pdf) : null);
       if (cover) body.append('thumbnail', cover);
@@ -172,6 +184,9 @@ export default function ExamManagement() {
                   {e.grade && <span className="badge badge-blue">{gradeLabel(e.grade)}</span>}
                   <span>{fmtDay(e.published_at || e.created_at)}</span>
                   {!e.pdf_file && <span className="badge badge-red">Chưa có PDF</span>}
+                  {e.docx_file && <span className="badge badge-purple">Có bản Word</span>}
+                  {e.pdf_file && <span>Tải PDF: {DOWNLOAD_OPTIONS.find((o) => o.value === (e.pdf_download || 'all'))?.label.toLowerCase()}</span>}
+                  {e.docx_file && <span>· Tải Word: {DOWNLOAD_OPTIONS.find((o) => o.value === (e.docx_download || 'all'))?.label.toLowerCase()}</span>}
                   {!e.active && <span className="badge badge-gray">Đang ẩn</span>}
                 </div>
               </div>
@@ -202,9 +217,30 @@ export default function ExamManagement() {
           </div>
           <label className="form-field"><span>Mô tả / nội dung chuyên môn</span>
             <textarea className="input" rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Cấu trúc đề, thời gian làm bài, nhận xét chuyên môn..." /></label>
-          <label className="form-field"><span>File đề (PDF) {editing ? '— chọn file mới để thay' : '*'}</span>
-            <input className="input" type="file" accept="application/pdf" onChange={(e) => setPdf(e.target.files?.[0] || null)} />
-            {editing?.pdf_file && !pdf && <a href={fileUrl(`/uploads/exams/${editing.pdf_file}`)} target="_blank" rel="noreferrer" className="link" style={{ fontSize: '0.85rem' }}>Xem file đang dùng</a>}</label>
+          <div style={{ fontSize: '0.8rem', color: '#6E6E73' }}>
+            Đăng bản <b>PDF</b> để khách xem đề ngay trên web, và/hoặc bản <b>Word</b> để tải về. Cần ít nhất một trong hai.
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 10 }}>
+            <label className="form-field"><span>File đề PDF {editing?.pdf_file ? '— chọn file mới để thay' : ''}</span>
+              <input className="input" type="file" accept="application/pdf" onChange={(e) => setPdf(e.target.files?.[0] || null)} />
+              {editing?.pdf_file && !pdf && <a href={fileUrl(`/uploads/exams/${editing.pdf_file}`)} target="_blank" rel="noreferrer" className="link" style={{ fontSize: '0.85rem' }}>Xem file đang dùng</a>}</label>
+            <label className="form-field"><span>Quyền tải bản PDF</span>
+              <select className="input" value={form.pdf_download} onChange={(e) => setForm({ ...form, pdf_download: e.target.value as DownloadMode })}>
+                {DOWNLOAD_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select></label>
+            <label className="form-field"><span>File đề Word (.doc, .docx) {editing?.docx_file ? '— chọn file mới để thay' : ''}</span>
+              <input className="input" type="file" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(e) => setDocx(e.target.files?.[0] || null)} />
+              {editing?.docx_file && !docx && <a href={fileUrl(`/api/public/exams/${editing.id}/file/docx`)} className="link" style={{ fontSize: '0.85rem' }}>Tải bản Word đang dùng</a>}</label>
+            <label className="form-field"><span>Quyền tải bản Word</span>
+              <select className="input" value={form.docx_download} onChange={(e) => setForm({ ...form, docx_download: e.target.value as DownloadMode })}>
+                {DOWNLOAD_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select></label>
+          </div>
+          {form.pdf_download !== 'all' && (
+            <div style={{ fontSize: '0.78rem', color: '#B8673E', marginTop: -4 }}>
+              Lưu ý: bản PDF vẫn hiện để xem trên web, nên nút tải bị ẩn nhưng người rành máy tính vẫn có thể lưu lại được. Bản Word thì chặn hẳn.
+            </div>
+          )}
           <label className="form-field"><span>Ảnh bìa (không bắt buộc — để trống sẽ tự lấy trang đầu của PDF)</span>
             <input className="input" type="file" accept="image/*" onChange={(e) => setThumb(e.target.files?.[0] || null)} /></label>
         </div>

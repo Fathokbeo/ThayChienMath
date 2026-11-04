@@ -5,11 +5,14 @@ import Modal from '../../components/Modal';
 import { toast } from '../../components/Toast';
 import { PageHeader, EmptyState } from '../../components/ui';
 import { fmtSlotTime } from '../../lib/publicSite';
+import RegistrationFormEditor from '../../components/RegistrationFormEditor';
 
 type Reg = {
   id: number; course_title: string | null; student_name: string; parent_phone: string; school: string; class_name: string;
   last_score: number | null; slot_start_at: string | null; note: string | null; status: string; admin_note: string | null; created_at: string;
+  extra: string | null; // JSON [{label, value}] — các ô admin tự thêm vào biểu mẫu
 };
+const extraOf = (r: Reg): { label: string; value: string }[] => { try { return r.extra ? JSON.parse(r.extra) : []; } catch { return []; } };
 type Slot = { id: number; start_at: string; location: string | null; capacity: number | null; note: string | null; active: number; taken: number };
 
 const STATUS: Record<string, { label: string; badge: string }> = {
@@ -25,7 +28,7 @@ const toLocalInput = (iso: string) => { const d = new Date(iso); d.setMinutes(d.
 
 // Đăng ký học từ trang chủ: danh sách đơn (gọi điện, đổi trạng thái, ghi chú) + quản lý ca thi thử đầu vào
 export default function Registrations() {
-  const [tab, setTab] = useState<'regs' | 'slots'>('regs');
+  const [tab, setTab] = useState<'regs' | 'slots' | 'form'>('regs');
   const [filter, setFilter] = useState('');
   const [regs, setRegs] = useState<Reg[] | null>(null);
   const [slots, setSlots] = useState<Slot[] | null>(null);
@@ -78,7 +81,7 @@ export default function Registrations() {
 
   return (
     <div className="fade-in">
-      <PageHeader title="Đăng ký học" subtitle="Đơn đăng ký từ trang chủ và lịch thi thử đầu vào."
+      <PageHeader title="Đăng ký học" subtitle="Đơn đăng ký từ trang chủ, lịch thi thử đầu vào và các ô khách cần điền."
         actions={tab === 'slots' && <button className="btn btn-primary" onClick={() => openSlot('new')}><Plus size={16} /> Thêm ca thi</button>} />
 
       <div className="grade-chips" style={{ marginBottom: 16 }}>
@@ -86,9 +89,10 @@ export default function Registrations() {
           Đơn đăng ký {newCount > 0 && <span className="ph-badge">{newCount}</span>}
         </button>
         <button className={`ph-chip ${tab === 'slots' ? 'active' : ''}`} onClick={() => setTab('slots')}>Ca thi thử</button>
+        <button className={`ph-chip ${tab === 'form' ? 'active' : ''}`} onClick={() => setTab('form')}>Biểu mẫu đăng ký</button>
       </div>
 
-      {tab === 'regs' ? (
+      {tab === 'form' ? <RegistrationFormEditor /> : tab === 'regs' ? (
         <>
           <div className="grade-chips" style={{ marginBottom: 14 }}>
             {[['', 'Tất cả'], ...Object.entries(STATUS).map(([k, v]) => [k, v.label])].map(([k, label]) => (
@@ -107,9 +111,12 @@ export default function Registrations() {
                         <strong style={{ fontSize: '1rem' }}>{r.student_name}</strong>
                         <span className={`badge ${STATUS[r.status]?.badge || 'badge-gray'}`}>{STATUS[r.status]?.label || r.status}</span>
                       </div>
-                      <div style={{ fontSize: '0.85rem', color: '#6E6E73', marginTop: 3 }}>
-                        Lớp {r.class_name} · {r.school} · Điểm Toán kỳ trước: <strong style={{ color: '#1D1D1F' }}>{r.last_score ?? '—'}</strong>
-                      </div>
+                      {(r.class_name || r.school || r.last_score != null) && (
+                        <div style={{ fontSize: '0.85rem', color: '#6E6E73', marginTop: 3 }}>
+                          {[r.class_name && `Lớp ${r.class_name}`, r.school].filter(Boolean).join(' · ')}
+                          {r.last_score != null && <>{(r.class_name || r.school) ? ' · ' : ''}Điểm Toán kỳ trước: <strong style={{ color: '#1D1D1F' }}>{r.last_score}</strong></>}
+                        </div>
+                      )}
                     </div>
                     <button className="btn btn-ghost btn-sm btn-icon" title="Xóa đơn" onClick={() => deleteReg(r)}><Trash2 size={15} /></button>
                   </div>
@@ -118,6 +125,11 @@ export default function Registrations() {
                     <span>Khóa: <strong>{r.course_title || '—'}</strong></span>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><CalendarClock size={14} color="#2F6F82" /> {r.slot_start_at ? fmtSlotTime(r.slot_start_at) : 'Chưa chọn ca thi'}</span>
                   </div>
+                  {extraOf(r).length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 16px', fontSize: '0.85rem', color: '#515154', marginTop: 6 }}>
+                      {extraOf(r).map((x, i) => <span key={i}>{x.label}: <strong style={{ color: '#1D1D1F' }}>{x.value}</strong></span>)}
+                    </div>
+                  )}
                   {r.note && <div style={{ fontSize: '0.85rem', color: '#515154', marginTop: 6 }}>Ghi chú của phụ huynh: {r.note}</div>}
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
                     <select className="input" value={r.status} onChange={(e) => updateReg(r, { status: e.target.value })} style={{ width: 'auto', minHeight: 38, padding: '0 10px' }}>

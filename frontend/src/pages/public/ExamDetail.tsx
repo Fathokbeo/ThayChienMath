@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ChevronLeft, Clock, Download, ZoomIn, ZoomOut, Maximize2, Minimize2 } from 'lucide-react';
+import { ChevronLeft, Clock, Download, ZoomIn, ZoomOut, Maximize2, Minimize2, FileText, LogIn } from 'lucide-react';
 import PublicLayout from '../../components/PublicLayout';
 import PdfCanvasViewer, { TWO_UP_ZOOM } from '../../components/PdfCanvasViewer';
 import ExamCard, { type ExamItem } from '../../components/ExamCard';
@@ -8,13 +8,27 @@ import api, { fileUrl } from '../../lib/api';
 import { PAGE_MAX } from '../../lib/layout';
 import { fmtDay, gradeLabel } from '../../lib/publicSite';
 import useIsMobile from '../../lib/useIsMobile';
+import { useAuth } from '../../contexts/AuthContext';
 
-type Exam = ExamItem & { description?: string | null; pdf_file?: string | null; related: ExamItem[] };
+type DownloadMode = 'all' | 'login' | 'none';
+type Exam = ExamItem & { description?: string | null; pdf_file?: string | null; pdf_download?: DownloadMode; docx_download?: DownloadMode; related: ExamItem[] };
+
+// Nút tải 1 bản đề theo quyền admin đặt: ai cũng tải / phải đăng nhập / không cho tải (không hiện nút)
+function DownloadButton({ examId, kind, mode, loggedIn }: { examId: number; kind: 'pdf' | 'docx'; mode?: DownloadMode; loggedIn: boolean }) {
+  const format = kind === 'pdf' ? 'PDF' : 'Word';
+  const icon = kind === 'pdf' ? <Download size={14} /> : <FileText size={14} />;
+  if (!mode || mode === 'none') return null;
+  if (mode === 'login' && !loggedIn) {
+    return <Link to="/login" className="btn btn-ghost btn-sm" title="Đề này chỉ cho tài khoản đã đăng nhập tải về"><LogIn size={14} /> Đăng nhập để tải đề {format}</Link>;
+  }
+  return <a href={fileUrl(`/api/public/exams/${examId}/file/${kind}`)} download className="btn btn-secondary btn-sm">{icon} Tải đề {format}</a>;
+}
 
 // Chi tiết 1 đề: mô tả + xem PDF ngay trên trang (pdf.js, không phụ thuộc trình xem PDF của trình duyệt/app)
 export default function ExamDetail() {
   const { id } = useParams<{ id: string }>();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const [exam, setExam] = useState<Exam | null>(null);
   const [missing, setMissing] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -69,11 +83,10 @@ export default function ExamDetail() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', color: '#86868B', fontSize: '0.88rem', marginBottom: 16 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={14} /> {fmtDay(exam.published_at || exam.created_at)}</span>
               {exam.grade && <Link to={`/de-thi?lop=${encodeURIComponent(exam.grade)}`} className="badge badge-blue" style={{ textDecoration: 'none' }}>{gradeLabel(exam.grade)}</Link>}
-              {pdf && (
-                <a href={pdf} target="_blank" rel="noreferrer" download className="btn btn-secondary btn-sm" style={{ marginLeft: 'auto' }}>
-                  <Download size={14} /> Tải đề (PDF)
-                </a>
-              )}
+              <span style={{ marginLeft: 'auto', display: 'inline-flex', gap: 8, flexWrap: 'wrap' }}>
+                <DownloadButton examId={exam.id} kind="pdf" mode={exam.pdf_download} loggedIn={!!user} />
+                <DownloadButton examId={exam.id} kind="docx" mode={exam.docx_download} loggedIn={!!user} />
+              </span>
             </div>
             {exam.description && (
               <div style={{ background: '#fff', borderRadius: 16, padding: '1rem 1.15rem', marginBottom: 16, whiteSpace: 'pre-wrap', lineHeight: 1.65, color: '#3A3A3C' }}>{exam.description}</div>
@@ -95,6 +108,11 @@ export default function ExamDetail() {
               </div>
             ) : exam.thumbnail ? (
               <img src={fileUrl(`/uploads/exams/${exam.thumbnail}`)} alt={exam.title} style={{ width: '100%', maxWidth: 720, borderRadius: 12, display: 'block', margin: '0 auto' }} />
+            ) : exam.has_docx ? (
+              <div style={{ background: '#fff', borderRadius: 16, padding: '2rem 1rem', textAlign: 'center', color: '#6E6E73' }}>
+                <FileText size={36} color="#6E5A94" style={{ marginBottom: 8 }} />
+                <div>Đề này có bản Word để tải về{exam.docx_download === 'none' ? ' (hiện chưa mở tải)' : ''}.</div>
+              </div>
             ) : null}
 
             {exam.related.length > 0 && (

@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 import { useBrandName } from '../lib/brand';
 import { PAGE_MAX } from '../lib/layout';
-import { Phone, MapPin, Clock, Mail, ExternalLink, LogIn, LogOut, ChevronDown, Home, BookOpen, GraduationCap, FileStack, LayoutDashboard, LayoutGrid, type LucideIcon } from 'lucide-react';
+import { Phone, MapPin, Clock, Mail, ExternalLink, LogIn, LogOut, ChevronDown, Home, BookOpen, Newspaper, FileStack, LayoutDashboard, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { ENTER_LABEL, roleColors, accountSubtitle } from '../lib/navigation';
 
 // Các mục của trang chủ — gom vào 1 nút "Trang chủ" thả xuống
@@ -12,7 +12,7 @@ const HOME_MENU: { to: string; label: string; sub: string; icon: LucideIcon }[] 
   { to: '/', label: 'Trang chủ', sub: 'Về đầu trang giới thiệu', icon: Home },
   { to: '/#khoa-hoc', label: 'Khóa học & đăng ký', sub: 'Học phí, đăng ký thi thử đầu vào', icon: BookOpen },
   { to: '/de-thi', label: 'Đề và chuyên môn', sub: 'Kho đề Toán theo từng lớp', icon: FileStack },
-  { to: '/#giao-vien', label: 'Đội ngũ', sub: 'Giáo viên của trung tâm', icon: GraduationCap },
+  { to: '/tin-tuc', label: 'Tin tức', sub: 'Thông báo, hoạt động của trung tâm', icon: Newspaper },
   { to: '#contact', label: 'Liên hệ', sub: 'Địa chỉ, điện thoại, giờ học', icon: Phone },
 ];
 

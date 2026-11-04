@@ -130,17 +130,29 @@ const uploadContent = {
   'staff': makeImageUpload('staff'),
   'featured-courses': makeImageUpload('featured_courses'),
   'achievements': makeImageUpload('achievements'),
+  'news': makeImageUpload('news'),
 };
 
-// Đề thi (mục "Đề và chuyên môn"): 1 ảnh bìa + 1 file PDF
+// Đề thi (mục "Đề và chuyên môn"): 1 ảnh bìa + 1 file PDF (xem trên web) + 1 file Word (chỉ để tải về).
+// File Word để riêng ở uploads/exam-docs: thư mục này KHÔNG phục vụ tĩnh, chỉ tải qua API có kiểm tra quyền tải.
+const EXAM_DOCS_DIR = path.join(UPLOADS_DIR, 'exam-docs');
+fs.mkdirSync(EXAM_DOCS_DIR, { recursive: true });
+const WORD_MIMES = ['application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/octet-stream', ''];
+const wordExtOf = (file) => path.extname(String(file.originalname || '')).toLowerCase();
+const isWordFile = (file) => ['.doc', '.docx'].includes(wordExtOf(file)) && WORD_MIMES.includes(String(file.mimetype || '').toLowerCase());
 const uploadExam = multer({
-  storage: createStorage('exams'),
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, file.fieldname === 'docx' ? EXAM_DOCS_DIR : path.join(UPLOADS_DIR, 'exams')),
+    // Đuôi Word lấy từ tên gốc nhưng đã qua whitelist .doc/.docx ở fileFilter
+    filename: (req, file, cb) => cb(null, `${uuidv4()}${file.fieldname === 'docx' ? wordExtOf(file) : safeExt(file)}`),
+  }),
   fileFilter: (req, file, cb) => {
     if (file.fieldname === 'thumbnail' && isRasterImage(file)) cb(null, true);
     else if (file.fieldname === 'pdf' && file.mimetype === 'application/pdf') cb(null, true);
-    else cb(new Error(file.fieldname === 'pdf' ? 'Đề thi phải là file PDF' : 'Ảnh bìa phải là file ảnh'));
+    else if (file.fieldname === 'docx' && isWordFile(file)) cb(null, true);
+    else cb(new Error(file.fieldname === 'pdf' ? 'Đề thi phải là file PDF' : file.fieldname === 'docx' ? 'Bản Word phải là file .doc hoặc .docx' : 'Ảnh bìa phải là file ảnh'));
   },
   limits: { fileSize: 30 * 1024 * 1024 },
-}).fields([{ name: 'thumbnail', maxCount: 1 }, { name: 'pdf', maxCount: 1 }]);
+}).fields([{ name: 'thumbnail', maxCount: 1 }, { name: 'pdf', maxCount: 1 }, { name: 'docx', maxCount: 1 }]);
 
-module.exports = { uploadExam, uploadAd, uploadHomework, uploadSubmission, uploadVideo, uploadCourseThumbnail, uploadContent, uploadLessonFile, uploadAssistantPhoto };
+module.exports = { EXAM_DOCS_DIR, uploadExam, uploadAd, uploadHomework, uploadSubmission, uploadVideo, uploadCourseThumbnail, uploadContent, uploadLessonFile, uploadAssistantPhoto };

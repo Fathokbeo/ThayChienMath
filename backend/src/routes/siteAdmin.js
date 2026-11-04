@@ -6,7 +6,8 @@ const path = require('path');
 const fs = require('fs');
 const { getDb } = require('../db/database');
 const { authMiddleware, requireRole } = require('../middleware/auth');
-const { uploadExam } = require('../middleware/upload');
+const { uploadExam, EXAM_DOCS_DIR } = require('../middleware/upload');
+const { getFormFields, saveFormFields } = require('../services/registrationForm');
 
 router.use(authMiddleware, requireRole('admin'));
 
@@ -16,6 +17,13 @@ const rmExamFile = (name) => {
   const f = path.join(EXAM_DIR, path.basename(name));
   if (fs.existsSync(f)) { try { fs.unlinkSync(f); } catch {} }
 };
+const rmExamDoc = (name) => {
+  if (!name) return;
+  const f = path.join(EXAM_DOCS_DIR, path.basename(name));
+  if (fs.existsSync(f)) { try { fs.unlinkSync(f); } catch {} }
+};
+const DOWNLOAD_MODES = ['all', 'login', 'none'];
+const downloadMode = (v, fallback) => (DOWNLOAD_MODES.includes(v) ? v : fallback);
 const isIsoDate = (v) => typeof v === 'string' && !Number.isNaN(Date.parse(v));
 const optInt = (v) => (v === '' || v == null ? null : Math.max(0, parseInt(v, 10) || 0));
 
@@ -58,6 +66,15 @@ router.delete('/slots/:id', (req, res) => {
   // Đơn đã chọn ca này giữ lại giờ thi (slot_start_at), chỉ bỏ liên kết
   getDb().prepare('DELETE FROM placement_slots WHERE id=?').run(req.params.id);
   res.json({ message: 'Đã xóa ca thi' });
+});
+
+// ── Biểu mẫu đăng ký (các ô khách phải điền) ──────────────────────────
+router.get('/registration-form', (req, res) => {
+  res.json(getFormFields(getDb()));
+});
+
+router.put('/registration-form', (req, res) => {
+  res.json(saveFormFields(getDb(), req.body?.fields));
 });
 
 // ── Đơn đăng ký học ───────────────────────────────────────────────────
@@ -109,12 +126,14 @@ const uploaded = (req, field) => req.files?.[field]?.[0]?.filename || null;
 router.post('/exams', uploadExam, (req, res) => {
   const f = examFields(req.body || {});
   if (!f.title) {
-    rmExamFile(uploaded(req, 'thumbnail')); rmExamFile(uploaded(req, 'pdf'));
+    rmExamFile(uploaded(req, 'thumbnail')); rmExamFile(uploaded(req, 'pdf')); rmExamDoc(uploaded(req, 'docx'));
     return res.status(400).json({ message: 'Cần tên đề' });
   }
-  const r = getDb().prepare('INSERT INTO exam_papers (title,grade,description,published_at,thumbnail,pdf_file,active) VALUES (?,?,?,?,?,?,?)')
+  const r = getDb().prepare(`INSERT INTO exam_papers (title,grade,description,published_at,thumbnail,pdf_file,docx_file,pdf_download,docx_download,active)
+    VALUES (?,?,?,?,?,?,?,?,?,?)`)
     .run(f.title, f.grade, f.description, f.published_at || new Date().toISOString().slice(0, 10),
-      uploaded(req, 'thumbnail'), uploaded(req, 'pdf'), req.body.active === '0' ? 0 : 1);
+      uploaded(req, 'thumbnail'), uploaded(req, 'pdf'), uploaded(req, 'docx'),
+      downloadMode(req.body.pdf_download, 'all'), downloadMode(req.body.docx_download, 'all'), req.body.active === '0' ? 0 : 1);
   res.status(201).json({ id: r.lastInsertRowid });
 });
 
@@ -124,14 +143,18 @@ router.put('/exams/:id', uploadExam, (req, res) => {
   if (!cur) return res.status(404).json({ message: 'Không tìm thấy đề' });
   const f = examFields({ ...cur, ...req.body });
   if (!f.title) return res.status(400).json({ message: 'Cần tên đề' });
-  const thumb = uploaded(req, 'thumbnail'); const pdf = uploaded(req, 'pdf');
-  // Thay file mới thì xóa file cũ; remove_pdf=1 / remove_thumbnail=1 → bỏ file đang có
+  const thumb = uploaded(req, 'thumbnail'); const pdf = uploaded(req, 'pdf'); const docx = uploaded(req, 'docx');
+  // Thay file mới thì xóa file cũ; remove_pdf=1 / remove_docx=1 / remove_thumbnail=1 → bỏ file đang có
   const nextThumb = thumb || (req.body.remove_thumbnail === '1' ? null : cur.thumbnail);
   const nextPdf = pdf || (req.body.remove_pdf === '1' ? null : cur.pdf_file);
+  const nextDocx = docx || (req.body.remove_docx === '1' ? null : cur.docx_file);
   if (nextThumb !== cur.thumbnail) rmExamFile(cur.thumbnail);
   if (nextPdf !== cur.pdf_file) rmExamFile(cur.pdf_file);
-  db.prepare('UPDATE exam_papers SET title=?, grade=?, description=?, published_at=?, thumbnail=?, pdf_file=?, active=? WHERE id=?').run(
-    f.title, f.grade, f.description, f.published_at || cur.published_at, nextThumb, nextPdf,
+  if (nextDocx !== cur.docx_file) rmExamDoc(cur.docx_file);
+  db.prepare(`UPDATE exam_papers SET title=?, grade=?, description=?, published_at=?, thumbnail=?, pdf_file=?, docx_file=?,
+    pdf_download=?, docx_download=?, active=? WHERE id=?`).run(
+    f.title, f.grade, f.description, f.published_at || cur.published_at, nextThumb, nextPdf, nextDocx,
+    downloadMode(req.body.pdf_download, cur.pdf_download || 'all'), downloadMode(req.body.docx_download, cur.docx_download || 'all'),
     req.body.active === undefined ? cur.active : (req.body.active === '0' || req.body.active === false ? 0 : 1), cur.id,
   );
   res.json({ message: 'Đã cập nhật' });
@@ -139,8 +162,8 @@ router.put('/exams/:id', uploadExam, (req, res) => {
 
 router.delete('/exams/:id', (req, res) => {
   const db = getDb();
-  const cur = db.prepare('SELECT thumbnail,pdf_file FROM exam_papers WHERE id=?').get(req.params.id);
-  if (cur) { rmExamFile(cur.thumbnail); rmExamFile(cur.pdf_file); db.prepare('DELETE FROM exam_papers WHERE id=?').run(req.params.id); }
+  const cur = db.prepare('SELECT thumbnail,pdf_file,docx_file FROM exam_papers WHERE id=?').get(req.params.id);
+  if (cur) { rmExamFile(cur.thumbnail); rmExamFile(cur.pdf_file); rmExamDoc(cur.docx_file); db.prepare('DELETE FROM exam_papers WHERE id=?').run(req.params.id); }
   res.json({ message: 'Đã xóa đề' });
 });
 

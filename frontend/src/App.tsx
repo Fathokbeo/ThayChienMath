@@ -9,6 +9,8 @@ import Home from './pages/Home';
 import CourseDetail from './pages/public/CourseDetail';
 import ExamList from './pages/public/ExamList';
 import ExamDetail from './pages/public/ExamDetail';
+import NewsList from './pages/public/NewsList';
+import NewsDetail from './pages/public/NewsDetail';
 import PrivacyPolicy from './pages/public/PrivacyPolicy';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -66,6 +68,8 @@ function AppRoutes() {
       <Route path="/courses/:id" element={<CourseDetail />} />
       <Route path="/de-thi" element={<ExamList />} />
       <Route path="/de-thi/:id" element={<ExamDetail />} />
+      <Route path="/tin-tuc" element={<NewsList />} />
+      <Route path="/tin-tuc/:id" element={<NewsDetail />} />
       <Route path="/chinh-sach-bao-mat" element={<PrivacyPolicy />} />
       <Route path="/login" element={user ? <Navigate to={`/${user.role}`} replace /> : <Login />} />
 

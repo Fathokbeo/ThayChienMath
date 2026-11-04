@@ -3,20 +3,20 @@ import { Link, useLocation } from 'react-router-dom';
 import AdCarousel from '../components/AdCarousel';
 import PublicLayout from '../components/PublicLayout';
 import { useAuth } from '../contexts/AuthContext';
-import FacebookIcon from '../components/FacebookIcon';
 import CourseRegisterModal from '../components/CourseRegisterModal';
 import ExamCard, { type ExamItem } from '../components/ExamCard';
+import { NewsGrid, type NewsItem } from '../components/NewsCard';
 import api, { fileUrl } from '../lib/api';
 import { PAGE_MAX } from '../lib/layout';
 import { gradeLabel } from '../lib/publicSite';
 import useIsMobile from '../lib/useIsMobile';
 import { BRAND_DEFAULT } from '../lib/brand';
-import { BookOpen, ChevronRight, ChevronDown, Users, GraduationCap, UserCircle, Phone, Sparkles, Smartphone, LineChart, FileStack, ClipboardCheck } from 'lucide-react';
+import { BookOpen, ChevronRight, ChevronDown, Users, GraduationCap, Newspaper, Sparkles, Smartphone, LineChart, FileStack, ClipboardCheck } from 'lucide-react';
 
 /* 3 ô số liệu ở trên (đếm thật từ dữ liệu) = lối tắt cuộn xuống mục Khóa học / Đội ngũ / Đề và chuyên môn ngay trên trang chủ. */
 const STATS = [
   { id: 'khoa-hoc', key: 'courses', nav: 'Xem khóa học & đăng ký', statLabel: 'Khóa học', icon: BookOpen, color: '#3A7D5C' },
-  { id: 'giao-vien', key: 'teachers', nav: 'Đội ngũ giáo viên', statLabel: 'Giáo viên', icon: GraduationCap, color: '#2F6F82' },
+  { id: 'tin-tuc', key: 'news', nav: 'Xem tin tức', statLabel: 'Tin tức', icon: Newspaper, color: '#2F6F82' },
   { id: 'de-thi', key: 'exams', nav: 'Xem kho đề', statLabel: 'Đề thi', icon: FileStack, color: '#1F5C68' },
 ] as const;
 
@@ -50,55 +50,13 @@ function Empty({ text }: { text: string }) {
   return <div style={{ textAlign: 'center', color: '#86868B', padding: '2.5rem', background: '#FAFAFC', border: '1px dashed #DCDCE1', borderRadius: 12 }}>{text}</div>;
 }
 
-function StaffGrid({ list }: { list: any[] }) {
-  // Điện thoại: 2 cột, ảnh thấp hơn — 1 cột ảnh cao 220px thì mỗi người chiếm gần nửa màn hình
-  const isMobile = useIsMobile();
-  const imgH = isMobile ? 150 : 220;
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fill, minmax(220px, 1fr))', gap: isMobile ? 12 : 20 }}>
-      {list.map((s) => (
-        <div key={s.id} style={{ background: 'white', borderRadius: 14, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', textAlign: 'center' }}>
-          {s.image ? (
-            <img src={fileUrl(`/uploads/staff/${s.image}`)} alt={s.name} style={{ width: '100%', height: imgH, objectFit: 'cover' }} />
-          ) : (
-            <div style={{ height: imgH, background: 'linear-gradient(135deg, #E6F0F3, #CDE1E7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <UserCircle size={isMobile ? 44 : 56} color="#2F6F82" />
-            </div>
-          )}
-          <div style={{ padding: isMobile ? '0.75rem 0.6rem' : '1rem' }}>
-            <h3 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 800, color: '#1D1D1F' }}>{s.name}</h3>
-            {s.role_title && <div style={{ color: '#2F6F82', fontWeight: 600, fontSize: '0.88rem', marginBottom: 6 }}>{s.role_title}</div>}
-            {s.description && <p style={{ margin: 0, fontSize: '0.83rem', color: '#6E6E73', lineHeight: 1.5 }}>{s.description}</p>}
-            {(s.phone || s.facebook_url) && (
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                {s.phone && (
-                  <a href={`tel:${String(s.phone).replace(/[^+\d]/g, '')}`}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E5F1EA', color: '#3A7D5C', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
-                    <Phone size={13} /> {s.phone}
-                  </a>
-                )}
-                {s.facebook_url && (
-                  <a href={s.facebook_url} target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 20, background: '#E6F0F3', color: '#2F6F82', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
-                    <FacebookIcon size={13} /> Facebook
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function Home() {
   const { user } = useAuth();
   const { hash } = useLocation();
   const isMobile = useIsMobile();
   const [ads, setAds] = useState([]);
   const [courses, setCourses] = useState<any[]>([]);
-  const [staff, setStaff] = useState<any[]>([]);
+  const [news, setNews] = useState<NewsItem[]>([]);
   const [exams, setExams] = useState<ExamItem[]>([]);
   const [grades, setGrades] = useState<string[]>([]);
   const [settings, setSettings] = useState<any>({});
@@ -110,22 +68,20 @@ export default function Home() {
     api.get('/public/settings').then((r) => setSettings(r.data)).catch(() => {});
     Promise.all([
       api.get('/public/courses').then((r) => setCourses(r.data)).catch(() => {}),
-      api.get('/public/staff').then((r) => setStaff(r.data)).catch(() => {}),
+      api.get('/public/news').then((r) => setNews(r.data)).catch(() => {}),
       // Lấy đủ danh sách để đếm số đề cho ô số liệu; mục Đề và chuyên môn chỉ hiện 6 đề mới nhất
       api.get('/public/exams').then((r) => setExams(r.data)).catch(() => {}),
       api.get('/public/exam-grades').then((r) => setGrades(r.data)).catch(() => {}),
     ]).finally(() => setReady(true));
   }, []);
 
-  // Vào trang kèm #khoa-hoc, #giao-vien... thì cuộn tới đúng mục sau khi nội dung đã tải
+  // Vào trang kèm #khoa-hoc, #tin-tuc... thì cuộn tới đúng mục sau khi nội dung đã tải
   useEffect(() => {
     if (!ready || !hash) return;
     const id = hash.slice(1);
     const t = setTimeout(() => scrollToSection(id), 80);
     return () => clearTimeout(t);
   }, [ready, hash]);
-
-  const teachers = staff.filter((s) => s.staff_type !== 'assistant');
 
   return (
     <PublicLayout>
@@ -168,7 +124,7 @@ export default function Home() {
                   <Icon size={isMobile ? 14 : 17} color={color} /> {statLabel}
                 </div>
                 <div style={{ fontSize: isMobile ? '1.6rem' : '2.2rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#1D1D1F', margin: isMobile ? '4px 0 0' : '6px 0 8px' }}>
-                  {ready ? { teachers: teachers.length, courses: courses.length, exams: exams.length }[key] : '…'}
+                  {ready ? { news: news.length, courses: courses.length, exams: exams.length }[key] : '…'}
                 </div>
                 {!isMobile && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#1F5C68', fontSize: '0.86rem', fontWeight: 500, marginTop: 'auto' }}>
@@ -240,9 +196,18 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* 3. Đội ngũ giáo viên (tính năng trợ giảng đã bỏ — mục này chỉ hiện giáo viên) */}
-      <Section id="giao-vien" title="Đội ngũ Giáo viên" subtitle="Tận tâm, giàu kinh nghiệm, đồng hành cùng học sinh" icon={GraduationCap} color="#2F6F82">
-        {teachers.length === 0 ? <Empty text="Chưa có thông tin đội ngũ" /> : <StaffGrid list={teachers} />}
+      {/* 3. Tin tức (thay cho mục Đội ngũ giáo viên trước đây) — 6 bài mới nhất */}
+      <Section id="tin-tuc" title="Tin tức" subtitle="Thông báo, lịch khai giảng, thành tích và hoạt động của trung tâm" icon={Newspaper} color="#2F6F82">
+        {news.length === 0 ? <Empty text="Chưa có bài viết nào" /> : (
+          <>
+            <NewsGrid posts={news.slice(0, 6)} isMobile={isMobile} />
+            {news.length > 6 && (
+              <div style={{ textAlign: 'center', marginTop: 16 }}>
+                <Link to="/tin-tuc" className="btn btn-outline">Xem tất cả tin <ChevronRight size={16} /></Link>
+              </div>
+            )}
+          </>
+        )}
       </Section>
 
       {/* Features */}

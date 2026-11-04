@@ -14,6 +14,9 @@ const COLLECTIONS = {
   'staff':             { table: 'staff',              dir: 'staff',              fields: ['name', 'role_title', 'staff_type', 'description', 'facebook_url', 'phone', 'display_order', 'active'] },
   'featured-courses':  { table: 'featured_courses',   dir: 'featured_courses',   fields: ['title', 'student_count', 'description', 'display_order', 'active'] },
   'achievements':      { table: 'achievements',       dir: 'achievements',       fields: ['year', 'title', 'description', 'display_order', 'active'] },
+  // Tin tức: bài mới nhất lên đầu (theo ngày đăng)
+  'news':              { table: 'news_posts',         dir: 'news',               fields: ['title', 'summary', 'content', 'published_at', 'display_order', 'active'],
+                         orderBy: 'COALESCE(published_at, created_at) DESC, id DESC' },
 };
 
 function rmImage(dir, name) {
@@ -52,7 +55,7 @@ router.get('/:collection', (req, res) => {
   const cfg = COLLECTIONS[req.params.collection];
   if (!cfg) return res.status(404).json({ message: 'Loại nội dung không hợp lệ' });
   const db = getDb();
-  res.json(db.prepare(`SELECT * FROM ${cfg.table} ORDER BY display_order, created_at DESC`).all());
+  res.json(db.prepare(`SELECT * FROM ${cfg.table} ORDER BY ${cfg.orderBy || 'display_order, created_at DESC'}`).all());
 });
 
 // ── Create ─────────────────────────────────────────────────────────────
