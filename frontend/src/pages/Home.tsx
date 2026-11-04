@@ -5,7 +5,7 @@ import PublicLayout from '../components/PublicLayout';
 import { useAuth } from '../contexts/AuthContext';
 import CourseRegisterModal from '../components/CourseRegisterModal';
 import ExamCard, { type ExamItem } from '../components/ExamCard';
-import { NewsGrid, type NewsItem } from '../components/NewsCard';
+import { NewsFront, type NewsItem } from '../components/NewsCard';
 import api, { fileUrl } from '../lib/api';
 import { PAGE_MAX } from '../lib/layout';
 import { gradeLabel } from '../lib/publicSite';
@@ -200,9 +200,9 @@ export default function Home() {
       <Section id="tin-tuc" title="Tin tức" subtitle="Thông báo, lịch khai giảng, thành tích và hoạt động của trung tâm" icon={Newspaper} color="#2F6F82">
         {news.length === 0 ? <Empty text="Chưa có bài viết nào" /> : (
           <>
-            <NewsGrid posts={news.slice(0, 6)} isMobile={isMobile} />
-            {news.length > 6 && (
-              <div style={{ textAlign: 'center', marginTop: 16 }}>
+            <NewsFront posts={news.slice(0, 4)} isMobile={isMobile} />
+            {news.length > 0 && (
+              <div style={{ textAlign: 'center', marginTop: 24 }}>
                 <Link to="/tin-tuc" className="btn btn-outline">Xem tất cả tin <ChevronRight size={16} /></Link>
               </div>
             )}

@@ -4,28 +4,10 @@ import Modal from './Modal';
 import api from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { fmtSlot, fmtSlotTime, type PlacementSlot } from '../lib/publicSite';
-import { DEFAULT_REG_FIELDS, type RegField } from '../lib/registrationForm';
+import { DEFAULT_REG_FIELDS, toRegForm, type RegField } from '../lib/registrationForm';
+import RegFieldInput, { RegFieldLabel, type RegValue } from './RegFieldInput';
 
 type Course = { id: number; title: string; price?: string | null };
-
-// Một ô của biểu mẫu theo cấu hình admin
-function FieldInput({ f, value, onChange }: { f: RegField; value: string; onChange: (v: string) => void }) {
-  const common = { className: 'input', value, required: f.required, placeholder: f.placeholder || undefined,
-    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => onChange(e.target.value) };
-  if (f.type === 'textarea') return <textarea {...common} rows={2} maxLength={1000} />;
-  if (f.type === 'select') {
-    return (
-      <select {...common}>
-        <option value="">— Chọn —</option>
-        {(f.options || []).map((o) => <option key={o} value={o}>{o}</option>)}
-      </select>
-    );
-  }
-  if (f.type === 'date') return <input {...common} type="date" />;
-  if (f.type === 'number') return <input {...common} inputMode="decimal" maxLength={20} />;
-  if (f.type === 'tel') return <input {...common} inputMode="tel" autoComplete="tel" maxLength={20} />;
-  return <input {...common} maxLength={f.key === 'class_name' ? 20 : 200} autoComplete={f.key === 'student_name' ? 'name' : undefined} />;
-}
 
 // Đăng ký học 1 khóa từ trang công khai (khách không cần tài khoản): thông tin học sinh + chọn ca thi thử
 // đầu vào do admin mở. Đơn gửi về trang "Đăng ký học" của admin.
@@ -33,7 +15,8 @@ export default function CourseRegisterModal({ course, onClose }: { course: Cours
   const { user } = useAuth();
   const [slots, setSlots] = useState<PlacementSlot[] | null>(null);
   const [fields, setFields] = useState<RegField[]>(DEFAULT_REG_FIELDS);
-  const [form, setForm] = useState<Record<string, string>>({});
+  const [intro, setIntro] = useState('');
+  const [form, setForm] = useState<Record<string, RegValue>>({});
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState<{ slot_start_at: string | null } | null>(null);
@@ -43,14 +26,17 @@ export default function CourseRegisterModal({ course, onClose }: { course: Cours
     setForm({ slot_id: '', student_name: user?.role === 'student' ? user.full_name : '' });
     setError(''); setDone(null); setSlots(null);
     api.get('/public/placement-slots').then((r) => setSlots(r.data)).catch(() => setSlots([]));
-    api.get('/public/registration-form').then((r) => setFields(r.data)).catch(() => {});
+    api.get('/public/registration-form').then((r) => { const f = toRegForm(r.data); setFields(f.fields); setIntro(f.intro); }).catch(() => {});
   }, [course?.id]);
 
-  const set = (k: string) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: string) => (v: RegValue) => setForm((f) => ({ ...f, [k]: v }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    // Hộp kiểm bắt buộc: trình duyệt không tự kiểm (required trên checkbox nghĩa là phải tick ô đó)
+    const missing = fields.find((f) => f.type === 'checkbox' && f.required && !(Array.isArray(form[f.key]) && (form[f.key] as string[]).length));
+    if (missing) { setError(`Vui lòng chọn ${missing.label.toLowerCase()}`); return; }
     setSending(true);
     try {
       const { data } = await api.post('/public/registrations', { ...form, course_id: course!.id, slot_id: form.slot_id ? Number(form.slot_id) : null });
@@ -84,18 +70,19 @@ export default function CourseRegisterModal({ course, onClose }: { course: Cours
               Học phí: <strong>{course.price}</strong>
             </div>
           )}
+          {intro && <div style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem', color: '#515154', lineHeight: 1.55 }}>{intro}</div>}
           {fields.filter((f) => f.key !== 'note').map((f) => (
-            <label key={f.key} className="form-field">
-              <span>{f.label}{f.required ? ' *' : ''}</span>
-              <FieldInput f={f} value={form[f.key] || ''} onChange={set(f.key)} />
-            </label>
+            <div key={f.key} className="form-field">
+              <RegFieldLabel f={f} />
+              <RegFieldInput f={f} value={form[f.key]} onChange={set(f.key)} />
+            </div>
           ))}
           <label className="form-field">
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><CalendarClock size={14} /> Lịch thi thử đầu vào {hasSlots ? '*' : ''}</span>
             {slots === null ? (
               <div style={{ color: '#86868B', fontSize: '0.88rem' }}>Đang tải lịch thi...</div>
             ) : hasSlots ? (
-              <select className="input" value={form.slot_id || ''} onChange={(e) => set('slot_id')(e.target.value)} required>
+              <select className="input" value={(form.slot_id as string) || ''} onChange={(e) => set('slot_id')(e.target.value)} required>
                 <option value="">— Chọn ca thi —</option>
                 {slots.map((s) => <option key={s.id} value={s.id} disabled={s.remaining === 0}>{fmtSlot(s)}</option>)}
               </select>
@@ -107,10 +94,10 @@ export default function CourseRegisterModal({ course, onClose }: { course: Cours
           </label>
           {/* Ô ghi chú (nếu admin bật) luôn để cuối, sau phần chọn ca thi */}
           {fields.filter((f) => f.key === 'note').map((f) => (
-            <label key={f.key} className="form-field">
-              <span>{f.label}{f.required ? ' *' : ' (không bắt buộc)'}</span>
-              <FieldInput f={f} value={form[f.key] || ''} onChange={set(f.key)} />
-            </label>
+            <div key={f.key} className="form-field">
+              <RegFieldLabel f={f} />
+              <RegFieldInput f={f} value={form[f.key]} onChange={set(f.key)} />
+            </div>
           ))}
           {error && <div style={{ color: '#B04A2A', fontSize: '0.88rem' }}>{error}</div>}
           <button type="submit" className="btn btn-primary" disabled={sending} style={{ marginTop: 4 }}>

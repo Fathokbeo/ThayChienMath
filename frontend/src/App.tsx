@@ -11,6 +11,7 @@ import ExamList from './pages/public/ExamList';
 import ExamDetail from './pages/public/ExamDetail';
 import NewsList from './pages/public/NewsList';
 import NewsDetail from './pages/public/NewsDetail';
+import NewsEditor from './pages/admin/NewsEditor';
 import PrivacyPolicy from './pages/public/PrivacyPolicy';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -81,6 +82,7 @@ function AppRoutes() {
         <Route path="courses/:courseId" element={<AdminCourseDetail />} />
         <Route path="classes" element={<ClassManagement />} />
         <Route path="content" element={<SiteContent />} />
+        <Route path="news/:id" element={<NewsEditor />} />
         <Route path="ads" element={<AdManagement />} />
         <Route path="registrations" element={<Registrations />} />
         <Route path="exams" element={<ExamManagement />} />

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Newspaper } from 'lucide-react';
 import PublicLayout from '../../components/PublicLayout';
-import { NewsGrid, type NewsItem } from '../../components/NewsCard';
+import { NewsFront, type NewsItem } from '../../components/NewsCard';
 import api from '../../lib/api';
 import { PAGE_MAX } from '../../lib/layout';
 import useIsMobile from '../../lib/useIsMobile';
@@ -27,7 +27,7 @@ export default function NewsList() {
         ) : posts.length === 0 ? (
           <div style={{ color: '#86868B', padding: '2.5rem 1rem', textAlign: 'center', background: '#fff', borderRadius: 18 }}>Chưa có bài viết nào.</div>
         ) : (
-          <NewsGrid posts={posts} isMobile={isMobile} />
+          <NewsFront posts={posts} isMobile={isMobile} />
         )}
       </section>
     </PublicLayout>

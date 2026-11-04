@@ -4,19 +4,11 @@ import { setBrandName } from '../../lib/brand';
 import Modal from '../../components/Modal';
 import { toast } from '../../components/Toast';
 import { Plus, Edit, Trash2, Eye, EyeOff, ImageIcon } from 'lucide-react';
+import NewsAdminList from '../../components/NewsAdminList';
 
 type Field = { key: string; label: string; type: 'text' | 'textarea' | 'select' | 'date'; required?: boolean; options?: { value: string; label: string }[]; placeholder?: string; rows?: number };
 
 const COLLECTIONS: Record<string, { label: string; dir: string; titleKey: string; fields: Field[]; noOrder?: boolean }> = {
-  'news': {
-    label: 'Bài tin tức', dir: 'news', titleKey: 'title', noOrder: true,
-    fields: [
-      { key: 'title', label: 'Tiêu đề', type: 'text', required: true, placeholder: 'vd: Khai giảng lớp 6 năm học 2026 – 2027' },
-      { key: 'published_at', label: 'Ngày đăng', type: 'date' },
-      { key: 'summary', label: 'Tóm tắt (hiện ở thẻ tin trên trang chủ)', type: 'textarea', rows: 2 },
-      { key: 'content', label: 'Nội dung bài viết', type: 'textarea', rows: 12, placeholder: 'Gõ nội dung, xuống dòng bình thường — trang tin hiện đúng như vậy.' },
-    ],
-  },
   'featured-students': {
     label: 'Học sinh tiêu biểu', dir: 'featured_students', titleKey: 'name',
     fields: [
@@ -64,7 +56,6 @@ function CollectionManager({ collection }: { collection: string }) {
     setEditing(null);
     const init: any = { display_order: '0' };
     if (collection === 'staff') init.staff_type = 'teacher';
-    if (collection === 'news') init.published_at = new Date().toISOString().slice(0, 10);
     setForm(init);
     setFile(null); setPreview('');
     setModal(true);
@@ -272,7 +263,7 @@ export default function SiteContent() {
         ))}
       </div>
 
-      {tab === 'settings' ? <SettingsForm /> : <CollectionManager collection={tab} key={tab} />}
+      {tab === 'settings' ? <SettingsForm /> : tab === 'news' ? <NewsAdminList /> : <CollectionManager collection={tab} key={tab} />}
     </div>
   );
 }

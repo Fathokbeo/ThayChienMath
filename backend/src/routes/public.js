@@ -5,7 +5,7 @@ const fs = require('fs');
 const { getDb } = require('../db/database');
 const { userFromRequest, userFromFileTicket } = require('../services/security');
 const { EXAM_DOCS_DIR } = require('../middleware/upload');
-const { getFormFields, validateSubmission } = require('../services/registrationForm');
+const { getForm, getFormFields, validateSubmission } = require('../services/registrationForm');
 
 const EXAMS_DIR = path.join(__dirname, '../../uploads/exams');
 
@@ -100,9 +100,10 @@ function tooManyRegistrations(ip) {
   return hit.count > 5;
 }
 
-// Các ô của biểu mẫu đăng ký (admin tùy chỉnh) — chỉ các ô đang bật
+// Biểu mẫu đăng ký (admin soạn): lời giới thiệu + các câu hỏi đang bật
 router.get('/registration-form', (req, res) => {
-  res.json(getFormFields(getDb()).filter((f) => f.enabled).map(({ locked, enabled, ...f }) => f));
+  const { intro, fields } = getForm(getDb());
+  res.json({ intro, fields: fields.filter((f) => f.enabled).map(({ locked, enabled, ...f }) => f) });
 });
 
 router.post('/registrations', (req, res) => {

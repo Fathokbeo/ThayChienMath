@@ -7,7 +7,7 @@ const fs = require('fs');
 const { getDb } = require('../db/database');
 const { authMiddleware, requireRole } = require('../middleware/auth');
 const { uploadExam, EXAM_DOCS_DIR } = require('../middleware/upload');
-const { getFormFields, saveFormFields } = require('../services/registrationForm');
+const { getForm, saveForm } = require('../services/registrationForm');
 
 router.use(authMiddleware, requireRole('admin'));
 
@@ -70,11 +70,12 @@ router.delete('/slots/:id', (req, res) => {
 
 // ── Biểu mẫu đăng ký (các ô khách phải điền) ──────────────────────────
 router.get('/registration-form', (req, res) => {
-  res.json(getFormFields(getDb()));
+  res.json(getForm(getDb()));
 });
 
+// body: { intro, fields }
 router.put('/registration-form', (req, res) => {
-  res.json(saveFormFields(getDb(), req.body?.fields));
+  res.json(saveForm(getDb(), req.body));
 });
 
 // ── Đơn đăng ký học ───────────────────────────────────────────────────

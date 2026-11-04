@@ -5,6 +5,7 @@ const fs = require('fs');
 const { getDb } = require('../db/database');
 const { authMiddleware, requireRole } = require('../middleware/auth');
 const { uploadContent } = require('../middleware/upload');
+const { sanitizeNewsHtml, inlineImages } = require('../services/newsContent');
 
 router.use(authMiddleware, requireRole('admin'));
 
@@ -16,8 +17,19 @@ const COLLECTIONS = {
   'achievements':      { table: 'achievements',       dir: 'achievements',       fields: ['year', 'title', 'description', 'display_order', 'active'] },
   // Tin tức: bài mới nhất lên đầu (theo ngày đăng)
   'news':              { table: 'news_posts',         dir: 'news',               fields: ['title', 'summary', 'content', 'published_at', 'display_order', 'active'],
-                         orderBy: 'COALESCE(published_at, created_at) DESC, id DESC' },
+                         orderBy: 'COALESCE(published_at, created_at) DESC, id DESC', clean: { content: sanitizeNewsHtml } },
 };
+
+// Giá trị 1 trường gửi lên → giá trị lưu (active/display_order là số; trường có hàm làm sạch thì làm sạch)
+const fieldValue = (cfg, f, v) => (f === 'active' ? (v === 'false' || v === '0' ? 0 : 1)
+  : f === 'display_order' ? (parseInt(v) || 0)
+  : cfg.clean?.[f] ? cfg.clean[f](v) : v);
+
+// Ảnh chèn trong nội dung bài tin không còn dùng (bài bị sửa bỏ ảnh / bị xóa) → xóa file
+function rmUnusedInlineImages(oldHtml, newHtml) {
+  const keep = inlineImages(newHtml);
+  for (const name of inlineImages(oldHtml)) if (!keep.has(name)) rmImage('news', name);
+}
 
 function rmImage(dir, name) {
   if (!name) return;
@@ -41,6 +53,12 @@ router.put('/settings', (req, res) => {
     for (const [k, v] of Object.entries(req.body || {})) stmt.run(k, String(v ?? ''));
   })();
   res.json({ message: 'Đã lưu thông tin' });
+});
+
+// Ảnh chèn vào giữa bài tin tức (trình soạn thảo gọi khi admin bấm nút chèn ảnh / dán ảnh)
+router.post('/news/inline-image', uploadContent.news.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'Chưa chọn ảnh' });
+  res.status(201).json({ url: `/uploads/news/${req.file.filename}` });
 });
 
 // Middleware chọn multer theo loại nội dung
@@ -68,9 +86,7 @@ router.post('/:collection', imageUploadFor, (req, res) => {
   cfg.fields.forEach(f => {
     if (req.body[f] !== undefined) {
       cols.push(f);
-      vals.push(f === 'active' ? (req.body[f] === 'false' || req.body[f] === '0' ? 0 : 1)
-        : f === 'display_order' ? (parseInt(req.body[f]) || 0)
-        : req.body[f]);
+      vals.push(fieldValue(cfg, f, req.body[f]));
     }
   });
   if (req.file) { cols.push('image'); vals.push(req.file.filename); }
@@ -93,9 +109,7 @@ router.put('/:collection/:id', imageUploadFor, (req, res) => {
   cfg.fields.forEach(f => {
     if (req.body[f] !== undefined) {
       sets.push(`${f}=?`);
-      vals.push(f === 'active' ? (req.body[f] === 'false' || req.body[f] === '0' ? 0 : 1)
-        : f === 'display_order' ? (parseInt(req.body[f]) || 0)
-        : req.body[f]);
+      vals.push(fieldValue(cfg, f, req.body[f]));
     }
   });
   if (req.file) { sets.push('image=?'); vals.push(req.file.filename); rmImage(cfg.dir, existing.image); }
@@ -103,6 +117,9 @@ router.put('/:collection/:id', imageUploadFor, (req, res) => {
 
   vals.push(req.params.id);
   db.prepare(`UPDATE ${cfg.table} SET ${sets.join(',')} WHERE id=?`).run(...vals);
+  if (req.params.collection === 'news' && req.body.content !== undefined) {
+    rmUnusedInlineImages(existing.content, db.prepare('SELECT content FROM news_posts WHERE id=?').get(existing.id).content);
+  }
   res.json({ message: 'Đã cập nhật' });
 });
 
@@ -114,6 +131,7 @@ router.delete('/:collection/:id', (req, res) => {
   const existing = db.prepare(`SELECT * FROM ${cfg.table} WHERE id=?`).get(req.params.id);
   if (existing) {
     rmImage(cfg.dir, existing.image);
+    if (req.params.collection === 'news') rmUnusedInlineImages(existing.content, '');
     db.prepare(`DELETE FROM ${cfg.table} WHERE id=?`).run(req.params.id);
   }
   res.json({ message: 'Đã xóa' });

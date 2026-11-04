@@ -511,3 +511,123 @@ button.list-row { width: 100%; border: none; background: #fff; font-family: inhe
 .policy li { margin: 0.25rem 0; }
 .policy p { margin: 0.6rem 0; }
 .policy a { color: var(--tc-accent); }
+
+/* ── Biểu mẫu đăng ký: lựa chọn trắc nghiệm / hộp kiểm ở form khách điền ── */
+.reg-choice { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 10px; cursor: pointer; font-size: 0.92rem; }
+.reg-choice:hover { background: var(--tc-surface-2); }
+.reg-choice input { width: 18px; height: 18px; flex-shrink: 0; margin: 0; }
+
+/* ── Trình soạn biểu mẫu kiểu Google Form ── */
+.gf-wrap { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 84px; }
+.gf-card { background: var(--tc-surface); border-radius: 14px; border: 1px solid var(--tc-line); padding: 1.1rem 1.35rem 1.1rem 1.5rem; position: relative; transition: box-shadow 0.15s; }
+.gf-head { border-top: 8px solid var(--tc-accent); padding-top: 1.2rem; }
+.gf-title { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+.gf-q { cursor: pointer; }
+.gf-q.is-active { cursor: default; box-shadow: 0 4px 18px rgba(0,0,0,0.10); }
+.gf-q.is-active::before { content: ''; position: absolute; left: -1px; top: -1px; bottom: -1px; width: 6px; background: var(--tc-sky); border-radius: 14px 0 0 14px; }
+.gf-q.is-hidden { opacity: 0.6; }
+.gf-q.is-dragging { opacity: 0.4; }
+.gf-handle { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); color: #C7C7CC; cursor: grab; padding: 0 10px; opacity: 0; transition: opacity 0.15s; }
+.gf-q:hover .gf-handle, .gf-q.is-active .gf-handle { opacity: 1; }
+.gf-row { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
+.gf-line { flex: 1 1 260px; min-width: 0; width: 100%; border: none; border-bottom: 1px solid var(--tc-line-strong); background: transparent; padding: 8px 2px; font: inherit; font-size: 0.95rem; color: var(--tc-ink); outline: none; resize: vertical; transition: border-color 0.15s; }
+.gf-line:focus { border-bottom: 2px solid var(--tc-sky); padding-bottom: 7px; }
+.gf-line:disabled { color: var(--tc-ink-3, #86868B); }
+.gf-qtitle { background: var(--tc-surface-2); padding: 12px 12px 11px; font-size: 1rem; font-weight: 500; border-radius: 6px 6px 0 0; }
+.gf-qtitle:focus { padding-bottom: 10px; }
+.gf-type { flex: 0 0 200px; min-height: 46px; }
+.gf-fixed-type { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #86868B; padding: 12px 4px; }
+.gf-desc { font-size: 0.85rem; margin-top: 6px; }
+.gf-options { display: flex; flex-direction: column; gap: 2px; margin-top: 14px; }
+.gf-option { display: flex; align-items: center; gap: 12px; color: #AEAEB2; min-height: 40px; }
+.gf-option .gf-line { flex: 1; border-bottom-color: transparent; }
+.gf-option .gf-line:hover { border-bottom-color: var(--tc-line-strong); }
+.gf-option .gf-line:focus { border-bottom-color: var(--tc-sky); }
+.gf-add-option { cursor: pointer; }
+.gf-add-option span:last-child { color: #86868B; font-size: 0.92rem; padding: 8px 2px; border-bottom: 1px solid transparent; }
+.gf-add-option:hover span:last-child { border-bottom-color: var(--tc-line-strong); }
+.gf-num { width: 18px; text-align: right; font-size: 0.9rem; color: #86868B; }
+.gf-answer { margin-top: 14px; max-width: 60%; }
+.gf-footer { display: flex; align-items: center; gap: 4px; border-top: 1px solid var(--tc-line); margin-top: 18px; padding-top: 10px; flex-wrap: wrap; }
+.gf-icon { width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; color: #6E6E73; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.gf-icon:hover { background: var(--tc-fill); color: var(--tc-ink); }
+.gf-divider { width: 1px; height: 28px; background: var(--tc-line-strong); margin: 0 10px; }
+.gf-switch { display: inline-flex; align-items: center; gap: 10px; font-size: 0.9rem; color: var(--tc-ink); cursor: pointer; }
+.gf-switch.is-disabled { color: #AEAEB2; cursor: not-allowed; }
+.gf-switch button { width: 38px; height: 22px; border-radius: 99px; border: none; background: #C7C7CC; position: relative; cursor: inherit; padding: 0; transition: background 0.15s; }
+.gf-switch button i { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); transition: left 0.15s; }
+.gf-switch button.on { background: var(--tc-sky); }
+.gf-switch button.on i { left: 19px; }
+.gf-preview { display: flex; flex-direction: column; gap: 10px; }
+.gf-sample { color: #AEAEB2; font-size: 0.88rem; border-bottom: 1px dotted var(--tc-line-strong); padding: 6px 0; max-width: 60%; }
+.gf-add { align-self: center; display: inline-flex; align-items: center; gap: 8px; border: 1px dashed var(--tc-line-strong); background: var(--tc-surface); color: var(--tc-accent); border-radius: 99px; padding: 10px 22px; font-weight: 600; font-size: 0.92rem; cursor: pointer; }
+.gf-add:hover { background: var(--tc-accent-tint); }
+.gf-savebar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 10px max(16px, calc((100vw - 780px) / 2)); background: rgba(255,255,255,0.94); backdrop-filter: blur(8px); border-top: 1px solid var(--tc-line); }
+@media (max-width: 768px) {
+  .gf-card { padding: 1rem 0.9rem 0.9rem 1.1rem; }
+  .gf-type { flex: 1 1 100%; }
+  .gf-answer, .gf-sample { max-width: 100%; }
+  .gf-savebar { bottom: calc(var(--tc-tabbar-h) + var(--sa-bottom)); padding: 8px 16px; }
+}
+
+/* ── Tin tức kiểu báo điện tử ── */
+.clamp-2, .clamp-3, .clamp-4 { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+.clamp-2 { -webkit-line-clamp: 2; } .clamp-3 { -webkit-line-clamp: 3; } .clamp-4 { -webkit-line-clamp: 4; }
+.news-cover { width: 100%; object-fit: cover; display: block; background: var(--tc-fill); }
+.news-cover-empty { display: flex; align-items: center; justify-content: center; color: var(--tc-sky); background: linear-gradient(135deg, #E6F0F3, #CDE1E7); }
+.news-kicker { display: inline-block; align-self: flex-start; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tc-rust); }
+.news-title { margin: 0; font-weight: 700; line-height: 1.3; letter-spacing: -0.015em; color: var(--tc-ink); transition: color 0.15s; }
+.news-summary { margin: 0; color: #515154; line-height: 1.6; font-size: 0.98rem; }
+.news-date { display: inline-flex; align-items: center; gap: 5px; font-size: 0.8rem; color: #86868B; }
+.news-more { display: inline-flex; align-items: center; gap: 4px; font-size: 0.88rem; font-weight: 600; color: var(--tc-accent); }
+.news-featured, .news-row, .news-card { text-decoration: none; color: inherit; }
+.news-featured { display: grid; gap: 22px; align-items: center; }
+.news-featured:hover .news-title, .news-row:hover .news-title, .news-card:hover .news-title { color: var(--tc-accent); }
+.news-featured .news-cover, .news-card .news-cover, .news-row .news-cover { transition: transform 0.25s, filter 0.25s; }
+.news-featured:hover .news-cover, .news-card:hover .news-cover { filter: brightness(1.04); }
+.news-side { display: flex; flex-direction: column; }
+.news-row { display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid var(--tc-line-strong); }
+.news-row:first-child { padding-top: 0; }
+.news-row:last-child { border-bottom: none; }
+.news-card { display: flex; flex-direction: column; }
+
+/* Bài báo (trang chi tiết tin) */
+.article-title { margin: 8px 0 12px; font-size: clamp(1.7rem, 4vw, 2.5rem); font-weight: 800; line-height: 1.22; letter-spacing: -0.025em; }
+.article-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; color: #86868B; font-size: 0.86rem; padding-bottom: 16px; border-bottom: 1px solid var(--tc-line-strong); margin-bottom: 20px; }
+.article-meta > * { display: inline-flex; align-items: center; gap: 5px; }
+.article-meta button { border: none; background: none; color: var(--tc-accent); font: inherit; cursor: pointer; padding: 0; }
+.article-lead { margin: 0 0 22px; font-size: 1.15rem; font-weight: 600; line-height: 1.6; color: #2C2C2E; }
+.article-cover { width: 100%; border-radius: 16px; display: block; margin: 0 0 26px; max-height: 560px; object-fit: cover; }
+.article-body { font-size: 1.07rem; line-height: 1.8; color: #1D1D1F; overflow-wrap: anywhere; }
+.article-body > * { margin: 0 0 1.05em; }
+.article-body h2 { font-size: 1.45rem; font-weight: 700; line-height: 1.35; margin: 1.6em 0 0.6em; letter-spacing: -0.01em; }
+.article-body h3 { font-size: 1.2rem; font-weight: 700; line-height: 1.4; margin: 1.4em 0 0.5em; }
+.article-body a { color: var(--tc-accent); text-decoration: underline; }
+.article-body img { display: block; max-width: 100%; height: auto; border-radius: 12px; margin: 1.4em auto; }
+.article-body blockquote { border-left: 4px solid var(--tc-sky); background: var(--tc-sky-tint); margin: 1.4em 0; padding: 0.8em 1.1em; border-radius: 0 12px 12px 0; color: #2C2C2E; font-style: italic; }
+.article-body ol, .article-body ul { padding-left: 1.6em; }
+.article-body li { margin: 0.3em 0; }
+.article-body ol > li[data-list="bullet"], .article-body ul > li { list-style-type: disc; }
+.article-body ol > li[data-list="ordered"] { list-style-type: decimal; }
+.article-body li > .ql-ui { display: none; }
+.article-body .ql-align-center { text-align: center; } .article-body .ql-align-right { text-align: right; } .article-body .ql-align-justify { text-align: justify; }
+.article-body iframe.ql-video { display: block; width: 100%; aspect-ratio: 16 / 9; height: auto; border: 0; border-radius: 12px; margin: 1.4em 0; }
+
+/* Trang soạn bài tin tức */
+.news-editor-bar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 0; margin-bottom: 14px; background: var(--tc-bg); border-bottom: 1px solid var(--tc-line); }
+.news-editor-paper { max-width: 820px; margin: 0 auto; background: #fff; border-radius: 18px; padding: 22px 28px 30px; box-shadow: 0 2px 14px rgba(0,0,0,0.05); }
+.news-editor-cover { position: relative; border-radius: 14px; overflow: hidden; cursor: pointer; border: 2px dashed var(--tc-line-strong); min-height: 150px; display: flex; align-items: center; justify-content: center; color: #86868B; margin-bottom: 18px; }
+.news-editor-cover > span:first-child { display: inline-flex; align-items: center; gap: 10px; font-size: 0.9rem; padding: 1rem; text-align: center; }
+.news-editor-cover.has-img { border: none; }
+.news-editor-cover img { width: 100%; max-height: 420px; object-fit: cover; display: block; }
+.news-editor-cover-change { position: absolute; right: 12px; bottom: 12px; display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.82rem; padding: 6px 12px; border-radius: 99px; }
+.news-editor-title, .news-editor-lead { width: 100%; border: none; outline: none; resize: none; background: transparent; font-family: inherit; color: var(--tc-ink); field-sizing: content; }
+.news-editor-title { font-size: clamp(1.5rem, 3.4vw, 2.2rem); font-weight: 800; line-height: 1.25; letter-spacing: -0.02em; padding: 4px 0; }
+.news-editor-lead { font-size: 1.1rem; font-weight: 600; line-height: 1.6; color: #2C2C2E; padding: 6px 0 14px; border-bottom: 1px solid var(--tc-line); margin-bottom: 14px; }
+.rte .ql-toolbar.ql-snow { position: sticky; top: 58px; z-index: 10; background: #fff; border: 1px solid var(--tc-line-strong); border-radius: 10px; }
+.rte .ql-container.ql-snow { border: none; font-family: inherit; }
+.rte .ql-editor { min-height: 360px; padding: 18px 2px; font-size: 1.05rem; line-height: 1.8; }
+.rte .ql-editor img { max-width: 100%; border-radius: 10px; }
+.rte .ql-editor blockquote { border-left: 4px solid var(--tc-sky); background: var(--tc-sky-tint); padding: 0.6em 1em; border-radius: 0 10px 10px 0; font-style: italic; }
+.rte .ql-editor h2 { font-size: 1.45rem; } .rte .ql-editor h3 { font-size: 1.2rem; }
+@media (max-width: 768px) { .news-editor-paper { padding: 14px 14px 20px; border-radius: 14px; } .rte .ql-toolbar.ql-snow { top: 0; } }
