@@ -19,7 +19,7 @@ function DownloadButton({ examId, kind, mode, loggedIn }: { examId: number; kind
   const icon = kind === 'pdf' ? <Download size={14} /> : <FileText size={14} />;
   if (!mode || mode === 'none') return null;
   if (mode === 'login' && !loggedIn) {
-    return <Link to="/login" className="btn btn-ghost btn-sm" title="Đề này chỉ cho tài khoản đã đăng nhập tải về"><LogIn size={14} /> Đăng nhập để tải đề {format}</Link>;
+    return <Link to={`/login?muc=khach&next=${encodeURIComponent(`/de-thi/${examId}`)}`} className="btn btn-ghost btn-sm" title="Đề này chỉ cho tài khoản đã đăng nhập tải về"><LogIn size={14} /> Đăng nhập để tải đề {format}</Link>;
   }
   return <a href={fileUrl(`/api/public/exams/${examId}/file/${kind}`)} download className="btn btn-secondary btn-sm">{icon} Tải đề {format}</a>;
 }

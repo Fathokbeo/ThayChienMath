@@ -82,7 +82,9 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
   const dashLink = user ? `/${user.role}` : '/login';
   const [avBg, avFg] = roleColors(user?.role);
   const avatar = (size: number) => (
-    <span className="avatar" style={{ width: size, height: size, background: avBg, color: avFg, fontSize: size > 34 ? '1rem' : '0.82rem' }}>{user?.full_name?.[0] || 'U'}</span>
+    user?.avatar_url
+      ? <img src={user.avatar_url} alt="" referrerPolicy="no-referrer" className="avatar" style={{ width: size, height: size, objectFit: 'cover' }} />
+      : <span className="avatar" style={{ width: size, height: size, background: avBg, color: avFg, fontSize: size > 34 ? '1rem' : '0.82rem' }}>{user?.full_name?.[0] || 'U'}</span>
   );
   // Đầu menu tài khoản: ảnh đại diện + họ tên + vai trò · tên đăng nhập
   const accountHeader = user && (

@@ -29,7 +29,7 @@ router.get('/stats', (req, res) => {
 router.get('/users', (req, res) => {
   const db = getDb();
   const { role } = req.query;
-  let query = 'SELECT id,username,full_name,parent_phone,role,created_at,active,plain_password FROM users';
+  let query = 'SELECT id,username,full_name,parent_phone,role,created_at,active,plain_password,email,(google_sub IS NOT NULL) google FROM users';
   const params = [];
   if (role) { query += ' WHERE role=?'; params.push(role); }
   query += ' ORDER BY created_at DESC';

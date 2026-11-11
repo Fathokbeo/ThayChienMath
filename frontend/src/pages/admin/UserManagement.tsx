@@ -54,7 +54,7 @@ export default function UserManagement() {
   useEffect(() => {
     let f = users;
     // Tài khoản phụ huynh (tự tạo cùng học sinh) chỉ hiện khi chọn lọc "Phụ huynh" để danh sách gọn
-    f = roleFilter === 'all' ? f.filter((u) => u.role !== 'parent') : f.filter((u) => u.role === roleFilter);
+    f = roleFilter === 'all' ? f.filter((u) => u.role !== 'parent' && u.role !== 'guest') : f.filter((u) => u.role === roleFilter);
     // Chia học sinh theo lớp: chọn 1 lớp → chỉ hiện học sinh của lớp đó (thuận tiện xóa/thao tác hàng loạt)
     if (classFilter !== 'all') f = f.filter((u) => u.classes?.some((c) => String(c.id) === classFilter));
     if (search) f = f.filter((u) => u.full_name.toLowerCase().includes(search.toLowerCase()) || u.username.toLowerCase().includes(search.toLowerCase()));
@@ -157,8 +157,8 @@ export default function UserManagement() {
     setRevealed(next);
   };
 
-  const roleLabels: any = { admin: 'Admin', teacher: 'Giáo viên', student: 'Học sinh', parent: 'Phụ huynh' };
-  const roleBadge: any = { admin: 'badge-red', teacher: 'badge-blue', student: 'badge-green', parent: 'badge-purple' };
+  const roleLabels: any = { admin: 'Admin', teacher: 'Giáo viên', student: 'Học sinh', parent: 'Phụ huynh', guest: 'Khách' };
+  const roleBadge: any = { admin: 'badge-red', teacher: 'badge-blue', student: 'badge-green', parent: 'badge-purple', guest: 'badge-gray' };
 
   const allChecked = filtered.length > 0 && selected.size === filtered.length;
 
@@ -182,6 +182,7 @@ export default function UserManagement() {
           <option value="teacher">Giáo viên</option>
           <option value="student">Học sinh</option>
           <option value="parent">Phụ huynh</option>
+          <option value="guest">Khách (tự đăng ký)</option>
         </select>
         <select className="input" style={{ width: 'auto', minWidth: 160, maxWidth: 260 }} value={classFilter} onChange={(e) => setClassFilter(e.target.value)} title="Lọc học sinh theo lớp">
           <option value="all">Tất cả lớp</option>
@@ -257,6 +258,11 @@ export default function UserManagement() {
                       <div style={{ fontSize: '0.76rem', color: '#86868B', marginTop: 2 }}>
                         Đăng nhập mục Phụ huynh bằng: {(u.children || []).map((c) => c.username).join(', ') || '—'}
                       </div>
+                    </>
+                  ) : u.role === 'guest' ? (
+                    <>
+                      <strong>{u.full_name}</strong>
+                      {(u as any).google ? <span className="badge badge-blue" style={{ fontSize: '0.66rem', marginLeft: 6 }}>Google</span> : null}
                     </>
                   ) : <strong>{u.full_name}</strong>}
                 </td>

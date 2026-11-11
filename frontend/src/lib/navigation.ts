@@ -41,18 +41,19 @@ export function navItemsFor(role?: string): NavItem[] {
 // "/admin", "/teacher", "/student" chỉ sáng khi đúng trang đó (không sáng ở trang con)
 export const navEnd = (to: string) => to.split('/').length <= 2;
 
-export const ROLE_LABEL: Record<string, string> = { admin: 'Quản trị viên', teacher: 'Giáo viên', student: 'Học sinh', parent: 'Phụ huynh' };
+export const ROLE_LABEL: Record<string, string> = { admin: 'Quản trị viên', teacher: 'Giáo viên', student: 'Học sinh', parent: 'Phụ huynh', guest: 'Khách' };
 
 // Dòng phụ dưới họ tên trong menu tài khoản. Phụ huynh đăng nhập bằng tên đăng nhập CỦA CON
 // (tài khoản nội bộ "<tên con>_ph") nên hiện tên của con cho khỏi lạ.
 export function accountSubtitle(user: { role: string; username: string }) {
   if (user.role === 'parent') return `${ROLE_LABEL.parent} · đăng nhập bằng ${user.username.replace(/_ph\d*$/, '')}`;
+  if (user.role === 'guest') return `Tài khoản khách · ${user.username}`;
   return `${ROLE_LABEL[user.role]} · ${user.username}`;
 }
 
 // Nhãn nút "vào hệ thống" ở trang công khai, theo vai trò
 export const ENTER_LABEL: Record<string, string> = {
-  admin: 'Vào trang quản trị', teacher: 'Vào trang giáo viên', student: 'Vào học', parent: 'Xem kết quả học tập của con',
+  admin: 'Vào trang quản trị', teacher: 'Vào trang giáo viên', student: 'Vào học', parent: 'Xem kết quả học tập của con', guest: 'Tài khoản của tôi',
 };
 
 // Màu ảnh đại diện theo vai trò: [nền nhạt, màu chữ]
@@ -60,5 +61,9 @@ export function roleColors(role?: string): [string, string] {
   if (role === 'admin') return ['#EFEBF5', '#6E5A94'];
   if (role === 'teacher') return ['#E6F0F3', '#2F6F82'];
   if (role === 'parent') return ['#FCF0E8', '#B8673E'];
+  if (role === 'guest') return ['#F0F0F3', '#515154'];
   return ['#E5F1EA', '#3A7D5C'];
 }
+
+// ?next=/de-thi/5 → đăng nhập xong quay lại đúng trang đó (chỉ nhận đường dẫn trong web, không nhận link ngoài)
+export const safeNext = (v: string | null) => (v && v.startsWith('/') && !v.startsWith('//') ? v : null);

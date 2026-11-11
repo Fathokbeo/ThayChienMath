@@ -8,14 +8,45 @@ const {
   loginBlockedFor, recordLoginFailure, clearLoginFailures,
 } = require('../services/security');
 const { findParentForLogin } = require('../services/parentAccounts');
+const { verifyGoogleCredential } = require('../services/googleAuth');
 
 // Hash giả để so sánh khi tên đăng nhập không tồn tại → thời gian phản hồi như nhau, không dò được tên có thật
 const DUMMY_HASH = bcrypt.hashSync('khong-phai-mat-khau-that', 10);
 const BAD_LOGIN = 'Tên đăng nhập hoặc mật khẩu không đúng';
 
 // Mục đăng nhập trên giao diện (portal) → các vai trò được phép. Admin đăng nhập ở mục Giáo viên.
-const PORTAL_ROLES = { teacher: ['teacher', 'admin'], student: ['student'], parent: ['parent'] };
-const PORTAL_OF_ROLE = { admin: 'Giáo viên', teacher: 'Giáo viên', student: 'Học sinh', parent: 'Phụ huynh' };
+const PORTAL_ROLES = { teacher: ['teacher', 'admin'], student: ['student'], parent: ['parent'], guest: ['guest'] };
+const PORTAL_OF_ROLE = { admin: 'Giáo viên', teacher: 'Giáo viên', student: 'Học sinh', parent: 'Phụ huynh', guest: 'Khách' };
+
+const publicUser = (u) => ({
+  id: u.id, username: u.username, role: u.role, full_name: u.full_name, parent_phone: u.parent_phone,
+  email: u.email || null, avatar_url: u.avatar_url || null,
+});
+
+// Cấp token đăng nhập (+ cookie phiên để tải file) và trả về cho trình duyệt
+function issueLogin(req, res, user) {
+  const token = jwt.sign(
+    { id: user.id, username: user.username, role: user.role, full_name: user.full_name },
+    getJwtSecret(),
+    { expiresIn: '7d' }
+  );
+  setSessionCookie(req, res, token); // để trình duyệt tải được file /uploads có kiểm tra quyền
+  res.json({ token, user: publicUser(user) });
+}
+
+// Chặn tạo tài khoản dồn dập: tối đa 5 tài khoản / giờ / 1 địa chỉ IP
+const signupHits = new Map();
+function tooManySignups(ip) {
+  const now = Date.now();
+  const hit = signupHits.get(ip);
+  if (!hit || now > hit.resetAt) { signupHits.set(ip, { count: 1, resetAt: now + 60 * 60 * 1000 }); return false; }
+  hit.count += 1;
+  if (signupHits.size > 5000) for (const [k, v] of signupHits) if (now > v.resetAt) signupHits.delete(k);
+  return hit.count > 5;
+}
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// Email đã dùng cho tài khoản nào chưa (làm tên đăng nhập hoặc ở cột email)
+const findByEmail = (db, email) => db.prepare('SELECT * FROM users WHERE lower(username)=? OR lower(email)=? ORDER BY id LIMIT 1').get(email, email);
 
 router.post('/login', (req, res) => {
   const { username, password, portal } = req.body || {};
@@ -50,17 +81,53 @@ router.post('/login', (req, res) => {
     return res.status(403).json({ field: 'portal', message: `Đây là tài khoản ${PORTAL_OF_ROLE[user.role]} — hãy chọn mục "${PORTAL_OF_ROLE[user.role]}" để đăng nhập.` });
   }
 
-  const token = jwt.sign(
-    { id: user.id, username: user.username, role: user.role, full_name: user.full_name },
-    getJwtSecret(),
-    { expiresIn: '7d' }
-  );
-  setSessionCookie(req, res, token); // để trình duyệt tải được file /uploads có kiểm tra quyền
+  issueLogin(req, res, user);
+});
 
-  res.json({
-    token,
-    user: { id: user.id, username: user.username, role: user.role, full_name: user.full_name, parent_phone: user.parent_phone },
-  });
+// Khách tự tạo tài khoản: họ tên + email (dùng làm tên đăng nhập) + mật khẩu
+router.post('/register', (req, res) => {
+  const b = req.body || {};
+  const full_name = String(b.full_name ?? '').replace(/\s+/g, ' ').trim().slice(0, 80);
+  const email = String(b.email ?? '').trim().toLowerCase().slice(0, 120);
+  const password = typeof b.password === 'string' ? b.password : '';
+  if (!full_name) return res.status(400).json({ field: 'full_name', message: 'Vui lòng nhập họ tên' });
+  if (!EMAIL_RE.test(email)) return res.status(400).json({ field: 'email', message: 'Email không hợp lệ' });
+  if (password.length < 6) return res.status(400).json({ field: 'password', message: 'Mật khẩu phải có ít nhất 6 ký tự' });
+  const db = getDb();
+  if (findByEmail(db, email)) return res.status(409).json({ field: 'email', message: 'Email này đã có tài khoản — hãy đăng nhập (hoặc dùng nút Đăng nhập bằng Google)' });
+  if (tooManySignups(req.ip)) return res.status(429).json({ message: 'Bạn tạo quá nhiều tài khoản, vui lòng thử lại sau' });
+  const r = db.prepare("INSERT INTO users (username,password,full_name,email,role) VALUES (?,?,?,?,'guest')")
+    .run(email, bcrypt.hashSync(password, 10), full_name, email);
+  issueLogin(req, res, db.prepare('SELECT * FROM users WHERE id=?').get(r.lastInsertRowid));
+});
+
+// Đăng nhập / đăng ký bằng Google. Lần đầu: tạo tài khoản khách theo email Google. Đã có tài khoản khách cùng
+// email (tự đăng ký trước đó) → gắn Google vào đúng tài khoản đó. Email trùng tài khoản giáo viên/học sinh/phụ
+// huynh thì KHÔNG tự gắn (email của các tài khoản này do admin gõ, chưa chắc là của chủ email) → báo dùng tên đăng nhập.
+router.post('/google', async (req, res) => {
+  let g;
+  try { g = await verifyGoogleCredential(req.body?.credential); }
+  catch { return res.status(401).json({ message: 'Đăng nhập Google không thành công, vui lòng thử lại' }); }
+  const db = getDb();
+  let user = db.prepare('SELECT * FROM users WHERE google_sub=?').get(g.sub);
+  if (!user) {
+    const same = findByEmail(db, g.email);
+    if (same && same.role !== 'guest') {
+      return res.status(409).json({ message: `Email này thuộc tài khoản ${PORTAL_OF_ROLE[same.role]} — hãy đăng nhập ở mục "${PORTAL_OF_ROLE[same.role]}" bằng tên đăng nhập và mật khẩu.` });
+    }
+    if (same) {
+      db.prepare('UPDATE users SET google_sub=?, avatar_url=COALESCE(avatar_url, ?), email=COALESCE(email, ?) WHERE id=?').run(g.sub, g.picture, g.email, same.id);
+      user = db.prepare('SELECT * FROM users WHERE id=?').get(same.id);
+    } else {
+      if (tooManySignups(req.ip)) return res.status(429).json({ message: 'Bạn tạo quá nhiều tài khoản, vui lòng thử lại sau' });
+      // Mật khẩu ngẫu nhiên không ai biết: tài khoản này chỉ đăng nhập bằng Google
+      const r = db.prepare("INSERT INTO users (username,password,full_name,email,role,google_sub,avatar_url) VALUES (?,?,?,?,'guest',?,?)")
+        .run(g.email, bcrypt.hashSync(require('crypto').randomBytes(24).toString('hex'), 10), g.name.slice(0, 80), g.email, g.sub, g.picture);
+      user = db.prepare('SELECT * FROM users WHERE id=?').get(r.lastInsertRowid);
+    }
+  }
+  if (!user.active) return res.status(403).json({ message: 'Tài khoản đã bị khóa' });
+  issueLogin(req, res, user);
 });
 
 // Cấp lại cookie phiên cho người đang đăng nhập sẵn (token còn trong trình duyệt từ trước khi có tính

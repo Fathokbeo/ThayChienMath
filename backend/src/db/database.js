@@ -309,6 +309,30 @@ function initSchema() {
     })();
     db.pragma('foreign_keys = ON');
   }
+  // Migration: thêm vai trò 'guest' (khách tự đăng ký / đăng nhập Google). Như trên — dựng lại bảng users với
+  // ràng buộc CHECK mới, chép nguyên mọi cột hiện có (giữ id).
+  const usersSql2 = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'").get().sql;
+  if (!usersSql2.includes("'guest'")) {
+    const newSql = usersSql2
+      .replace(/CREATE TABLE\s+"?users"?/i, 'CREATE TABLE users_new')
+      .replace("'student','parent')", "'student','parent','guest')");
+    if (!newSql.includes("'guest'") || !newSql.includes('users_new')) throw new Error('Không nâng cấp được bảng users (thêm vai trò khách)');
+    const allCols = db.prepare('PRAGMA table_info(users)').all().map((c) => c.name).join(',');
+    db.pragma('foreign_keys = OFF');
+    db.transaction(() => {
+      db.exec(newSql);
+      db.exec(`INSERT INTO users_new (${allCols}) SELECT ${allCols} FROM users`);
+      db.exec('DROP TABLE users');
+      db.exec('ALTER TABLE users_new RENAME TO users');
+    })();
+    db.pragma('foreign_keys = ON');
+  }
+  // Tài khoản liên kết Google (sub = mã tài khoản Google, không đổi kể cả khi đổi email) + ảnh đại diện
+  const userCols2 = db.prepare('PRAGMA table_info(users)').all();
+  if (!userCols2.some(c => c.name === 'google_sub')) db.exec('ALTER TABLE users ADD COLUMN google_sub TEXT');
+  if (!userCols2.some(c => c.name === 'avatar_url')) db.exec('ALTER TABLE users ADD COLUMN avatar_url TEXT');
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_sub ON users(google_sub) WHERE google_sub IS NOT NULL');
+
   // Mốc phụ huynh đã xem thông báo (các hoạt động của con sau mốc này được đánh dấu "mới")
   if (!db.prepare('PRAGMA table_info(users)').all().some(c => c.name === 'notif_seen_at')) {
     db.exec('ALTER TABLE users ADD COLUMN notif_seen_at TEXT');

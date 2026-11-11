@@ -3,16 +3,20 @@ import type { FormEvent } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import type { Portal } from '../contexts/AuthContext';
-import { Eye, EyeOff, ArrowRight, Presentation, GraduationCap, HeartHandshake } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Presentation, GraduationCap, HeartHandshake, UserRound } from 'lucide-react';
 import { toast } from '../components/Toast';
 import api from '../lib/api';
 import { useBrandName } from '../lib/brand';
+import GoogleSignInButton from '../components/GoogleSignInButton';
+import { safeNext } from '../lib/navigation';
 
-// 3 mục đăng nhập. Phụ huynh gõ TÊN ĐĂNG NHẬP CỦA CON + mật khẩu phụ huynh (không phải nhớ thêm tên nào).
+// 4 mục đăng nhập. Phụ huynh gõ TÊN ĐĂNG NHẬP CỦA CON + mật khẩu phụ huynh (không phải nhớ thêm tên nào).
+// Khách: tự đăng ký bằng email, hoặc đăng nhập bằng Google.
 const PORTALS: { key: Portal; label: string; icon: typeof Presentation; user: string; pass: string; hint: string }[] = [
   { key: 'teacher', label: 'Giáo viên', icon: Presentation, user: 'Tên đăng nhập', pass: 'Mật khẩu', hint: 'Dành cho giáo viên và quản trị viên.' },
   { key: 'student', label: 'Học sinh', icon: GraduationCap, user: 'Tên đăng nhập', pass: 'Mật khẩu', hint: 'Tài khoản do thầy cô cấp — hãy liên hệ để được tạo.' },
   { key: 'parent', label: 'Phụ huynh', icon: HeartHandshake, user: 'Tên đăng nhập của con', pass: 'Mật khẩu phụ huynh', hint: 'Dùng tên đăng nhập của con. Mật khẩu mặc định là số điện thoại phụ huynh đã đăng ký với thầy cô (chưa đăng ký số thì dùng mật khẩu của con).' },
+  { key: 'guest', label: 'Khách', icon: UserRound, user: 'Email', pass: 'Mật khẩu', hint: 'Tài khoản khách dùng để tải đề, theo dõi tin tức và đăng ký học. Học sinh của trung tâm dùng mục Học sinh.' },
 ];
 const PORTAL_KEY = 'login_portal';
 
@@ -30,8 +34,8 @@ export default function Login() {
   const [portal, setPortal] = useState<Portal>(() => {
     const fromUrl = params.get('muc');
     const saved = (() => { try { return localStorage.getItem(PORTAL_KEY); } catch { return null; } })();
-    const v = fromUrl === 'phu-huynh' ? 'parent' : fromUrl === 'hoc-sinh' ? 'student' : fromUrl === 'giao-vien' ? 'teacher' : saved;
-    return v === 'teacher' || v === 'parent' ? v : 'student';
+    const v = fromUrl === 'phu-huynh' ? 'parent' : fromUrl === 'hoc-sinh' ? 'student' : fromUrl === 'giao-vien' ? 'teacher' : fromUrl === 'khach' ? 'guest' : saved;
+    return v === 'teacher' || v === 'parent' || v === 'guest' ? v : 'student';
   });
   const cur = PORTALS.find((p) => p.key === portal)!;
   const [username, setUsername] = useState('');
@@ -41,8 +45,23 @@ export default function Login() {
   const [usernameError, setUsernameError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [demo, setDemo] = useState<DemoAccounts | null>(null);
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const next = safeNext(params.get('next'));
+  const goAfterLogin = (role: string) => navigate(next || `/${role}`);
+
+  const onGoogle = async (credential: string) => {
+    setLoading(true);
+    try {
+      const user = await loginWithGoogle(credential);
+      try { localStorage.setItem(PORTAL_KEY, 'guest'); } catch { /* trình duyệt chặn lưu trữ */ }
+      goAfterLogin(user.role);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Đăng nhập Google không thành công');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     api.get('/public/demo-accounts').then((r) => setDemo(r.data)).catch(() => { /* không có thì thôi */ });
@@ -56,7 +75,7 @@ export default function Login() {
     try {
       const user = await login(u.trim(), p, portal);
       try { localStorage.setItem(PORTAL_KEY, portal); } catch { /* trình duyệt chặn lưu trữ */ }
-      navigate(`/${user.role}`);
+      goAfterLogin(user.role);
     } catch (err: any) {
       const field = err.response?.data?.field;
       const message = err.response?.data?.message || 'Đăng nhập thất bại';
@@ -104,10 +123,18 @@ export default function Login() {
             ))}
           </div>
 
+          {portal === 'guest' && (
+            <>
+              <GoogleSignInButton onCredential={onGoogle} />
+              <div className="auth-divider">hoặc đăng nhập bằng email</div>
+            </>
+          )}
+
           <form onSubmit={handleSubmit} style={{ textAlign: 'left' }}>
             <div className="form-group">
               <input className="input" style={field(usernameError)} placeholder={cur.user} aria-label={cur.user}
-                value={username} autoComplete="username" autoCapitalize="none" autoCorrect="off" autoFocus
+                value={username} autoComplete={portal === 'guest' ? 'email' : 'username'} type={portal === 'guest' ? 'email' : 'text'}
+                autoCapitalize="none" autoCorrect="off" autoFocus={portal !== 'guest'}
                 onChange={(e) => { setUsername(e.target.value); if (usernameError) setUsernameError(''); }} />
               {usernameError && <p style={{ color: '#B04A2A', fontSize: '0.84rem', margin: '6px 4px 0' }}>{usernameError}</p>}
             </div>
@@ -128,6 +155,12 @@ export default function Login() {
               {loading ? 'Đang đăng nhập…' : <>Đăng nhập <ArrowRight size={18} /></>}
             </button>
           </form>
+
+          {portal === 'guest' && (
+            <p style={{ margin: '18px 0 0', fontSize: '0.92rem', color: '#515154' }}>
+              Chưa có tài khoản? <Link to={`/dang-ky${next ? `?next=${encodeURIComponent(next)}` : ''}`} className="link" style={{ fontWeight: 600 }}>Đăng ký miễn phí</Link>
+            </p>
+          )}
 
           {demo ? (
             <section className="demo-box" aria-label="Tài khoản dùng thử">

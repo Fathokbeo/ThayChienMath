@@ -12,6 +12,8 @@ import ExamDetail from './pages/public/ExamDetail';
 import NewsList from './pages/public/NewsList';
 import NewsDetail from './pages/public/NewsDetail';
 import NewsEditor from './pages/admin/NewsEditor';
+import Register from './pages/Register';
+import GuestAccount from './pages/GuestAccount';
 import PrivacyPolicy from './pages/public/PrivacyPolicy';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -73,6 +75,8 @@ function AppRoutes() {
       <Route path="/tin-tuc/:id" element={<NewsDetail />} />
       <Route path="/chinh-sach-bao-mat" element={<PrivacyPolicy />} />
       <Route path="/login" element={user ? <Navigate to={`/${user.role}`} replace /> : <Login />} />
+      <Route path="/dang-ky" element={user ? <Navigate to={`/${user.role}`} replace /> : <Register />} />
+      <Route path="/guest" element={<ProtectedRoute role="guest"><GuestAccount /></ProtectedRoute>} />
 
       {/* Admin */}
       <Route path="/admin" element={<ProtectedRoute role="admin"><Layout /></ProtectedRoute>}>

@@ -11,17 +11,21 @@ interface User {
   id: number;
   username: string;
   full_name: string;
-  role: 'admin' | 'teacher' | 'student' | 'parent';
+  role: 'admin' | 'teacher' | 'student' | 'parent' | 'guest';
   parent_phone?: string;
+  email?: string | null;
+  avatar_url?: string | null; // ảnh đại diện Google (tài khoản khách đăng nhập bằng Google)
 }
 
-// Mục chọn ở trang đăng nhập (admin đăng nhập ở mục Giáo viên)
-export type Portal = 'teacher' | 'student' | 'parent';
+// Mục chọn ở trang đăng nhập (admin đăng nhập ở mục Giáo viên; khách tự đăng ký / đăng nhập Google)
+export type Portal = 'teacher' | 'student' | 'parent' | 'guest';
 
 interface AuthCtx {
   user: User | null;
   token: string | null;
   login: (username: string, password: string, portal?: Portal) => Promise<User>;
+  loginWithGoogle: (credential: string) => Promise<User>;
+  register: (data: { full_name: string; email: string; password: string }) => Promise<User>;
   logout: () => void;
   loading: boolean;
 }
@@ -53,8 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, [token]);
 
-  const login = async (username: string, password: string, portal?: Portal) => {
-    const { data } = await api.post('/auth/login', { username, password, portal });
+  // Lưu phiên đăng nhập máy chủ vừa cấp (đăng nhập thường, Google hay vừa đăng ký đều như nhau)
+  const startSession = async (data: { token: string; user: User }) => {
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
     if (IS_REMOTE_API) await refreshFileTicket().catch(() => {});
@@ -62,6 +66,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
     return data.user as User;
   };
+
+  const login = async (username: string, password: string, portal?: Portal) =>
+    startSession((await api.post('/auth/login', { username, password, portal })).data);
+  const loginWithGoogle = async (credential: string) => startSession((await api.post('/auth/google', { credential })).data);
+  const register = async (body: { full_name: string; email: string; password: string }) => startSession((await api.post('/auth/register', body)).data);
 
   const logout = () => {
     api.post('/auth/logout').catch(() => {}); // xóa cookie phiên ở máy chủ
@@ -73,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, loginWithGoogle, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
