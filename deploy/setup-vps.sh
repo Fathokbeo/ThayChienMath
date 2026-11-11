@@ -169,6 +169,9 @@ cat > /etc/cron.d/thaychienmath-deploy <<EOF
 EOF
 chmod 644 /etc/cron.d/thaychienmath-deploy
 
+# ── 13. Bảo mật: chặn dò mật khẩu SSH, ẩn phiên bản nginx, khóa quyền đọc database ──
+bash "$APP_DIR/deploy/harden-vps.sh"
+
 say "XONG!"
 echo "  Web:          https://$DOMAIN"
 echo "  Xem log:      sudo -u $APP_USER pm2 logs $APP_NAME"

@@ -44,30 +44,16 @@ router.get('/courses/:id', (req, res) => {
   res.json({ ...course, classes: withChapters });
 });
 
-// ── Nội dung trang công khai (chỉ lấy mục đang bật) ────────────────────
-router.get('/featured-students', (req, res) => {
-  const db = getDb();
-  res.json(db.prepare('SELECT * FROM featured_students WHERE active=1 ORDER BY display_order, created_at DESC').all());
-});
+// ── Nội dung trang công khai ───────────────────────────────────────────
+// (Học sinh tiêu biểu, Giáo viên, Khóa tiêu biểu, Thành tích đã gỡ khỏi trang chủ → không mở API công khai nữa,
+// tránh lộ SĐT/Facebook giáo viên; dữ liệu vẫn giữ trong database.)
 
-router.get('/staff', (req, res) => {
-  const db = getDb();
-  res.json(db.prepare('SELECT * FROM staff WHERE active=1 ORDER BY display_order, created_at DESC').all());
-});
-
-router.get('/featured-courses', (req, res) => {
-  const db = getDb();
-  res.json(db.prepare('SELECT * FROM featured_courses WHERE active=1 ORDER BY display_order, created_at DESC').all());
-});
-
-router.get('/achievements', (req, res) => {
-  const db = getDb();
-  res.json(db.prepare('SELECT * FROM achievements WHERE active=1 ORDER BY display_order, created_at DESC').all());
-});
-
+// Chỉ trả các mục cài đặt trang web cần hiện; mục nội bộ (biểu mẫu đăng ký, SĐT liên hệ phụ huynh...) không ra ngoài
+const PUBLIC_SETTINGS = ['hero_title', 'hero_subtitle', 'contact_address', 'contact_phone', 'contact_email', 'contact_hours',
+  'contact_facebook', 'stats_students', 'stats_teachers', 'stats_courses', 'stats_years'];
 router.get('/settings', (req, res) => {
   const db = getDb();
-  const rows = db.prepare('SELECT key,value FROM site_settings').all();
+  const rows = db.prepare(`SELECT key,value FROM site_settings WHERE key IN (${PUBLIC_SETTINGS.map(() => '?').join(',')})`).all(...PUBLIC_SETTINGS);
   const obj = {};
   rows.forEach(r => { obj[r.key] = r.value; });
   res.json(obj);

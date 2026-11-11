@@ -189,7 +189,9 @@ router.put('/change-password', (req, res) => {
   }
 
   const hash = bcrypt.hashSync(new_password, 10);
-  db.prepare('UPDATE users SET password=?,plain_password=? WHERE id=?').run(hash, new_password, user.id);
+  // Bản chữ thường chỉ giữ cho tài khoản do trung tâm cấp (để thầy cô / admin xem lại hộ); admin và khách thì không
+  const keepPlain = ['student', 'parent', 'teacher'].includes(dbUser.role);
+  db.prepare('UPDATE users SET password=?,plain_password=? WHERE id=?').run(hash, keepPlain ? new_password : null, user.id);
   res.json({ message: 'Đổi mật khẩu thành công' });
 });
 

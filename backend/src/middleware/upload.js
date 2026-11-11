@@ -36,13 +36,16 @@ function createStorage(subDir) {
   });
 }
 
+// Lỗi "sai loại file": trả 400 kèm thông báo cho người dùng
+const badFile = (msg) => Object.assign(new Error(msg), { status: 400 });
+
 const isRasterImage = (file) => /^image\/(jpe?g|png|webp|gif)$/i.test(file.mimetype || '');
 
 const uploadAd = multer({
   storage: createStorage('ads'),
   fileFilter: (req, file, cb) => {
     if (isRasterImage(file)) cb(null, true);
-    else cb(new Error('Chỉ chấp nhận file ảnh'));
+    else cb(badFile('Chỉ chấp nhận file ảnh'));
   },
   limits: { fileSize: 10 * 1024 * 1024 },
 });
@@ -51,7 +54,7 @@ const uploadHomework = multer({
   storage: createStorage('homework'),
   fileFilter: (req, file, cb) => {
     if (file.mimetype === 'application/pdf') cb(null, true);
-    else cb(new Error('Chỉ chấp nhận file PDF'));
+    else cb(badFile('Chỉ chấp nhận file PDF'));
   },
   limits: { fileSize: 50 * 1024 * 1024 },
 });
@@ -61,7 +64,7 @@ const uploadSubmission = multer({
   fileFilter: (req, file, cb) => {
     const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
     if (allowed.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('Chỉ chấp nhận file PDF hoặc ảnh'));
+    else cb(badFile('Chỉ chấp nhận file PDF hoặc ảnh'));
   },
   limits: { fileSize: 20 * 1024 * 1024 },
 });
@@ -70,7 +73,7 @@ const uploadVideo = multer({
   storage: createStorage('videos'),
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('video/')) cb(null, true);
-    else cb(new Error('Chỉ chấp nhận file video'));
+    else cb(badFile('Chỉ chấp nhận file video'));
   },
   limits: { fileSize: 500 * 1024 * 1024 },
 });
@@ -90,7 +93,7 @@ const uploadLessonFile = multer({
   storage: createStorage('lessons'),
   fileFilter: (req, file, cb) => {
     if (LESSON_FILE_TYPES.includes(file.mimetype)) cb(null, true);
-    else cb(new Error('Chỉ chấp nhận file PDF, ảnh hoặc tài liệu Office'));
+    else cb(badFile('Chỉ chấp nhận file PDF, ảnh hoặc tài liệu Office'));
   },
   limits: { fileSize: 50 * 1024 * 1024 },
 });
@@ -99,7 +102,7 @@ const uploadCourseThumbnail = multer({
   storage: createStorage('courses'),
   fileFilter: (req, file, cb) => {
     if (isRasterImage(file)) cb(null, true);
-    else cb(new Error('Chỉ chấp nhận file ảnh'));
+    else cb(badFile('Chỉ chấp nhận file ảnh'));
   },
   limits: { fileSize: 5 * 1024 * 1024 },
 });
@@ -108,7 +111,7 @@ const uploadAssistantPhoto = multer({
   storage: createStorage('assistants'),
   fileFilter: (req, file, cb) => {
     if (isRasterImage(file)) cb(null, true);
-    else cb(new Error('Chỉ chấp nhận file ảnh'));
+    else cb(badFile('Chỉ chấp nhận file ảnh'));
   },
   limits: { fileSize: 5 * 1024 * 1024 },
 });
@@ -119,7 +122,7 @@ function makeImageUpload(subDir) {
     storage: createStorage(subDir),
     fileFilter: (req, file, cb) => {
       if (isRasterImage(file)) cb(null, true);
-      else cb(new Error('Chỉ chấp nhận file ảnh'));
+      else cb(badFile('Chỉ chấp nhận file ảnh'));
     },
     limits: { fileSize: 5 * 1024 * 1024 },
   });
@@ -150,7 +153,7 @@ const uploadExam = multer({
     if (file.fieldname === 'thumbnail' && isRasterImage(file)) cb(null, true);
     else if (file.fieldname === 'pdf' && file.mimetype === 'application/pdf') cb(null, true);
     else if (file.fieldname === 'docx' && isWordFile(file)) cb(null, true);
-    else cb(new Error(file.fieldname === 'pdf' ? 'Đề thi phải là file PDF' : file.fieldname === 'docx' ? 'Bản Word phải là file .doc hoặc .docx' : 'Ảnh bìa phải là file ảnh'));
+    else cb(badFile(file.fieldname === 'pdf' ? 'Đề thi phải là file PDF' : file.fieldname === 'docx' ? 'Bản Word phải là file .doc hoặc .docx' : 'Ảnh bìa phải là file ảnh'));
   },
   limits: { fileSize: 30 * 1024 * 1024 },
 }).fields([{ name: 'thumbnail', maxCount: 1 }, { name: 'pdf', maxCount: 1 }, { name: 'docx', maxCount: 1 }]);
