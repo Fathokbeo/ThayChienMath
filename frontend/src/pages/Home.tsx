@@ -6,19 +6,15 @@ import { useAuth } from '../contexts/AuthContext';
 import CourseRegisterModal from '../components/CourseRegisterModal';
 import ExamCard, { type ExamItem } from '../components/ExamCard';
 import { NewsFront, type NewsItem } from '../components/NewsCard';
-import api, { fileUrl } from '../lib/api';
+import ExamMenuBar, { type ExamMeta } from '../components/ExamMenuBar';
+import CourseCarousel from '../components/CourseCarousel';
+import { interestParam } from '../lib/interest';
+import api from '../lib/api';
 import { PAGE_MAX } from '../lib/layout';
-import { gradeLabel } from '../lib/publicSite';
+import { examHref, homeTitlesFrom } from '../lib/publicSite';
 import useIsMobile from '../lib/useIsMobile';
 import { BRAND_DEFAULT } from '../lib/brand';
-import { BookOpen, ChevronRight, ChevronDown, Users, GraduationCap, Newspaper, Sparkles, Smartphone, LineChart, FileStack, ClipboardCheck } from 'lucide-react';
-
-/* 3 ô số liệu ở trên (đếm thật từ dữ liệu) = lối tắt cuộn xuống mục Khóa học / Đội ngũ / Đề và chuyên môn ngay trên trang chủ. */
-const STATS = [
-  { id: 'khoa-hoc', key: 'courses', nav: 'Xem khóa học & đăng ký', statLabel: 'Khóa học', icon: BookOpen, color: '#3A7D5C' },
-  { id: 'tin-tuc', key: 'news', nav: 'Xem tin tức', statLabel: 'Tin tức', icon: Newspaper, color: '#2F6F82' },
-  { id: 'de-thi', key: 'exams', nav: 'Xem kho đề', statLabel: 'Đề thi', icon: FileStack, color: '#1F5C68' },
-] as const;
+import { BookOpen, ChevronRight, GraduationCap, Newspaper, Sparkles, Smartphone, LineChart, FileStack } from 'lucide-react';
 
 const SCROLL_OFFSET = 86; // chừa chỗ cho thanh điều hướng dính ở trên
 
@@ -58,22 +54,26 @@ export default function Home() {
   const [courses, setCourses] = useState<any[]>([]);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [exams, setExams] = useState<ExamItem[]>([]);
-  const [grades, setGrades] = useState<string[]>([]);
+  const [examMeta, setExamMeta] = useState<ExamMeta | null>(null);
   const [settings, setSettings] = useState<any>({});
   const [ready, setReady] = useState(false);
+  const [interest] = useState(interestParam);
   const [registering, setRegistering] = useState<any>(null); // khóa đang mở form đăng ký
 
   useEffect(() => {
     api.get('/public/ads').then((r) => setAds(r.data)).catch(() => {});
     api.get('/public/settings').then((r) => setSettings(r.data)).catch(() => {});
     Promise.all([
-      api.get('/public/courses').then((r) => setCourses(r.data)).catch(() => {}),
+      // Các lớp khách đã xem đề (theo số lần xem) → khóa học hợp nhất lên đầu băng chuyền (xếp ở máy chủ theo nhãn đã lưu)
+      api.get('/public/courses', { params: interest }).then((r) => setCourses(r.data)).catch(() => {}),
       api.get('/public/news').then((r) => setNews(r.data)).catch(() => {}),
       // Lấy đủ danh sách để đếm số đề cho ô số liệu; mục Đề và chuyên môn chỉ hiện 6 đề mới nhất
       api.get('/public/exams').then((r) => setExams(r.data)).catch(() => {}),
-      api.get('/public/exam-grades').then((r) => setGrades(r.data)).catch(() => {}),
+      api.get('/public/exam-meta').then((r) => setExamMeta(r.data)).catch(() => {}),
     ]).finally(() => setReady(true));
   }, []);
+
+  const titles = homeTitlesFrom(settings);
 
   // Vào trang kèm #khoa-hoc, #tin-tuc... thì cuộn tới đúng mục sau khi nội dung đã tải
   useEffect(() => {
@@ -95,10 +95,18 @@ export default function Home() {
           {settings.hero_subtitle || 'Học Toán vững vàng — tự tin chinh phục mọi kỳ thi'}
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 26 }}>
-          {user
-            ? <Link to={`/${user.role}`} className="btn btn-primary btn-lg">{user.role === 'student' ? 'Vào học' : 'Vào trang quản lý'} <ChevronRight size={18} /></Link>
-            : <Link to="/login" className="btn btn-primary btn-lg">Đăng nhập để học <ChevronRight size={18} /></Link>}
-          <a href="#khoa-hoc" className="btn btn-outline btn-lg" onClick={(e) => { e.preventDefault(); scrollToSection('khoa-hoc'); }}>Đăng ký học</a>
+          {/* Nút theo người xem: khách / chưa đăng nhập → Đăng ký ngay (xuống mục khóa học); học sinh → Vào học;
+              phụ huynh → xem kết quả của con; giáo viên, admin → vào trang quản lý (không cần nút đăng ký học) */}
+          {!user || user.role === 'guest' ? (
+            <>
+              <a href="#khoa-hoc" className="btn btn-primary btn-lg" onClick={(e) => { e.preventDefault(); scrollToSection('khoa-hoc'); }}>Đăng ký ngay <ChevronRight size={18} /></a>
+              {!user && <Link to="/login" className="btn btn-outline btn-lg">Đăng nhập</Link>}
+            </>
+          ) : (
+            <Link to={`/${user.role}`} className="btn btn-primary btn-lg">
+              {user.role === 'student' ? 'Vào học' : user.role === 'parent' ? 'Xem kết quả học tập của con' : 'Vào trang quản lý'} <ChevronRight size={18} />
+            </Link>
+          )}
         </div>
       </section>
       {ads.length > 0 && (
@@ -107,85 +115,9 @@ export default function Home() {
         </section>
       )}
 
-      {/* Số khóa học, giáo viên, đề (đếm thật) — mỗi ô là lối tắt cuộn xuống mục tương ứng bên dưới.
-          Điện thoại: 3 ô trên 1 hàng, bỏ dòng chữ dẫn link cho gọn (cả ô vẫn bấm được) */}
-      <section style={{ maxWidth: PAGE_MAX, margin: '0 auto', padding: isMobile ? '1.5rem 16px 0' : '2.5rem 22px 0.5rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: isMobile ? 8 : 12 }}>
-          {STATS.map(({ id, key, nav, statLabel, icon: Icon, color }) => (
-            <a key={key} href={`#${id}`} onClick={(e) => { e.preventDefault(); scrollToSection(id); }}
-              style={{ textDecoration: 'none', display: 'block' }}>
-              <div style={{
-                background: 'white', borderRadius: 18, height: '100%', padding: isMobile ? '0.85rem 0.8rem' : '1.25rem 1.25rem 1.1rem',
-                display: 'flex', flexDirection: 'column', cursor: 'pointer', transition: 'background 0.15s',
-              }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#FAFAFC'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 5 : 7, color, fontWeight: 600, fontSize: isMobile ? '0.78rem' : '0.86rem', whiteSpace: 'nowrap' }}>
-                  <Icon size={isMobile ? 14 : 17} color={color} /> {statLabel}
-                </div>
-                <div style={{ fontSize: isMobile ? '1.6rem' : '2.2rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#1D1D1F', margin: isMobile ? '4px 0 0' : '6px 0 8px' }}>
-                  {ready ? { news: news.length, courses: courses.length, exams: exams.length }[key] : '…'}
-                </div>
-                {!isMobile && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#1F5C68', fontSize: '0.86rem', fontWeight: 500, marginTop: 'auto' }}>
-                    {nav} <ChevronDown size={14} />
-                  </div>
-                )}
-              </div>
-            </a>
-          ))}
-        </div>
-      </section>
-
-      {/* 1. Khóa học — học phí + nút đăng ký (khách không cần tài khoản) */}
-      <Section id="khoa-hoc" title="Các khóa học" subtitle="Chọn khóa học phù hợp và đăng ký thi thử đầu vào" icon={BookOpen} color="#3A7D5C">
-        {courses.length === 0 ? <Empty text="Chưa có khóa học nào" /> : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 270px), 1fr))', gap: isMobile ? 14 : 20 }}>
-            {courses.map((c: any) => (
-              <div key={c.id} style={{ background: 'white', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.07)', display: 'flex', flexDirection: 'column' }}>
-                <Link to={`/courses/${c.id}`} style={{ display: 'block' }}>
-                  {c.thumbnail ? (
-                    <img src={fileUrl(`/uploads/courses/${c.thumbnail}`)} alt={c.title} style={{ width: '100%', height: isMobile ? 140 : 160, objectFit: 'cover', display: 'block' }} />
-                  ) : (
-                    <div style={{ height: isMobile ? 110 : 160, background: 'linear-gradient(135deg, #1F5C68, #2F6F82)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <BookOpen size={36} color="rgba(255,255,255,0.7)" />
-                    </div>
-                  )}
-                </Link>
-                <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <h3 style={{ margin: '0 0 6px', fontSize: '1.05rem', fontWeight: 700, color: '#1D1D1F' }}>{c.title}</h3>
-                  {c.description && <p style={{ margin: '0 0 10px', fontSize: '0.85rem', color: '#6E6E73', lineHeight: 1.5 }}>{c.description}</p>}
-                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginTop: 'auto', paddingTop: 4 }}>
-                    <span style={{ fontSize: '0.8rem', color: '#86868B' }}>Học phí</span>
-                    <span style={{ fontWeight: 800, fontSize: '1.08rem', color: c.price ? '#B8673E' : '#86868B' }}>{c.price || 'Liên hệ'}</span>
-                  </div>
-                  {c.student_count > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#3A7D5C', fontWeight: 600, fontSize: '0.82rem', marginTop: 6 }}>
-                      <Users size={14} /> {c.student_count} học sinh đang học
-                    </div>
-                  )}
-                  <div style={{ display: 'grid', gridTemplateColumns: c.open_registration ? '1fr 1fr' : '1fr', gap: 8, marginTop: 12 }}>
-                    <Link to={`/courses/${c.id}`} className="btn btn-outline btn-sm" style={{ justifyContent: 'center' }}>Chi tiết</Link>
-                    {!!c.open_registration && (
-                      <button type="button" className="btn btn-primary btn-sm" style={{ justifyContent: 'center' }} onClick={() => setRegistering(c)}>
-                        <ClipboardCheck size={14} /> Đăng ký
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Section>
-
-      {/* 2. Đề và chuyên môn — vài đề mới nhất + lối tắt lọc theo lớp */}
-      <Section id="de-thi" title="Đề và chuyên môn" subtitle="Đề kiểm tra, đề khảo sát, đề thi chọn lọc theo từng khối lớp" icon={FileStack} color="#1F5C68" alt>
-        {grades.length > 0 && (
-          <div className="grade-chips" style={{ justifyContent: isMobile ? 'flex-start' : 'center', marginBottom: 14 }}>
-            {grades.map((g) => <Link key={g} to={`/de-thi?lop=${encodeURIComponent(g)}`} className="ph-chip" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>{gradeLabel(g)}</Link>)}
-          </div>
-        )}
+      {/* 1. Đề và chuyên môn — thanh menu lớp → loại đề + 6 đề mới nhất */}
+      <Section id="de-thi" title={titles.exams} subtitle={titles.examsSub} icon={FileStack} color="#1F5C68" alt>
+        {examMeta && examMeta.menu.length > 0 && <ExamMenuBar meta={examMeta} hrefFor={examHref} />}
         {exams.length === 0 ? <Empty text="Chưa có đề nào" /> : (
           <div className="exam-list" style={{ background: '#F5F5F7', ...(isMobile ? {} : { display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 32 }) }}>
             {exams.slice(0, 6).map((e) => <ExamCard key={e.id} exam={e} />)}
@@ -196,8 +128,8 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* 3. Tin tức (thay cho mục Đội ngũ giáo viên trước đây) — 6 bài mới nhất */}
-      <Section id="tin-tuc" title="Tin tức" subtitle="Thông báo, lịch khai giảng, thành tích và hoạt động của trung tâm" icon={Newspaper} color="#2F6F82">
+      {/* 2. Tin tức — 4 bài mới nhất kiểu trang báo */}
+      <Section id="tin-tuc" title={titles.news} subtitle={titles.newsSub} icon={Newspaper} color="#2F6F82">
         {news.length === 0 ? <Empty text="Chưa có bài viết nào" /> : (
           <>
             <NewsFront posts={news.slice(0, 4)} isMobile={isMobile} />
@@ -207,6 +139,13 @@ export default function Home() {
               </div>
             )}
           </>
+        )}
+      </Section>
+
+      {/* 3. Khóa học — học phí + nút đăng ký (khách không cần tài khoản) */}
+      <Section id="khoa-hoc" title={titles.courses} subtitle={titles.coursesSub} icon={BookOpen} color="#3A7D5C" alt>
+        {courses.length === 0 ? <Empty text="Chưa có khóa học nào" /> : (
+          <CourseCarousel courses={courses} onRegister={setRegistering} personalized={!!interest.interest} />
         )}
       </Section>
 

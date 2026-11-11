@@ -3,16 +3,18 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
 import { useBrandName } from '../lib/brand';
+import { homeTitlesFrom } from '../lib/publicSite';
 import { PAGE_MAX } from '../lib/layout';
+import useIsMobile from '../lib/useIsMobile';
 import { Phone, MapPin, Clock, Mail, ExternalLink, LogIn, LogOut, ChevronDown, Home, BookOpen, Newspaper, FileStack, LayoutDashboard, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { ENTER_LABEL, roleColors, accountSubtitle } from '../lib/navigation';
 
 // Các mục của trang chủ — gom vào 1 nút "Trang chủ" thả xuống
 const HOME_MENU: { to: string; label: string; sub: string; icon: LucideIcon }[] = [
   { to: '/', label: 'Trang chủ', sub: 'Về đầu trang giới thiệu', icon: Home },
-  { to: '/#khoa-hoc', label: 'Khóa học & đăng ký', sub: 'Học phí, đăng ký thi thử đầu vào', icon: BookOpen },
-  { to: '/de-thi', label: 'Đề và chuyên môn', sub: 'Kho đề Toán theo từng lớp', icon: FileStack },
+  { to: '/de-thi', label: 'Đề và chuyên môn', sub: 'Kho đề theo lớp và loại đề', icon: FileStack },
   { to: '/tin-tuc', label: 'Tin tức', sub: 'Thông báo, hoạt động của trung tâm', icon: Newspaper },
+  { to: '/#khoa-hoc', label: 'Khóa học & đăng ký', sub: 'Học phí, đăng ký thi thử đầu vào', icon: BookOpen },
   { to: '#contact', label: 'Liên hệ', sub: 'Địa chỉ, điện thoại, giờ học', icon: Phone },
 ];
 
@@ -44,6 +46,19 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<any>({});
   const [homeOpen, setHomeOpen] = useState(false);
   const homeRef = useRef<HTMLDivElement>(null);
+  // Giao diện hẹp (≤768px): danh sách nằm tách khỏi nút (cả chiều ngang màn hình) → chỉ bấm để mở / bấm ra ngoài để đóng.
+  // Giao diện rộng: rê chuột mở, rời chuột thì chờ 0,25 giây mới đóng (kịp đưa chuột xuống danh sách).
+  const narrowNav = useIsMobile(768);
+  const homeCloseTimer = useRef<number | undefined>(undefined);
+  const hoverHome = (open: boolean) => {
+    window.clearTimeout(homeCloseTimer.current);
+    if (open) setHomeOpen(true);
+    else homeCloseTimer.current = window.setTimeout(() => setHomeOpen(false), 250);
+  };
+  // Tên các mục theo cài đặt của admin (Đề / Tin tức / Khóa học)
+  const titles = homeTitlesFrom(settings);
+  const homeMenu = HOME_MENU.map((it) => ({ ...it,
+    label: it.to === '/de-thi' ? titles.exams : it.to === '/tin-tuc' ? titles.news : it.to === '/#khoa-hoc' ? titles.courses : it.label }));
   const [accountOpen, setAccountOpen] = useState(false); // menu tài khoản (đã đăng nhập)
   const accountRef = useRef<HTMLDivElement>(null);
 
@@ -114,10 +129,10 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
 
           {/* Thanh công cụ: máy tính hiện chữ; điện thoại chỉ hiện biểu tượng (.pub-label ẩn, .pub-icon hiện) */}
           <div className="pub-nav">
-            {/* Rê chuột chỉ áp dụng cho chuột thật — trên điện thoại một lần chạm sẽ vừa "rê vào" vừa bấm, menu mở rồi đóng ngay */}
+            {/* Rê chuột chỉ áp dụng cho chuột thật ở giao diện rộng — trên điện thoại một lần chạm sẽ vừa "rê vào" vừa bấm */}
             <div ref={homeRef} style={{ position: 'relative' }}
-              onPointerEnter={(e) => { if (e.pointerType === 'mouse') setHomeOpen(true); }}
-              onPointerLeave={(e) => { if (e.pointerType === 'mouse') setHomeOpen(false); }}>
+              onPointerEnter={(e) => { if (e.pointerType === 'mouse' && !narrowNav) hoverHome(true); }}
+              onPointerLeave={(e) => { if (e.pointerType === 'mouse' && !narrowNav) hoverHome(false); }}>
               <button type="button" className="pub-btn" onClick={() => { setHomeOpen((v) => !v); setAccountOpen(false); }}
                 aria-haspopup="menu" aria-expanded={homeOpen} aria-label="Trang chủ" title="Trang chủ"
                 style={{
@@ -132,7 +147,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                 // paddingTop tạo "cầu nối" để rê chuột từ nút xuống danh sách không bị đóng
                 <div className="pub-drop">
                   <div className="menu-panel" role="menu">
-                    {HOME_MENU.map((it, i) => (
+                    {homeMenu.map((it, i) => (
                       <div key={it.to}>
                         {i === 1 && <div className="menu-sep" />}
                         <MenuLink item={it} onPick={() => setHomeOpen(false)} />

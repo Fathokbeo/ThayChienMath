@@ -91,6 +91,14 @@ if (seedDemo) require('./db/demoSeed').seedDemoIfEmpty(db);
 // Bật hàng đợi chấm bài AI nền (phục hồi bài còn dở + thử lại khi lỗi)
 require('./services/gradingQueue').startGradingWorker();
 
+// Gắn nhãn AI cho khóa học chưa có (lần đầu / đổi tên-mô tả) — chạy nền sau khi khởi động, kiểm tra lại mỗi 30 phút
+{
+  const { tagPendingCourses } = require('./services/courseTags');
+  const runTagging = () => tagPendingCourses().catch((e) => console.error('[course-tags]', e.message));
+  setTimeout(runTagging, 5000).unref();
+  setInterval(runTagging, 30 * 60e3).unref();
+}
+
 // Serve frontend build (single-service deploy). Nếu đã build frontend, phục vụ luôn.
 const frontendDist = path.join(__dirname, '../../frontend/dist');
 if (fs.existsSync(frontendDist)) {

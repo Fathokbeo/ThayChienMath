@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import AiUsageCard from '../../components/AiUsageCard';
 import api from '../../lib/api';
 import { Users, BookOpen, School, ClipboardList, FileCheck, GraduationCap, LayoutTemplate, Image, ChevronRight, ClipboardCheck, FileStack } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -65,6 +66,8 @@ export default function AdminDashboard() {
           return link ? <Link key={label} to={link} style={{ textDecoration: 'none', color: 'inherit' }}>{inner}</Link> : <div key={label}>{inner}</div>;
         })}
       </div>
+
+      <AiUsageCard />
 
       {/* Danh sách lớp (trang admin không hiện "Hôm nay" / "Sắp đến hạn") */}
       <TeachingOverview showDeadlines={false} />

@@ -6,6 +6,8 @@ const { getDb } = require('../db/database');
 const { userFromRequest, userFromFileTicket } = require('../services/security');
 const { EXAM_DOCS_DIR } = require('../middleware/upload');
 const { getForm, getFormFields, validateSubmission } = require('../services/registrationForm');
+const { examGrades, examMeta } = require('../services/examMenu');
+const { rankCourses, rankCoursesByInterest, parseTags } = require('../services/courseTags');
 
 const EXAMS_DIR = path.join(__dirname, '../../uploads/exams');
 
@@ -15,14 +17,32 @@ router.get('/ads', (req, res) => {
 });
 
 // Danh sách khóa học công khai — chỉ các khóa admin chọn hiện ở trang chủ (show_on_home), kèm sĩ số
-router.get('/courses', (req, res) => {
-  const db = getDb();
-  res.json(db.prepare(`
-    SELECT c.id, c.title, c.description, c.thumbnail, c.price, c.open_registration,
+// ?grade=9&category=Đề HSG → sắp khóa phù hợp nhất lên đầu (theo nhãn AI đã lưu, không gọi AI); không có → mới nhất trước
+function publicCourses(db, grade, category, interest) {
+  const rows = db.prepare(`
+    SELECT c.id, c.title, c.description, c.thumbnail, c.price, c.open_registration, c.ai_tags,
     (SELECT COUNT(DISTINCT cs.student_id) FROM class_students cs JOIN classes cl ON cs.class_id=cl.id
      WHERE cl.course_id=c.id AND cl.active=1) student_count
     FROM courses c WHERE c.active=1 AND COALESCE(c.show_on_home,1)=1 ORDER BY c.created_at DESC
-  `).all());
+  `).all();
+  return (interest ? rankCoursesByInterest(rows, interest, category) : rankCourses(rows, grade, category)).map(({ ai_tags, ...c }) => ({ ...c, fit_grades: parseTags(ai_tags)?.grades || [] }));
+}
+const q = (v) => (v ? String(v).slice(0, 60) : '');
+
+// ?interest=10:6,8:2,Thi vào 10:2 — các lớp khách đã xem đề kèm số lần (trang chủ, xem lib/interest.ts ở frontend)
+const parseInterest = (v) => (v ? String(v).slice(0, 300).split(',').slice(0, 8).map((p) => {
+  const i = p.lastIndexOf(':');
+  return { grade: p.slice(0, i).trim().slice(0, 40), weight: Math.min(1000, Math.max(0, parseInt(p.slice(i + 1), 10) || 0)) };
+}).filter((x) => x.grade) : null);
+
+router.get('/courses', (req, res) => {
+  res.json(publicCourses(getDb(), q(req.query.grade), q(req.query.category), parseInterest(req.query.interest)));
+});
+
+// Gợi ý khóa học dưới 1 đề: chỉ các khóa đúng lớp hoặc đúng mục tiêu (điểm ≥ 6), tối đa ?limit (mặc định 3)
+router.get('/courses/recommend', (req, res) => {
+  const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 3, 1), 12);
+  res.json(publicCourses(getDb(), q(req.query.grade), q(req.query.category)).filter((c) => c.match >= 6).slice(0, limit));
 });
 
 // Chi tiết công khai 1 khóa học: thông tin giáo viên, sĩ số, tên các chương (không kèm bài giảng/bài tập bên trong)
@@ -50,7 +70,9 @@ router.get('/courses/:id', (req, res) => {
 
 // Chỉ trả các mục cài đặt trang web cần hiện; mục nội bộ (biểu mẫu đăng ký, SĐT liên hệ phụ huynh...) không ra ngoài
 const PUBLIC_SETTINGS = ['hero_title', 'hero_subtitle', 'contact_address', 'contact_phone', 'contact_email', 'contact_hours',
-  'contact_facebook', 'stats_students', 'stats_teachers', 'stats_courses', 'stats_years'];
+  'contact_facebook', 'stats_students', 'stats_teachers', 'stats_courses', 'stats_years',
+  // Tên + dòng mô tả các mục trang chủ (admin tự đặt)
+  'home_exams_title', 'home_exams_subtitle', 'home_news_title', 'home_news_subtitle', 'home_courses_title', 'home_courses_subtitle'];
 router.get('/settings', (req, res) => {
   const db = getDb();
   const rows = db.prepare(`SELECT key,value FROM site_settings WHERE key IN (${PUBLIC_SETTINGS.map(() => '?').join(',')})`).all(...PUBLIC_SETTINGS);
@@ -140,25 +162,25 @@ router.get('/news/:id', (req, res) => {
 });
 
 // ── Đề và chuyên môn ──────────────────────────────────────────────────
-const DEFAULT_EXAM_GRADES = '6,7,8,9';
-function examGrades(db) {
-  const row = db.prepare("SELECT value FROM site_settings WHERE key='exam_grades'").get();
-  return String(row?.value || DEFAULT_EXAM_GRADES).split(',').map((g) => g.trim()).filter(Boolean);
-}
-
 router.get('/exam-grades', (req, res) => {
   res.json(examGrades(getDb()));
 });
 
-// ?grade=8 &q=từ khóa &limit=6
+// Lớp + loại đề + thanh menu + số đề theo lớp/loại (dựng thanh menu đề ở trang chủ / trang Đề)
+router.get('/exam-meta', (req, res) => {
+  res.json(examMeta(getDb()));
+});
+
+// ?grade=8 &category=Đề HK1 &q=từ khóa &limit=6
 router.get('/exams', (req, res) => {
   const db = getDb();
   const where = ['active=1']; const vals = [];
   if (req.query.grade) { where.push('grade=?'); vals.push(String(req.query.grade)); }
+  if (req.query.category) { where.push('category=?'); vals.push(String(req.query.category)); }
   if (req.query.q) { where.push('(title LIKE ? OR description LIKE ?)'); const q = `%${String(req.query.q).slice(0, 80)}%`; vals.push(q, q); }
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 200, 1), 200);
   res.json(db.prepare(`
-    SELECT id,title,grade,thumbnail,pdf_file,(docx_file IS NOT NULL) has_docx,published_at,created_at FROM exam_papers
+    SELECT id,title,grade,category,thumbnail,pdf_file,(docx_file IS NOT NULL) has_docx,published_at,created_at FROM exam_papers
     WHERE ${where.join(' AND ')} ORDER BY COALESCE(published_at, created_at) DESC, id DESC LIMIT ${limit}
   `).all(...vals));
 });
@@ -169,7 +191,7 @@ router.get('/exams/:id', (req, res) => {
   if (!row) return res.status(404).json({ message: 'Không tìm thấy đề' });
   // Không trả tên file Word ra ngoài: bản Word chỉ tải qua /exams/:id/file/docx (có kiểm tra quyền)
   const exam = {
-    id: row.id, title: row.title, grade: row.grade, description: row.description, thumbnail: row.thumbnail,
+    id: row.id, title: row.title, grade: row.grade, category: row.category, description: row.description, thumbnail: row.thumbnail,
     pdf_file: row.pdf_file, published_at: row.published_at, created_at: row.created_at, has_docx: !!row.docx_file,
     pdf_download: row.pdf_file ? (row.pdf_download || 'all') : 'none',
     docx_download: row.docx_file ? (row.docx_download || 'all') : 'none',

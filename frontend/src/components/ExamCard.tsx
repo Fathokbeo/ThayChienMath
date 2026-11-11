@@ -3,7 +3,7 @@ import { Clock, FileText } from 'lucide-react';
 import { fileUrl } from '../lib/api';
 import { fmtDay, gradeLabel } from '../lib/publicSite';
 
-export type ExamItem = { id: number; title: string; grade?: string | null; thumbnail?: string | null; has_docx?: number | boolean; published_at?: string | null; created_at?: string };
+export type ExamItem = { id: number; title: string; grade?: string | null; thumbnail?: string | null; category?: string | null; has_docx?: number | boolean; published_at?: string | null; created_at?: string };
 
 // Một đề trong danh sách "Đề và chuyên môn": ảnh bìa bên trái, tên đề đậm + ngày đăng bên phải.
 export default function ExamCard({ exam, compact }: { exam: ExamItem; compact?: boolean }) {
@@ -20,6 +20,7 @@ export default function ExamCard({ exam, compact }: { exam: ExamItem; compact?: 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 8, fontSize: '0.82rem', color: '#86868B' }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={13} /> {fmtDay(exam.published_at || exam.created_at)}</span>
           {exam.grade && <span className="badge badge-blue">{gradeLabel(exam.grade)}</span>}
+          {exam.category && <span className="badge badge-orange">{exam.category}</span>}
           {!!exam.has_docx && <span className="badge badge-purple">Có bản Word</span>}
         </div>
       </div>

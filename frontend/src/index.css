@@ -634,3 +634,42 @@ button.list-row { width: 100%; border: none; background: #fff; font-family: inhe
 .rte .ql-editor blockquote { border-left: 4px solid var(--tc-sky); background: var(--tc-sky-tint); padding: 0.6em 1em; border-radius: 0 10px 10px 0; font-style: italic; }
 .rte .ql-editor h2 { font-size: 1.45rem; } .rte .ql-editor h3 { font-size: 1.2rem; }
 @media (max-width: 768px) { .news-editor-paper { padding: 14px 14px 20px; border-radius: 14px; } .rte .ql-toolbar.ql-snow { top: 0; } }
+
+/* ── Thanh menu đề (giống các trang kho đề): mục trên thanh tối, thả xuống danh sách loại đề / lớp ── */
+.exam-menu { position: relative; margin-bottom: 18px; }
+.exam-menu-bar { display: flex; flex-wrap: wrap; background: #1F2A2E; border-radius: 12px; overflow: hidden; }
+.exam-menu-top { display: inline-flex; align-items: center; gap: 7px; padding: 13px 18px; border: none; background: transparent; color: #fff; font-family: inherit; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.01em; cursor: pointer; white-space: nowrap; border-right: 1px solid rgba(255,255,255,0.08); transition: background 0.15s; }
+.exam-menu-top:hover, .exam-menu-top.open { background: rgba(255,255,255,0.08); }
+.exam-menu-top.active { background: var(--tc-rust); }
+.exam-menu-top .exam-menu-chev { opacity: 0.7; transition: transform 0.2s; }
+.exam-menu-top.open .exam-menu-chev { transform: rotate(180deg); }
+.exam-menu-drop { position: absolute; top: 100%; z-index: 60; min-width: 280px; max-width: 100%; background: #1F2A2E; border-radius: 0 0 12px 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.25); padding: 6px 0; animation: fadeIn 0.12s ease; }
+.exam-menu-link { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 18px; border: none; background: transparent; color: #fff; font-family: inherit; font-size: 0.88rem; font-weight: 600; text-transform: uppercase; text-align: left; text-decoration: none; cursor: pointer; }
+.exam-menu-link:hover { background: rgba(255,255,255,0.08); }
+.exam-menu-link.active { background: var(--tc-rust); }
+.exam-menu-count { margin-left: auto; font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.55); text-transform: none; }
+.exam-menu-empty { padding: 11px 18px; color: rgba(255,255,255,0.55); font-size: 0.86rem; }
+@media (max-width: 768px) {
+  .exam-menu-bar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; border-radius: 10px; }
+  .exam-menu-bar::-webkit-scrollbar { display: none; }
+  .exam-menu-top { padding: 12px 14px; font-size: 0.82rem; }
+  .exam-menu-drop { border-radius: 0 0 10px 10px; }
+}
+
+/* ── Băng chuyền khóa học: vuốt / bấm mũi tên, mỗi lần 1 thẻ ── */
+.course-carousel { position: relative; }
+.course-track { display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; padding: 4px 2px 14px; scrollbar-width: none; }
+.course-track::-webkit-scrollbar { display: none; }
+.course-slide { flex: 0 0 calc((100% - 3 * 18px) / 4); min-width: 250px; scroll-snap-align: start; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.07); display: flex; flex-direction: column; }
+.course-nav { position: absolute; top: 38%; z-index: 5; width: 42px; height: 42px; border-radius: 50%; border: none; background: #fff; color: var(--tc-ink); box-shadow: 0 4px 14px rgba(0,0,0,0.18); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.course-nav:hover { background: var(--tc-accent); color: #fff; }
+.course-nav.prev { left: -14px; }
+.course-nav.next { right: -14px; }
+.course-fit { position: absolute; top: 10px; left: 10px; display: inline-flex; align-items: center; gap: 4px; background: var(--tc-rust); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 4px 9px; border-radius: 99px; }
+@media (max-width: 1024px) { .course-slide { flex-basis: calc((100% - 2 * 18px) / 3); } }
+@media (max-width: 768px) {
+  .course-track { gap: 12px; }
+  .course-slide { flex-basis: 78%; min-width: 0; }
+  .course-nav { width: 36px; height: 36px; }
+  .course-nav.prev { left: -6px; } .course-nav.next { right: -6px; }
+}

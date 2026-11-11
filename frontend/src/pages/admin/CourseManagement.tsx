@@ -8,6 +8,7 @@ import { Plus, Edit, Trash2, BookOpen, School, Users, ChevronRight, Home } from 
 interface Course {
   id: number;
   title: string;
+  ai_tags?: string | null; // nhãn AI (JSON) dùng để gợi ý khóa học
   description: string;
   price: string | null;
   open_registration: number;
@@ -18,6 +19,22 @@ interface Course {
   class_count: number;
   active: number;
   created_at: string;
+}
+
+// Nhãn AI gắn cho khóa (dùng để gợi ý khóa học dưới các đề cùng lớp) — tự cập nhật sau khi đổi tên / mô tả
+const GOAL_LABEL: Record<string, string> = {
+  'co-ban': 'cơ bản', 'nang-cao': 'nâng cao', hsg: 'HSG', 'thi-vao-6': 'thi vào 6', 'thi-vao-10': 'thi vào 10',
+  'thi-thpt': 'thi THPT', hsa: 'HSA', 'on-he': 'ôn hè', 'mat-goc': 'lấy lại gốc',
+};
+function CourseTagLine({ raw }: { raw?: string | null }) {
+  let t: { grades: string[]; goals: string[]; source?: string } | null = null;
+  try { t = raw ? JSON.parse(raw) : null; } catch { t = null; }
+  return (
+    <div style={{ fontSize: '0.76rem', color: '#6E5A94', marginBottom: 8 }} title="Dùng để gợi ý khóa học cho khách đang xem đề cùng lớp">
+      {t ? <>Gợi ý cho: {t.grades.map((g) => `lớp ${g}`).join(', ') || '—'}{t.goals.length ? ` · ${t.goals.map((g) => GOAL_LABEL[g] || g).join(', ')}` : ''}{t.source === 'rule' ? ' (theo tên)' : ' (AI)'}</>
+        : 'Đang gắn nhãn gợi ý…'}
+    </div>
+  );
 }
 
 export default function CourseManagement() {
@@ -142,6 +159,7 @@ export default function CourseManagement() {
                 {!c.open_registration && <span className="badge badge-gray">Không nhận đăng ký</span>}
                 {c.show_on_home === 0 && <span className="badge badge-gray">Ẩn khỏi trang chủ</span>}
               </div>
+              <CourseTagLine raw={c.ai_tags} />
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: '0.78rem', color: '#86868B', marginBottom: 10 }}>
                 <span><School size={12} style={{ verticalAlign: 'middle' }} /> {c.class_count} lớp</span>
                 <span><Users size={12} style={{ verticalAlign: 'middle' }} /> {c.creator_name}</span>

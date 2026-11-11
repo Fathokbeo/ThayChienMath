@@ -11,6 +11,31 @@ const { ensureParentAccount, removeOrphanParents, syncParentPhone } = require('.
 
 router.use(authMiddleware, requireRole('admin'));
 
+// Tạo / sửa / xóa khóa học → gắn lại nhãn AI (lớp phù hợp, mục tiêu) cho khóa đổi tên-mô tả, chạy nền
+router.use('/courses', (req, res, next) => {
+  if (req.method !== 'GET') res.on('finish', () => { if (res.statusCode < 400) require('../services/courseTags').scheduleCourseTagging(); });
+  next();
+});
+
+// ── Chi phí AI chấm bài (Claude) tháng này + trần ngân sách ───────────
+router.get('/ai-usage', (req, res) => {
+  const { usageReport } = require('../services/aiUsage');
+  const { claudeReady, CLAUDE_ROLES } = require('../services/aiGrading');
+  res.json({
+    ...usageReport(),
+    claude_configured: /^sk-ant-api/.test(process.env.ANTHROPIC_API_KEY || ''),
+    claude_active: claudeReady(),
+    models: { grade: CLAUDE_ROLES.grade.model, check: CLAUDE_ROLES.check.model, review: CLAUDE_ROLES.review.model },
+  });
+});
+
+router.put('/ai-usage/budget', (req, res) => {
+  const v = parseFloat(req.body?.budget);
+  if (!Number.isFinite(v) || v < 0 || v > 10000) return res.status(400).json({ message: 'Ngân sách không hợp lệ (0 – 10000 USD)' });
+  getDb().prepare("INSERT INTO site_settings (key,value) VALUES ('ai_monthly_budget',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(String(v));
+  res.json({ budget: v });
+});
+
 // ── Stats ──────────────────────────────────────────────────────────────
 router.get('/stats', (req, res) => {
   const db = getDb();

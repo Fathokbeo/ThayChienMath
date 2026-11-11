@@ -8,6 +8,7 @@ const { getDb } = require('../db/database');
 const { authMiddleware, requireRole } = require('../middleware/auth');
 const { uploadExam, EXAM_DOCS_DIR } = require('../middleware/upload');
 const { getForm, saveForm } = require('../services/registrationForm');
+const { examMeta, normalizeMenu } = require('../services/examMenu');
 
 router.use(authMiddleware, requireRole('admin'));
 
@@ -112,6 +113,28 @@ router.delete('/registrations/:id', (req, res) => {
 });
 
 // ── Đề thi (Đề và chuyên môn) ─────────────────────────────────────────
+// Lớp, loại đề, thanh menu + số đề (kể cả đề đang ẩn) cho trang quản lý
+router.get('/exam-meta', (req, res) => {
+  res.json(examMeta(getDb(), { includeHidden: true }));
+});
+
+// Lưu danh sách lớp / loại đề / thanh menu. body: { grades: [...], categories: [...], menu: [{label, grades}] }
+router.put('/exam-meta', (req, res) => {
+  const db = getDb();
+  const clean = (arr, max) => [...new Set((Array.isArray(arr) ? arr : []).map((s) => String(s).replace(/,/g, ' ').trim().slice(0, max)).filter(Boolean))];
+  const grades = clean(req.body?.grades, 30);
+  const categories = clean(req.body?.categories, 60);
+  if (!grades.length) return res.status(400).json({ message: 'Cần ít nhất 1 lớp' });
+  const menu = normalizeMenu(req.body?.menu, grades);
+  const save = db.prepare("INSERT INTO site_settings (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value");
+  db.transaction(() => {
+    save.run('exam_grades', grades.join(','));
+    save.run('exam_categories', categories.join(','));
+    save.run('exam_menu', JSON.stringify(menu));
+  })();
+  res.json(examMeta(db, { includeHidden: true }));
+});
+
 router.get('/exams', (req, res) => {
   res.json(getDb().prepare('SELECT * FROM exam_papers ORDER BY COALESCE(published_at, created_at) DESC, id DESC').all());
 });
@@ -121,6 +144,7 @@ const examFields = (b) => ({
   grade: String(b.grade || '').trim().slice(0, 30) || null,
   description: String(b.description || '').trim().slice(0, 20000) || null,
   published_at: /^\d{4}-\d{2}-\d{2}$/.test(b.published_at || '') ? b.published_at : null,
+  category: String(b.category || '').trim().slice(0, 60) || null,
 });
 const uploaded = (req, field) => req.files?.[field]?.[0]?.filename || null;
 
@@ -130,9 +154,9 @@ router.post('/exams', uploadExam, (req, res) => {
     rmExamFile(uploaded(req, 'thumbnail')); rmExamFile(uploaded(req, 'pdf')); rmExamDoc(uploaded(req, 'docx'));
     return res.status(400).json({ message: 'Cần tên đề' });
   }
-  const r = getDb().prepare(`INSERT INTO exam_papers (title,grade,description,published_at,thumbnail,pdf_file,docx_file,pdf_download,docx_download,active)
-    VALUES (?,?,?,?,?,?,?,?,?,?)`)
-    .run(f.title, f.grade, f.description, f.published_at || new Date().toISOString().slice(0, 10),
+  const r = getDb().prepare(`INSERT INTO exam_papers (title,grade,category,description,published_at,thumbnail,pdf_file,docx_file,pdf_download,docx_download,active)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?)`)
+    .run(f.title, f.grade, f.category, f.description, f.published_at || new Date().toISOString().slice(0, 10),
       uploaded(req, 'thumbnail'), uploaded(req, 'pdf'), uploaded(req, 'docx'),
       downloadMode(req.body.pdf_download, 'all'), downloadMode(req.body.docx_download, 'all'), req.body.active === '0' ? 0 : 1);
   res.status(201).json({ id: r.lastInsertRowid });
@@ -152,9 +176,9 @@ router.put('/exams/:id', uploadExam, (req, res) => {
   if (nextThumb !== cur.thumbnail) rmExamFile(cur.thumbnail);
   if (nextPdf !== cur.pdf_file) rmExamFile(cur.pdf_file);
   if (nextDocx !== cur.docx_file) rmExamDoc(cur.docx_file);
-  db.prepare(`UPDATE exam_papers SET title=?, grade=?, description=?, published_at=?, thumbnail=?, pdf_file=?, docx_file=?,
+  db.prepare(`UPDATE exam_papers SET title=?, grade=?, category=?, description=?, published_at=?, thumbnail=?, pdf_file=?, docx_file=?,
     pdf_download=?, docx_download=?, active=? WHERE id=?`).run(
-    f.title, f.grade, f.description, f.published_at || cur.published_at, nextThumb, nextPdf, nextDocx,
+    f.title, f.grade, f.category, f.description, f.published_at || cur.published_at, nextThumb, nextPdf, nextDocx,
     downloadMode(req.body.pdf_download, cur.pdf_download || 'all'), downloadMode(req.body.docx_download, cur.docx_download || 'all'),
     req.body.active === undefined ? cur.active : (req.body.active === '0' || req.body.active === false ? 0 : 1), cur.id,
   );

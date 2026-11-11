@@ -9,6 +9,9 @@ import { PAGE_MAX } from '../../lib/layout';
 import { fmtDay, gradeLabel } from '../../lib/publicSite';
 import useIsMobile from '../../lib/useIsMobile';
 import { useAuth } from '../../contexts/AuthContext';
+import CourseCarousel, { type PublicCourse } from '../../components/CourseCarousel';
+import CourseRegisterModal from '../../components/CourseRegisterModal';
+import { recordExamView } from '../../lib/interest';
 
 type DownloadMode = 'all' | 'login' | 'none';
 type Exam = ExamItem & { description?: string | null; pdf_file?: string | null; pdf_download?: DownloadMode; docx_download?: DownloadMode; related: ExamItem[] };
@@ -32,6 +35,8 @@ export default function ExamDetail() {
   const [exam, setExam] = useState<Exam | null>(null);
   const [missing, setMissing] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [suggested, setSuggested] = useState<PublicCourse[]>([]);
+  const [registering, setRegistering] = useState<PublicCourse | null>(null);
   // Toàn màn hình: dùng Fullscreen API nếu có; iPhone (Safari không cho phóng toàn màn hình 1 khối div)
   // thì phủ kín cửa sổ bằng CSS. Esc / nút thu nhỏ để thoát.
   const viewerRef = useRef<HTMLDivElement>(null);
@@ -60,7 +65,16 @@ export default function ExamDetail() {
 
   useEffect(() => {
     setExam(null); setMissing(false); setZoom(1);
-    api.get(`/public/exams/${id}`).then((r) => setExam(r.data)).catch(() => setMissing(true));
+    setSuggested([]);
+    api.get(`/public/exams/${id}`).then((r) => {
+      setExam(r.data);
+      // Ghi lại lớp khách đang xem (trên máy khách) + lấy khóa học hợp lớp/loại đề này — máy chủ xếp theo nhãn đã lưu, không gọi AI
+      recordExamView(r.data.grade, r.data.category);
+      if (r.data.grade) {
+        api.get('/public/courses/recommend', { params: { grade: r.data.grade, category: r.data.category || undefined, limit: 6 } })
+          .then((c) => setSuggested(c.data)).catch(() => {});
+      }
+    }).catch(() => setMissing(true));
     window.scrollTo(0, 0);
   }, [id]);
 
@@ -114,6 +128,15 @@ export default function ExamDetail() {
                 <div>Đề này có bản Word để tải về{exam.docx_download === 'none' ? ' (hiện chưa mở tải)' : ''}.</div>
               </div>
             ) : null}
+
+            {suggested.length > 0 && (
+              <section style={{ marginTop: '2rem' }}>
+                <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0 0 0.25rem' }}>Khóa học phù hợp {gradeLabel(exam.grade).toLowerCase() ? `cho ${gradeLabel(exam.grade).toLowerCase()}` : ''}</h2>
+                <p style={{ margin: '0 0 0.9rem', color: '#6E6E73', fontSize: '0.92rem' }}>Học cùng trung tâm để làm tốt các đề như thế này.</p>
+                <CourseCarousel courses={suggested} onRegister={setRegistering} />
+              </section>
+            )}
+            <CourseRegisterModal course={registering} onClose={() => setRegistering(null)} />
 
             {exam.related.length > 0 && (
               <>

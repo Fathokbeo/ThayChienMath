@@ -200,6 +200,12 @@ const SETTING_FIELDS = [
   { key: 'contact_email', label: 'Email', area: 'Liên hệ' },
   { key: 'contact_hours', label: 'Giờ học', area: 'Liên hệ' },
   { key: 'contact_facebook', label: 'Link Facebook', area: 'Liên hệ' },
+  { key: 'home_exams_title', label: 'Mục 1 — tên (mặc định: Đề và chuyên môn)', area: 'Tên các mục trang chủ' },
+  { key: 'home_exams_subtitle', label: 'Mục 1 — dòng mô tả', area: 'Tên các mục trang chủ' },
+  { key: 'home_news_title', label: 'Mục 2 — tên (mặc định: Tin tức)', area: 'Tên các mục trang chủ' },
+  { key: 'home_news_subtitle', label: 'Mục 2 — dòng mô tả', area: 'Tên các mục trang chủ' },
+  { key: 'home_courses_title', label: 'Mục 3 — tên (mặc định: Các khóa học)', area: 'Tên các mục trang chủ' },
+  { key: 'home_courses_subtitle', label: 'Mục 3 — dòng mô tả', area: 'Tên các mục trang chủ' },
   { key: 'parent_contact_phone', label: 'SĐT liên hệ (hiện ở trang lớp học của phụ huynh; để trống thì dùng số Điện thoại ở trên)', area: 'Phụ huynh' },
 ];
 
@@ -219,7 +225,7 @@ function SettingsForm() {
     } finally { setLoading(false); }
   };
 
-  const areas = ['Trang chủ', 'Liên hệ', 'Phụ huynh'];
+  const areas = ['Trang chủ', 'Tên các mục trang chủ', 'Liên hệ', 'Phụ huynh'];
   return (
     <div style={{ maxWidth: 640 }}>
       {areas.map((area) => (

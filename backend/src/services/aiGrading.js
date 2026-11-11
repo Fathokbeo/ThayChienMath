@@ -1,9 +1,85 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Anthropic = require('@anthropic-ai/sdk');
 const fs = require('fs');
 const path = require('path');
 const { parsePartsConfig, partEnabled, describeAnswerKey, describeStudentAnswers } = require('./homeworkParts');
+const { recordUsage, underBudget } = require('./aiUsage');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || process.env.ANTHROPIC_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+
+// ── CLAUDE (ưu tiên) ─────────────────────────────────────────────────────────────────────────────
+// Có ANTHROPIC_API_KEY và chưa chạm trần ngân sách tháng → mỗi lượt gọi AI dùng Claude theo vai trò; Claude lỗi /
+// từ chối / hết ngân sách → tự chuyển sang danh sách model Gemini như trước (không bỏ dở việc chấm).
+// Vai trò → model (đổi được qua .env, vd CLAUDE_MODEL_GRADE=claude-opus-5-5):
+//  - grade: lượt chấm chính · check: lượt chấm đối chiếu độc lập · review: PHÂN XỬ khi 2 lượt lệch nhau
+//  - rubric: lập khung ý chấm từ barem (1 lần/đề) · extract: đọc đáp án trắc nghiệm (1 lần/đề)
+//  - attempted: xem học sinh có làm từng ý không · overview: 1 câu tóm tắt chủ đề đề bài
+const CLAUDE_ROLES = {
+  grade:     { model: process.env.CLAUDE_MODEL_GRADE || 'claude-sonnet-5-5', effort: 'high' },
+  check:     { model: process.env.CLAUDE_MODEL_CHECK || 'claude-haiku-5-5', effort: 'medium' },
+  review:    { model: process.env.CLAUDE_MODEL_REVIEW || 'claude-opus-5-5', effort: 'high' },
+  rubric:    { model: process.env.CLAUDE_MODEL_RUBRIC || 'claude-opus-5-5', effort: 'high' },
+  extract:   { model: process.env.CLAUDE_MODEL_EXTRACT || 'claude-sonnet-5-5', effort: 'medium' },
+  attempted: { model: process.env.CLAUDE_MODEL_CHECK || 'claude-haiku-5-5', effort: 'medium' },
+  overview:  { model: process.env.CLAUDE_MODEL_CHECK || 'claude-haiku-5-5', effort: 'low' },
+  tagging:   { model: process.env.CLAUDE_MODEL_CHECK || 'claude-haiku-5-5', effort: 'low' },
+};
+const anthropic = /^sk-ant-api/.test(process.env.ANTHROPIC_API_KEY || '')
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 5 * 60e3, maxRetries: 2 })
+  : null;
+if (process.env.ANTHROPIC_API_KEY && !anthropic) console.warn('[aiGrading] ANTHROPIC_API_KEY không đúng dạng khóa API (sk-ant-api...) → không dùng Claude');
+
+// Claude dùng được ngay lúc này không (có khóa + chưa chạm trần ngân sách tháng)
+const claudeReady = () => {
+  if (!anthropic) return false;
+  try { return underBudget(); } catch { return false; }
+};
+
+// Model có tính năng "dự phòng phía máy chủ" khi bị từ chối vì chính sách an toàn (Haiku không có)
+const SERVER_FALLBACK_MODELS = new Set(['claude-opus-5-5', 'claude-sonnet-5-5']);
+const CLAUDE_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+// Đổi "parts" kiểu Gemini ([chuỗi, {inlineData}, ...]) sang nội dung Claude: tài liệu (PDF/ảnh) đặt TRƯỚC, lời dặn
+// đặt SAU. Tài liệu đầu tiên (đề + đáp án — giống nhau cho mọi học sinh cùng bài) được đánh dấu lưu cache để các bài
+// nộp sau của cùng đề chỉ tính ~10% giá phần đó.
+function toClaudeContent(parts) {
+  const docs = []; const texts = [];
+  for (const p of parts) {
+    if (typeof p === 'string') { texts.push({ type: 'text', text: p }); continue; }
+    const { data, mimeType } = p.inlineData || {};
+    if (!data) continue;
+    if (mimeType === 'application/pdf') {
+      docs.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data } });
+    } else if (/^image\/(jpeg|png|webp|gif)$/.test(mimeType)) {
+      if (data.length > CLAUDE_MAX_IMAGE_BYTES) throw new Error('Ảnh bài làm quá lớn cho Claude (>5MB)');
+      docs.push({ type: 'image', source: { type: 'base64', media_type: mimeType, data } });
+    } else {
+      throw new Error(`Claude không đọc được loại file ${mimeType}`);
+    }
+  }
+  if (docs.length) docs[0].cache_control = { type: 'ephemeral' };
+  return [...docs, ...texts];
+}
+
+// 1 lượt gọi Claude theo vai trò → chữ trả lời (chưa parse). Ghi chi phí thật sau mỗi lượt.
+async function callClaude(role, parts, label) {
+  const { model, effort } = CLAUDE_ROLES[role];
+  const params = {
+    model,
+    max_tokens: 16000,
+    thinking: { type: 'adaptive' },
+    output_config: { effort },
+    messages: [{ role: 'user', content: toClaudeContent(parts) }],
+  };
+  const resp = SERVER_FALLBACK_MODELS.has(model)
+    ? await anthropic.beta.messages.create({ ...params, betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' })
+    : await anthropic.messages.create(params);
+  const cost = recordUsage({ model: resp.model || model, label, usage: resp.usage || {} });
+  aiStats.claudeCost = (aiStats.claudeCost || 0) + cost;
+  if (resp.stop_reason === 'refusal') throw new Error(`Claude từ chối trả lời (${resp.stop_details?.category || 'không rõ'})`);
+  if (resp.stop_reason === 'max_tokens') throw parseError('Claude trả lời bị cắt cụt (max_tokens)');
+  return { text: resp.content.filter((b) => b.type === 'text').map((b) => b.text).join(''), model: resp.model || model, cost };
+}
 
 function fileToBase64(filePath) {
   return fs.readFileSync(filePath).toString('base64');
@@ -124,9 +200,24 @@ function parseJsonLoose(text) {
   try { return JSON.parse(fixed); } catch (e) { throw parseError(`JSON không hợp lệ: ${e.message}`); }
 }
 
-// Gọi lần lượt các model (bỏ qua model đang "nghỉ"); hết model khả dụng thì vẫn thử các model đang nghỉ
-// như phương án cuối để không bỏ dở việc chấm. parse(text) chuẩn hóa kết quả; ném lỗi nếu không hợp lệ.
-async function generateWithFallback(models, generationConfig, parts, parse, label) {
+// Claude (theo vai trò) trước nếu dùng được; không được thì gọi lần lượt các model Gemini (bỏ qua model đang
+// "nghỉ"; hết model khả dụng thì vẫn thử các model đang nghỉ như phương án cuối để không bỏ dở việc chấm).
+// parse(text) chuẩn hóa kết quả; ném lỗi nếu không hợp lệ.
+async function generateWithFallback(role, models, generationConfig, parts, parse, label) {
+  if (claudeReady()) {
+    const { model } = CLAUDE_ROLES[role];
+    try {
+      aiStats.calls++;
+      aiStats.byModel[model] = (aiStats.byModel[model] || 0) + 1;
+      const { text, model: used, cost } = await callClaude(role, parts, label);
+      const out = parse(text.trim());
+      console.log(`[AI ${label}] ${used} ($${cost.toFixed(4)})`);
+      return { out, modelName: used };
+    } catch (err) {
+      aiStats.failed++;
+      console.warn(`[AI ${label}] Claude ${model} lỗi (${errorText(err).slice(0, 160)}) → dùng Gemini`);
+    }
+  }
   const now = Date.now();
   const ready = models.filter((m) => (modelCooldown.get(m) || 0) <= now);
   const resting = models.filter((m) => !ready.includes(m));
@@ -184,7 +275,7 @@ Quy tắc:
 - max_points lấy ĐÚNG theo barem. TỔNG max_points của mọi phần tử PHẢI bằng ${maxScore}.
 Chỉ trả về JSON THUẦN: {"items": [{"question": "...", "max_points": <số>, "criteria": "..."}]}
 Viết công thức dạng chữ thường (vd 3/4, x^2), KHÔNG dùng LaTeX và KHÔNG dùng dấu \\ trong JSON.`;
-  const { out, modelName } = await generateWithFallback(STRONG_MODELS, EXTRACT_CONFIG, [prompt, buildInlinePart(answerFilePath)], (text) => {
+  const { out, modelName } = await generateWithFallback('rubric', STRONG_MODELS, EXTRACT_CONFIG, [prompt, buildInlinePart(answerFilePath)], (text) => {
     const items = (parseJsonLoose(text).items || [])
       .map((it) => ({ question: String(it.question || '').trim().slice(0, 100), max_points: round2(parseFloat(it.max_points)), criteria: String(it.criteria || '').slice(0, 600) }))
       .filter((it) => it.question && isFinite(it.max_points) && it.max_points > 0);
@@ -252,7 +343,7 @@ Danh sách ý:
 ${items.map((it) => `- "${it.question}": ${it.criteria.slice(0, 120)}`).join('\n')}
 Chỉ trả về JSON THUẦN: {"items": [{"question": "<đúng tên ý>", "done": true|false, "work": "<kết quả học sinh viết, hoặc rỗng>"}]}
 Không dùng LaTeX, không dùng dấu \\ trong JSON.`;
-  const { out, modelName } = await generateWithFallback(LITE_MODELS, EXTRACT_CONFIG, [prompt, ...subPaths.map(buildInlinePart)], (text) => {
+  const { out, modelName } = await generateWithFallback('attempted', LITE_MODELS, EXTRACT_CONFIG, [prompt, ...subPaths.map(buildInlinePart)], (text) => {
     const rows = (parseJsonLoose(text).items || []).filter((r) => r && r.question);
     if (rows.length < Math.ceil(items.length * 0.6)) throw parseError(`lượt chép bài chỉ có ${rows.length}/${items.length} ý`);
     return new Map(rows.map((r) => [normQ(r.question), r.done !== false]));
@@ -426,8 +517,8 @@ Trả về JSON đúng định dạng sau (chỉ JSON, không kèm chữ nào kh
   const baseParts = buildParts(basePrompt);
 
   const [s1, s2, s3] = await Promise.allSettled([
-    callModelOnce(baseParts, maxScore, STRONG_MODELS, rubricItems),
-    callModelOnce(baseParts, maxScore, LITE_MODELS, rubricItems),
+    callModelOnce(baseParts, maxScore, 'grade', STRONG_MODELS, rubricItems),
+    callModelOnce(baseParts, maxScore, 'check', LITE_MODELS, rubricItems),
     rubricItems && subPaths.length ? detectAttempted(subPaths, rubricItems) : Promise.resolve(null),
   ]);
   const attempted = s3.status === 'fulfilled' ? s3.value : null;
@@ -455,7 +546,10 @@ Trả về JSON đúng định dạng sau (chỉ JSON, không kèm chữ nào kh
   // Có barem có cấu trúc (2 lượt cùng khung ý) → mỗi ý lấy điểm THẤP HƠN của 2 lượt độc lập. Đo trên bài thật:
   // sai lệch của AI chủ yếu là cho điểm dễ dãi ngẫu nhiên (mỗi lượt dễ dãi ở chỗ khác nhau, nhất là bài vẽ hình),
   // lấy mức thấp hơn khử được phần lớn sai lệch đó (MAE 0,5 → ~0,3) mà không cần gọi thêm lượt rà soát.
-  if (rubricItems) {
+  // Có Claude: KHÔNG lấy mức thấp hơn mà để model mạnh nhất (Opus) PHÂN XỬ — xem lại bài làm + barem + 2 kết quả
+  // (bên dưới); phân xử lỗi thì mới quay về cách lấy mức thấp hơn.
+  const useArbiter = claudeReady();
+  if (rubricItems && !useArbiter) {
     const final = mergeConservative(result1, result2);
     console.log(`[AI grading] lượt 1=${result1.score}, lượt 2=${result2.score} → lệch nhau, mỗi ý lấy điểm thấp hơn = ${final.score}`);
     return final;
@@ -479,10 +573,15 @@ NHIỆM VỤ CỦA BẠN — ĐÂY LÀ LƯỢT CHẤM CUỐI, CHỐT ĐIỂM CH�
 
   try {
     // Lượt chốt điểm quyết định điểm cuối → dùng model MẠNH (trước đây dùng Lite: đo thấy hay giữ điểm dễ dãi)
-    const final = await callModelOnce(reviewParts, maxScore, STRONG_MODELS, rubricItems);
+    const final = zeroNotAttempted(await callModelOnce(reviewParts, maxScore, 'review', STRONG_MODELS, rubricItems), attempted);
     console.log(`[AI grading] lượt 1=${result1.score}, lượt 2=${result2.score} → lượt 3 (rà soát, chốt điểm cuối) = ${final.score}`);
     return final;
   } catch (err) {
+    if (rubricItems) {
+      const merged = mergeConservative(result1, result2);
+      console.error(`[AI grading] lượt 3 (phân xử) lỗi: ${err.message} → mỗi ý lấy điểm thấp hơn của 2 lượt = ${merged.score}`);
+      return merged;
+    }
     console.error(`[AI grading] lượt 3 (rà soát) lỗi: ${err.message} → dùng kết quả lượt 1 (model mạnh) làm điểm cuối`);
     return result1;
   }
@@ -492,8 +591,8 @@ const round2 = (n) => Math.round(n * 100) / 100;
 
 // Gọi AI 1 lần để chấm (tự chuyển model khi hết quota/quá tải). Trả về { score, feedback, details } đã chuẩn hóa.
 // Khi mọi dòng chi tiết có "points" → tổng điểm = tổng points (tránh AI cộng nhầm).
-async function callModelOnce(parts, maxScore, models, rubricItems = null) {
-  const { out, modelName } = await generateWithFallback(models, GENERATION_CONFIG, parts, (text) => {
+async function callModelOnce(parts, maxScore, role, models, rubricItems = null) {
+  const { out, modelName } = await generateWithFallback(role, models, GENERATION_CONFIG, parts, (text) => {
     const parsed = parseJsonLoose(text);
     if (!Array.isArray(parsed.details)) parsed.details = [];
     parsed.details = parsed.details
@@ -557,7 +656,7 @@ Yêu cầu BẮT BUỘC:
 - Trả lời ngắn: ghi đúng đáp án (số/biểu thức) như trong file.
 - Câu nào THỰC SỰ không tìm thấy đáp án thì để null tại vị trí đó (đừng đoán bừa).`;
 
-  const { out, modelName } = await generateWithFallback(EXTRACT_MODELS, EXTRACT_CONFIG, [prompt, buildInlinePart(answerFilePath)], (text) => {
+  const { out, modelName } = await generateWithFallback('extract', EXTRACT_MODELS, EXTRACT_CONFIG, [prompt, buildInlinePart(answerFilePath)], (text) => {
     return normalizeExtractedKey(parseJsonLoose(text), cfg);
   }, 'extract');
   const cnt = (a) => (Array.isArray(a) ? a.filter((x) => x != null).length : 0);
@@ -577,7 +676,7 @@ NHIỆM VỤ: đọc khái quát toàn bộ tài liệu và cho biết chủ đ�
 
 Chỉ trả về JSON THUẦN (không kèm giải thích, không markdown): {"overview": "<câu mô tả>"}`;
 
-  const { out, modelName } = await generateWithFallback(LITE_MODELS, EXTRACT_CONFIG, [prompt, buildInlinePart(answerFilePath)], (text) => {
+  const { out, modelName } = await generateWithFallback('overview', LITE_MODELS, EXTRACT_CONFIG, [prompt, buildInlinePart(answerFilePath)], (text) => {
     return String(parseJsonLoose(text).overview || '').trim().slice(0, 150);
   }, 'rubric');
   console.log(`[aiGrading] Đã tạo quy chuẩn nhận xét (${modelName}): "${out}"`);
@@ -606,4 +705,9 @@ function normalizeExtractedKey(parsed, cfg) {
   return out;
 }
 
-module.exports = { gradeSubmission, extractAnswerKey, generateFeedbackRubric, aiStats, resultsAgree, parseJsonLoose, conformToRubric };
+// Việc nhỏ chỉ có chữ (vd gắn nhãn khóa học): model nhẹ, trả JSON. parse(text) chuẩn hóa / ném lỗi.
+async function generateSmallJson(role, prompt, parse, label) {
+  return (await generateWithFallback(role, LITE_MODELS, EXTRACT_CONFIG, [prompt], (text) => parse(parseJsonLoose(text)), label)).out;
+}
+
+module.exports = { generateSmallJson, gradeSubmission, extractAnswerKey, generateFeedbackRubric, aiStats, resultsAgree, parseJsonLoose, conformToRubric, claudeReady, CLAUDE_ROLES };

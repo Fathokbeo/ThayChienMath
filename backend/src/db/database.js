@@ -530,6 +530,10 @@ function initSchema() {
   if (!courseCols.some(c => c.name === 'open_registration')) db.exec('ALTER TABLE courses ADD COLUMN open_registration INTEGER DEFAULT 1');
   // Admin chọn khóa nào hiện ở mục "Các khóa học" trang chủ (khóa ẩn vẫn dạy bình thường)
   if (!courseCols.some(c => c.name === 'show_on_home')) db.exec('ALTER TABLE courses ADD COLUMN show_on_home INTEGER DEFAULT 1');
+  // Nhãn AI gắn cho khóa học (lớp phù hợp, mục tiêu) để gợi ý khóa học theo đề khách xem — xem services/courseTags.js.
+  // ai_tags_for = tên + mô tả lúc gắn nhãn: đổi tên/mô tả thì gắn lại.
+  if (!courseCols.some(c => c.name === 'ai_tags')) db.exec('ALTER TABLE courses ADD COLUMN ai_tags TEXT');
+  if (!courseCols.some(c => c.name === 'ai_tags_for')) db.exec('ALTER TABLE courses ADD COLUMN ai_tags_for TEXT');
   db.exec(`
     -- Ca thi thử đầu vào do admin tạo; người đăng ký học chọn 1 ca. capacity NULL = không giới hạn chỗ
     CREATE TABLE IF NOT EXISTS placement_slots (
@@ -576,6 +580,24 @@ function initSchema() {
     );
   `);
 
+  // Chi phí mỗi lượt gọi Claude chấm bài (services/aiUsage.js) — để theo dõi và chặn vượt ngân sách tháng
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS ai_usage (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      month TEXT NOT NULL,               -- YYYY-MM theo giờ Việt Nam
+      provider TEXT NOT NULL,
+      model TEXT NOT NULL,
+      label TEXT,                        -- grading | attempted | rubric-items | extract | ...
+      input_tokens INTEGER DEFAULT 0,
+      output_tokens INTEGER DEFAULT 0,
+      cache_read_tokens INTEGER DEFAULT 0,
+      cache_write_tokens INTEGER DEFAULT 0,
+      cost_usd REAL DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_ai_usage_month ON ai_usage(month);
+  `);
+
   // Ô do admin tự thêm vào biểu mẫu đăng ký học (xem services/registrationForm.js): [{label, value}]
   const regCols = db.prepare('PRAGMA table_info(course_registrations)').all();
   if (!regCols.some(c => c.name === 'extra')) db.exec('ALTER TABLE course_registrations ADD COLUMN extra TEXT');
@@ -601,6 +623,8 @@ function initSchema() {
   if (!examCols.some(c => c.name === 'docx_file')) db.exec('ALTER TABLE exam_papers ADD COLUMN docx_file TEXT');
   if (!examCols.some(c => c.name === 'pdf_download')) db.exec("ALTER TABLE exam_papers ADD COLUMN pdf_download TEXT DEFAULT 'all'");
   if (!examCols.some(c => c.name === 'docx_download')) db.exec("ALTER TABLE exam_papers ADD COLUMN docx_download TEXT DEFAULT 'all'");
+  // Loại đề (Đề cương, Đề HK1, Đề HSG...) — danh sách loại admin đặt ở site_settings.exam_categories
+  if (!examCols.some(c => c.name === 'category')) db.exec('ALTER TABLE exam_papers ADD COLUMN category TEXT');
 
   // Tài khoản quản trị đầu tiên (chỉ khi database chưa có admin nào):
   // - ADMIN_USERNAME / ADMIN_PASSWORD trong .env → tạo đúng tài khoản đó (mật khẩu không lưu dạng chữ thường).

@@ -13,6 +13,12 @@ const { ensureParentAccount, parentOf } = require('../services/parentAccounts');
 
 router.use(authMiddleware, requireRole('teacher', 'admin'));
 
+// Tạo / sửa / xóa khóa học → gắn lại nhãn AI (lớp phù hợp, mục tiêu) cho khóa đổi tên-mô tả, chạy nền
+router.use('/courses', (req, res, next) => {
+  if (req.method !== 'GET') res.on('finish', () => { if (res.statusCode < 400) require('../services/courseTags').scheduleCourseTagging(); });
+  next();
+});
+
 // Thêm 1 học sinh vào class_students, giữ đúng vị trí trong danh sách của lớp:
 // - Lớp CHƯA từng kéo thả (custom_student_order=0): thứ tự hiển thị luôn tính lại theo bảng chữ cái
 //   ở GET /classes/:id nên sort_order không quan trọng, chỉ cần thêm cuối cho đơn giản.

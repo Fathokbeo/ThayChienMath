@@ -7,11 +7,14 @@ import { toast } from '../../components/Toast';
 import { PageHeader, EmptyState } from '../../components/ui';
 import { fmtDay, gradeLabel } from '../../lib/publicSite';
 import { loadPdfjs } from '../../lib/pdfjs';
+import ExamMenuBar, { type ExamMeta } from '../../components/ExamMenuBar';
+import ExamStructureEditor from '../../components/ExamStructureEditor';
 
 type DownloadMode = 'all' | 'login' | 'none';
 type Exam = {
   id: number; title: string; grade: string | null; description: string | null; thumbnail: string | null; pdf_file: string | null;
   docx_file: string | null; pdf_download: DownloadMode | null; docx_download: DownloadMode | null; published_at: string | null; active: number; created_at: string;
+  category: string | null;
 };
 const DOWNLOAD_OPTIONS: { value: DownloadMode; label: string }[] = [
   { value: 'all', label: 'Ai cũng tải được' },
@@ -20,7 +23,8 @@ const DOWNLOAD_OPTIONS: { value: DownloadMode; label: string }[] = [
 ];
 
 const today = () => new Date().toISOString().slice(0, 10);
-const EMPTY = { title: '', grade: '', description: '', published_at: today(), pdf_download: 'all' as DownloadMode, docx_download: 'all' as DownloadMode };
+const EMPTY = { title: '', grade: '', category: '', description: '', published_at: today(), pdf_download: 'all' as DownloadMode, docx_download: 'all' as DownloadMode };
+const NO_CATEGORY = '__none'; // lọc "Chưa phân loại" ở thanh menu admin
 
 // Vẽ trang đầu của file PDF thành ảnh JPEG làm ảnh bìa (khi admin không chọn ảnh bìa riêng)
 async function pdfFirstPageThumb(file: Blob): Promise<File | null> {
@@ -46,15 +50,14 @@ async function pdfFirstPageThumb(file: Blob): Promise<File | null> {
 // Quản lý mục "Đề và chuyên môn" ở trang công khai
 export default function ExamManagement() {
   const [exams, setExams] = useState<Exam[] | null>(null);
-  const [grades, setGrades] = useState<string[]>([]);
-  const [gradesText, setGradesText] = useState('');
+  const [meta, setMeta] = useState<ExamMeta | null>(null);
   const [modal, setModal] = useState<Exam | 'new' | null>(null);
   const [form, setForm] = useState(EMPTY);
   const [pdf, setPdf] = useState<File | null>(null);
   const [docx, setDocx] = useState<File | null>(null);
   const [thumb, setThumb] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
-  const [filter, setFilter] = useState('');
+  const [filter, setFilter] = useState<{ grade: string; category: string }>({ grade: '', category: '' });
 
   const load = () => api.get('/admin/site/exams').then((r) => setExams(r.data)).catch(() => setExams([]));
 
@@ -82,20 +85,15 @@ export default function ExamManagement() {
       if (made) { toast.success(`Đã tạo ảnh bìa từ PDF cho ${made} đề`); load(); }
     })();
   }, [exams]);
-  const loadGrades = () => api.get('/public/exam-grades').then((r) => { setGrades(r.data); setGradesText(r.data.join(', ')); });
-  useEffect(() => { load(); loadGrades(); }, []);
-
-  const saveGrades = async () => {
-    const list = gradesText.split(',').map((g) => g.trim()).filter(Boolean);
-    if (!list.length) { toast.error('Cần ít nhất 1 lớp'); return; }
-    await api.put('/admin/content/settings', { exam_grades: list.join(',') });
-    toast.success('Đã lưu danh sách lớp');
-    loadGrades();
-  };
+  const loadMeta = () => api.get('/admin/site/exam-meta').then((r) => setMeta(r.data)).catch(() => {});
+  useEffect(() => { load(); loadMeta(); }, []);
+  const grades = meta?.grades || [];
+  const categories = meta?.categories || [];
 
   const open = (e: Exam | 'new') => {
-    setForm(e === 'new' ? { ...EMPTY, grade: grades[0] || '' }
-      : { title: e.title, grade: e.grade || '', description: e.description || '', published_at: e.published_at || today(),
+    // Đăng đề mới khi đang lọc 1 lớp / 1 loại → điền sẵn đúng lớp, loại đó
+    setForm(e === 'new' ? { ...EMPTY, grade: filter.grade || grades[0] || '', category: filter.category && filter.category !== NO_CATEGORY ? filter.category : '' }
+      : { title: e.title, grade: e.grade || '', category: e.category || '', description: e.description || '', published_at: e.published_at || today(),
         pdf_download: e.pdf_download || 'all', docx_download: e.docx_download || 'all' });
     setPdf(null); setDocx(null); setThumb(null);
     setModal(e);
@@ -119,7 +117,7 @@ export default function ExamManagement() {
       else await api.post('/admin/site/exams', body);
       toast.success(editing ? 'Đã cập nhật đề' : 'Đã đăng đề');
       setModal(null);
-      load();
+      load(); loadMeta();
     } catch (e: any) {
       toast.error(e.response?.data?.message || 'Lỗi lưu đề');
     } finally {
@@ -139,7 +137,8 @@ export default function ExamManagement() {
     load();
   };
 
-  const shown = (exams || []).filter((e) => !filter || e.grade === filter);
+  const shown = (exams || []).filter((e) => (!filter.grade || e.grade === filter.grade)
+    && (!filter.category || (filter.category === NO_CATEGORY ? !e.category : e.category === filter.category)));
   const editing = modal && modal !== 'new' ? modal : null;
 
   return (
@@ -150,23 +149,18 @@ export default function ExamManagement() {
           <button className="btn btn-primary" onClick={() => open('new')}><Plus size={16} /> Đăng đề</button>
         </>} />
 
-      <div className="card" style={{ padding: '0.9rem 1.1rem', marginBottom: 16 }}>
-        <label className="form-field">
-          <span>Các lớp để lọc đề (cách nhau bằng dấu phẩy, vd: 6, 7, 8, 9, Thi vào 10)</span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input className="input" value={gradesText} onChange={(e) => setGradesText(e.target.value)} />
-            <button className="btn btn-secondary" onClick={saveGrades} style={{ flexShrink: 0 }}>Lưu</button>
-          </div>
-        </label>
-      </div>
+      {meta && <ExamStructureEditor meta={meta} onSaved={setMeta} />}
 
-      <div className="grade-chips" style={{ marginBottom: 14 }}>
-        <button className={`ph-chip ${filter === '' ? 'active' : ''}`} onClick={() => setFilter('')}>Tất cả ({exams?.length || 0})</button>
-        {grades.map((g) => (
-          <button key={g} className={`ph-chip ${filter === g ? 'active' : ''}`} style={{ whiteSpace: 'nowrap' }} onClick={() => setFilter(g)}>
-            {gradeLabel(g)} ({(exams || []).filter((e) => e.grade === g).length})
-          </button>
-        ))}
+      {/* Cùng thanh menu như trang chủ: chọn lớp → loại đề để xem / đăng đề đúng chỗ (hiện cả loại chưa có đề) */}
+      {meta && <ExamMenuBar meta={meta} activeGrade={filter.grade} activeCategory={filter.category} showEmpty
+        onPick={(grade, category) => setFilter({ grade, category: category || '' })} />}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14, fontSize: '0.9rem' }}>
+        <button className={`ph-chip ${!filter.grade ? 'active' : ''}`} onClick={() => setFilter({ grade: '', category: '' })}>Tất cả ({exams?.length || 0})</button>
+        {filter.grade && (
+          <span style={{ color: '#515154' }}>
+            Đang xem: <b>{gradeLabel(filter.grade)}</b>{filter.category && <> › <b>{filter.category === NO_CATEGORY ? 'Chưa phân loại' : filter.category}</b></>} — {shown.length} đề
+          </span>
+        )}
       </div>
 
       {exams === null ? <div style={{ color: '#86868B' }}>Đang tải...</div> : shown.length === 0 ? (
@@ -182,6 +176,7 @@ export default function ExamManagement() {
                 <Link to={`/de-thi/${e.id}`} target="_blank" style={{ fontWeight: 700, color: '#1D1D1F', textDecoration: 'none' }}>{e.title}</Link>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', fontSize: '0.8rem', color: '#86868B', marginTop: 4 }}>
                   {e.grade && <span className="badge badge-blue">{gradeLabel(e.grade)}</span>}
+                  {e.category ? <span className="badge badge-orange">{e.category}</span> : <span className="badge badge-gray">Chưa phân loại</span>}
                   <span>{fmtDay(e.published_at || e.created_at)}</span>
                   {!e.pdf_file && <span className="badge badge-red">Chưa có PDF</span>}
                   {e.docx_file && <span className="badge badge-purple">Có bản Word</span>}
@@ -205,12 +200,18 @@ export default function ExamManagement() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <label className="form-field"><span>Tên đề *</span>
             <input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="vd Đề giữa học kỳ 1 Toán 9 năm 2026 – 2027 trường THCS Trưng Vương – Hà Nội" /></label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
             <label className="form-field"><span>Lớp</span>
               <select className="input" value={form.grade} onChange={(e) => setForm({ ...form, grade: e.target.value })}>
                 <option value="">— Không phân lớp —</option>
                 {grades.map((g) => <option key={g} value={g}>{gradeLabel(g)}</option>)}
                 {form.grade && !grades.includes(form.grade) && <option value={form.grade}>{gradeLabel(form.grade)}</option>}
+              </select></label>
+            <label className="form-field"><span>Loại đề</span>
+              <select className="input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                <option value="">— Chưa phân loại —</option>
+                {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                {form.category && !categories.includes(form.category) && <option value={form.category}>{form.category}</option>}
               </select></label>
             <label className="form-field"><span>Ngày đăng</span>
               <input className="input" type="date" value={form.published_at} onChange={(e) => setForm({ ...form, published_at: e.target.value })} /></label>
