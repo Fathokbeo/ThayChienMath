@@ -38,9 +38,12 @@ function rmImage(dir, name) {
 }
 
 // ── Site settings (liên hệ, hero, số liệu) ─────────────────────────────
+// Cài đặt bí mật (khóa API) chỉ đọc/ghi qua route riêng có kiểm tra — không lộ ra / không ghi đè ở đây
+const PRIVATE_SETTINGS = new Set(['anthropic_api_key']);
+
 router.get('/settings', (req, res) => {
   const db = getDb();
-  const rows = db.prepare('SELECT key,value FROM site_settings').all();
+  const rows = db.prepare('SELECT key,value FROM site_settings').all().filter((r) => !PRIVATE_SETTINGS.has(r.key));
   const obj = {};
   rows.forEach(r => { obj[r.key] = r.value; });
   res.json(obj);
@@ -50,7 +53,7 @@ router.put('/settings', (req, res) => {
   const db = getDb();
   const stmt = db.prepare('INSERT INTO site_settings (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value');
   db.transaction(() => {
-    for (const [k, v] of Object.entries(req.body || {})) stmt.run(k, String(v ?? ''));
+    for (const [k, v] of Object.entries(req.body || {})) if (!PRIVATE_SETTINGS.has(k)) stmt.run(k, String(v ?? ''));
   })();
   res.json({ message: 'Đã lưu thông tin' });
 });

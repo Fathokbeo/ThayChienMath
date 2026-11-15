@@ -61,7 +61,7 @@ export default function PrivacyPolicy() {
         </ul>
 
         <H>4. Chấm bài bằng trí tuệ nhân tạo (AI)</H>
-        <p>Để chấm bài tự động và viết nhận xét, ảnh/PDF bài làm cùng đề bài và đáp án được gửi qua kết nối mã hóa tới dịch vụ AI của <strong>Google (Gemini)</strong> và/hoặc <strong>Anthropic (Claude)</strong>. Chúng tôi chỉ gửi nội dung bài làm cần chấm — <strong>không gửi kèm số điện thoại hay thông tin liên hệ</strong>. Các nhà cung cấp này xử lý dữ liệu theo điều khoản dịch vụ API của họ. Giáo viên có thể xem lại và sửa điểm do AI chấm.</p>
+        <p>Để chấm bài tự động và viết nhận xét, ảnh/PDF bài làm cùng đề bài và đáp án được gửi qua kết nối mã hóa tới dịch vụ AI <strong>Anthropic (Claude)</strong>. Chúng tôi chỉ gửi nội dung bài làm cần chấm — <strong>không gửi kèm số điện thoại hay thông tin liên hệ</strong>. Nhà cung cấp này xử lý dữ liệu theo điều khoản dịch vụ API của họ. Giáo viên có thể xem lại và sửa điểm do AI chấm.</p>
 
         <H>5. Ai được xem dữ liệu</H>
         <ul>

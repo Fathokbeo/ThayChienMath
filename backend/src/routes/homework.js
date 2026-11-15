@@ -564,7 +564,7 @@ router.post('/submissions/:id/regrade', requireRole('teacher', 'admin'), async (
     const fin = db.prepare('SELECT score,feedback,grading_details FROM submissions WHERE id=?').get(req.params.id);
     res.json({ message: 'Đã chấm lại', score: fin.score, feedback: fin.feedback, details: fin.grading_details ? JSON.parse(fin.grading_details) : [] });
   } catch (err) {
-    res.status(500).json({ message: 'Lỗi chấm bài: ' + redactSecrets(err.message) });
+    res.status(err.code === 'AI_OFF' ? 503 : 500).json({ message: (err.code === 'AI_OFF' ? '' : 'Lỗi chấm bài: ') + redactSecrets(err.message) });
   }
 });
 

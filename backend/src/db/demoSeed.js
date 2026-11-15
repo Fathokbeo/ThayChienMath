@@ -1,7 +1,7 @@
 // Dữ liệu DEMO để xem thử web (vd bản deploy trên Render, gói free xóa sạch dữ liệu mỗi lần khởi động lại):
 // 1 giáo viên, 2 lớp, 22 học sinh "Học sinh 1…22" (+ tài khoản phụ huynh tự tạo), bài tập lấy từ TOÀN BỘ đề,
 // đáp án và bài làm THẬT trong thư mục dữ liệu (backend/demo/files) kèm kết quả AI đã chấm sẵn
-// (backend/demo/grading.json). Bài chưa có kết quả → nạp ở trạng thái chờ, hàng đợi AI tự chấm (cần GEMINI_API_KEY).
+// (backend/demo/grading.json). Bài chưa có kết quả → nạp ở trạng thái chờ, hàng đợi AI tự chấm (cần ANTHROPIC_API_KEY).
 // Mật khẩu mọi tài khoản demo: 123456 (admin giữ admin123). Trang đăng nhập hiện sẵn danh sách tài khoản demo.
 //
 // Chạy: tự động khi khởi động server nếu SEED_DEMO=1 (hoặc chạy trên Render) và database chưa có giáo viên nào,
@@ -32,7 +32,7 @@ const CLASSES = [
         submissions: 'abcdefghijkl'.split('').map((c, i) => [i + 1, `bai-lop6-${c}.pdf`]),
       },
       {
-        // Bài đang mở: học sinh vào nộp thử được (cần GEMINI_API_KEY để AI chấm)
+        // Bài đang mở: học sinh vào nộp thử được (cần ANTHROPIC_API_KEY để AI chấm)
         title: 'Nộp thử: Kiểm tra học kì II — Toán 6', description: 'Làm lại đề kiểm tra học kì II — nộp ảnh chụp hoặc PDF bài làm để AI chấm',
         chapter: 'on-tap', due: 5, de: ['de-toan6-hk2-de.pdf', 'ĐỀ KIỂM TRA HK2 TOÁN 6.pdf'], dapan: ['de-toan6-hk2.pdf', 'ĐỀ VÀ ĐÁP ÁN HK2 TOÁN 6.pdf'],
         submissions: [],

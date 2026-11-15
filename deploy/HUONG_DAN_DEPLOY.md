@@ -56,7 +56,7 @@ Script hỏi lần lượt:
 - **Tên miền** — vd `thaychienmath.vn` (không gõ `https://`, không gõ `www`)
 - **Email** — để Let's Encrypt báo khi chứng chỉ HTTPS sắp hết hạn (chứng chỉ tự gia hạn)
 - **Tên đăng nhập + mật khẩu quản trị** — mật khẩu ít nhất 10 ký tự. **Ghi lại cẩn thận.**
-- **GEMINI_API_KEY / ANTHROPIC_API_KEY** — để chấm bài bằng AI; Enter để bỏ qua, thêm sau được (mục 5)
+- **ANTHROPIC_API_KEY** (dạng `sk-ant-api03-…`, tạo ở console.anthropic.com → API Keys) — để chấm bài bằng AI Claude; Enter để bỏ qua, thêm sau được (mục 5)
 
 Rồi tự làm hết: cài Node.js 22, nginx, pm2 · tạo `backend/.env` với khóa bí mật ngẫu nhiên · build ·
 chạy web · cấu hình nginx · bật tường lửa · cấp HTTPS · đặt lịch sao lưu.
@@ -119,7 +119,7 @@ sudo -u thaychien pm2 start thaychienmath
 | Xem log / lỗi | `sudo -u thaychien pm2 logs thaychienmath` |
 | Khởi động lại web | `sudo -u thaychien pm2 restart thaychienmath` |
 | Quên / đổi mật khẩu quản trị | `cd /var/www/thaychienmath/backend && sudo -u thaychien npm run admin:password` |
-| Thêm / đổi API key chấm AI | `sudo nano /var/www/thaychienmath/backend/.env` → sửa dòng `GEMINI_API_KEY=` / `ANTHROPIC_API_KEY=` → lưu (Ctrl+O, Enter, Ctrl+X) → `sudo -u thaychien pm2 restart thaychienmath --update-env` |
+| Thêm / đổi API key chấm AI | `sudo nano /var/www/thaychienmath/backend/.env` → sửa dòng `ANTHROPIC_API_KEY=` → lưu (Ctrl+O, Enter, Ctrl+X) → `sudo -u thaychien pm2 restart thaychienmath --update-env` |
 | Xem dung lượng ổ đĩa | `df -h /` |
 
 **Lỗi thường gặp**

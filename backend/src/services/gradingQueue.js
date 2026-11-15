@@ -1,8 +1,10 @@
 // Hàng đợi chấm bài nền: học sinh nộp xong được nhận bài NGAY,
-// việc chấm AI chạy nền tuần tự, có thử lại khi lỗi và tự phục hồi sau khi server khởi động lại.
+// việc chấm AI chạy nền, có thử lại khi lỗi và tự phục hồi sau khi server khởi động lại.
+// Chế độ lô (Batch API −50%, mặc định bật): chấm SONG SONG nhiều bài để gom các lượt gọi Claude vào cùng 1 lô.
 const path = require('path');
 const { getDb } = require('../db/database');
 const { gradeSubmission, extractAnswerKey } = require('./aiGrading');
+const { claudeReady, runInBatchScope, batchEnabled, resumeBatches } = require('./claudeClient');
 const { needsAiGrading, hasAnswerKey, parsePartsConfig, partEnabled, missingKeyIndices, applyExtractedKeys, PART_LABELS, parseHsaConfig, hasHsaAnswerKey } = require('./homeworkParts');
 const { settleBest } = require('./bestAttempt');
 const { scoreStructured, scoreHsa, partMax, round2, rawMaxScore, scaleToTarget, composeAutoFeedback, essayIssueNote, essayDetailsOf } = require('./homeworkScoring');
@@ -13,7 +15,10 @@ const SWEEP_INTERVAL_MS = 60_000;  // quét định kỳ để gom các bài cò
 
 const queue = [];          // FIFO các submission id chờ chấm
 const inQueue = new Set();
-let running = false;
+let active = 0;            // số bài đang chấm
+// Gọi trực tiếp: chấm 2 bài một lúc. Chế độ lô: tới 40 bài một lúc (mỗi bài chờ kết quả lô vài phút, nên cần
+// chấm song song nhiều bài thì 1 lô mới gom được nhiều yêu cầu).
+const concurrency = () => (batchEnabled() ? 40 : 2);
 
 // Cache đáp án AI đọc được từ file đáp án, theo (homework_id : tên file đáp án).
 // Nhờ đó nhiều học sinh cùng bài chỉ tốn 1 lần đọc file; file đổi (tên mới) → tự đọc lại.
@@ -50,22 +55,18 @@ function enqueue(submissionId) {
   if (!id || inQueue.has(id)) return;
   inQueue.add(id);
   queue.push(id);
-  if (!running) processQueue();
+  pump();
 }
 
-async function processQueue() {
-  if (running) return;
-  running = true;
-  while (queue.length) {
+function pump() {
+  while (active < concurrency() && queue.length) {
     const id = queue.shift();
-    inQueue.delete(id);
-    try {
-      await gradeOne(id);
-    } catch (err) {
-      console.error(`[grading-queue] Bài nộp #${id} chấm lỗi: ${err.message}`);
-    }
+    active++;
+    // Chạy trong "batchScope" → các lượt gọi Claude của bài này đi đường lô (nếu admin đang bật chế độ lô)
+    runInBatchScope(() => gradeOne(id))
+      .catch((err) => { if (err.code !== 'AI_OFF') console.error(`[grading-queue] Bài nộp #${id} chấm lỗi: ${err.message}`); })
+      .finally(() => { inQueue.delete(id); active--; pump(); });
   }
-  running = false;
 }
 
 // Chấm 1 bài nộp kiểu HSA: hoàn toàn tự động theo đáp án giáo viên nhập, KHÔNG dùng AI,
@@ -144,17 +145,19 @@ async function gradeOne(submissionId, { force = false } = {}) {
       };
       if (missing.multiple_choice.length || missing.true_false.length || missing.short_answer.length) {
         const cacheKey = `${sub.hw_id}:${sub.answer_file}`;
-        let extracted = answerKeyCache.get(cacheKey);
-        if (extracted === undefined) {
-          try {
-            extracted = await extractAnswerKey(answerPath, cfg, missing);
-            answerKeyCache.set(cacheKey, extracted);
+        // Lưu Promise → nhiều bài cùng đề chấm song song chỉ đọc file đáp án 1 lần
+        if (!answerKeyCache.has(cacheKey)) {
+          answerKeyCache.set(cacheKey, extractAnswerKey(answerPath, cfg, missing).then((key) => {
             console.log(`[grading-queue] 📖 Đã đọc đáp án từ file cho bài #${sub.hw_id}`);
-          } catch (e) {
+            return key;
+          }).catch((e) => {
+            answerKeyCache.delete(cacheKey); // không cache lỗi để lần sau thử lại
+            if (e.code === 'AI_OFF') throw e;
             console.error(`[grading-queue] đọc đáp án từ file lỗi (#${submissionId}): ${e.message}`);
-            extracted = null; // không cache lỗi để lần sau thử lại
-          }
+            return null;
+          }));
         }
+        const extracted = await answerKeyCache.get(cacheKey);
         if (extracted) cfg = applyExtractedKeys(cfg, extracted);
       }
     }
@@ -182,6 +185,7 @@ async function gradeOne(submissionId, { force = false } = {}) {
     let aiDetails = [];
     let aiFeedback = '';
     if (needAi) {
+      if (!claudeReady()) throw aiOff();
       // Thang điểm THÔ phần AI phụ trách
       let aiMax;
       if (!cfg) {
@@ -253,6 +257,12 @@ async function gradeOne(submissionId, { force = false } = {}) {
     console.log(`[grading-queue] ✅ Đã chấm bài nộp #${submissionId}: ${total}/${sub.max_score}${needAi ? ' (auto+AI)' : ' (auto)'}`);
     return { score: total, feedback, details };
   } catch (err) {
+    // Chưa có khóa Claude / hết ngân sách tháng: KHÔNG tính là 1 lần thử — giữ bài ở trạng thái chờ, tự chấm khi AI bật lại
+    if (err.code === 'AI_OFF') {
+      db.prepare("UPDATE submissions SET grading_status='pending', grading_attempts=MAX(COALESCE(grading_attempts,1)-1,0) WHERE id=?").run(submissionId);
+      noteAiOff(err);
+      throw err;
+    }
     const attempts = (sub.grading_attempts || 0) + 1;
     const status = attempts >= MAX_ATTEMPTS ? 'failed' : 'pending';
     db.prepare('UPDATE submissions SET grading_status=? WHERE id=?').run(status, submissionId);
@@ -264,6 +274,18 @@ async function gradeOne(submissionId, { force = false } = {}) {
     }
     throw err;
   }
+}
+
+function aiOff() {
+  const { aiOffError } = require('./claudeClient');
+  return aiOffError();
+}
+// Báo 1 lần / 30 phút (bài chờ được quét lại mỗi phút, tránh log lặp)
+let aiOffNotedAt = 0;
+function noteAiOff(err) {
+  if (Date.now() - aiOffNotedAt < 30 * 60e3) return;
+  aiOffNotedAt = Date.now();
+  console.warn(`[grading-queue] ⏸ ${err.message}`);
 }
 
 // Gom các bài đang chờ ('pending', chưa quá số lần thử, có đáp án) vào hàng đợi
@@ -288,6 +310,7 @@ function startGradingWorker() {
     const db = getDb();
     // Các bài bị treo ở trạng thái 'grading' từ lần chạy trước → đưa lại 'pending'
     db.prepare("UPDATE submissions SET grading_status='pending' WHERE grading_status='grading'").run();
+    resumeBatches(); // lô Claude gửi trước khi khởi động lại → nhận tiếp kết quả (không gửi lại, không trả tiền 2 lần)
     sweepPending();
     setInterval(sweepPending, SWEEP_INTERVAL_MS);
     console.log('🤖 Hàng đợi chấm bài AI đã sẵn sàng');
@@ -296,4 +319,4 @@ function startGradingWorker() {
   }
 }
 
-module.exports = { enqueue, gradeOne, startGradingWorker };
+module.exports = { enqueue, gradeOne, startGradingWorker, sweepPending };

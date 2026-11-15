@@ -40,8 +40,7 @@ if [ ! -f "$ENV_FILE" ]; then
     [ "$ADMIN_PASSWORD" = "$ADMIN_PASSWORD2" ] && break
     warn "Hai lần nhập không khớp, nhập lại."
   done
-  read -rsp "GEMINI_API_KEY (Enter để bỏ qua): " GEMINI_KEY; echo
-  read -rsp "ANTHROPIC_API_KEY (Enter để bỏ qua): " ANTHROPIC_KEY; echo
+  read -rsp "ANTHROPIC_API_KEY (sk-ant-api03-…, Enter để bỏ qua): " ANTHROPIC_KEY; echo
 else
   warn "Đã có $ENV_FILE — giữ nguyên (không hỏi lại tài khoản quản trị / API key)."
 fi
@@ -84,7 +83,6 @@ NODE_ENV=production
 PORT=5100
 FRONTEND_URL=https://$DOMAIN
 JWT_SECRET=$(openssl rand -hex 48)
-GEMINI_API_KEY=$GEMINI_KEY
 ANTHROPIC_API_KEY=$ANTHROPIC_KEY
 SEED_DEMO=0
 # Chỉ dùng ở lần chạy đầu để tạo tài khoản quản trị — setup-vps.sh tự xóa sau khi tạo xong

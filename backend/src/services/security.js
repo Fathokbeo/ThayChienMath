@@ -153,6 +153,10 @@ function redactSecrets(text) {
     if (val && val.length >= 8) out = out.split(val).join('***');
   }
   if (cachedSecret && cachedSecret.length >= 8) out = out.split(cachedSecret).join('***');
+  try { // khóa Claude admin dán trên web (lưu DB)
+    const k = require('./claudeClient').storedKey();
+    if (k && k.length >= 8) out = out.split(k).join('***');
+  } catch { /* bỏ qua */ }
   out = out.replace(SECRET_PATTERNS[0], '***').replace(SECRET_PATTERNS[1], '***');
   return out.replace(SECRET_PATTERNS[2], '$1***');
 }

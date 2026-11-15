@@ -596,6 +596,19 @@ function initSchema() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     CREATE INDEX IF NOT EXISTS idx_ai_usage_month ON ai_usage(month);
+
+    -- Yêu cầu Claude đang gửi theo lô (Batch API −50%): giữ lại để server khởi động lại vẫn nhận được kết quả
+    CREATE TABLE IF NOT EXISTS ai_batch_requests (
+      custom_id TEXT PRIMARY KEY,        -- sha256 của nội dung yêu cầu (yêu cầu giống hệt → dùng chung 1 kết quả)
+      batch_id TEXT,
+      label TEXT,
+      status TEXT NOT NULL,              -- queued | pending | succeeded
+      result TEXT,                       -- JSON message khi đã có kết quả mà chưa ai nhận
+      cost REAL,
+      error TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_ai_batch_batch ON ai_batch_requests(batch_id);
   `);
 
   // Ô do admin tự thêm vào biểu mẫu đăng ký học (xem services/registrationForm.js): [{label, value}]

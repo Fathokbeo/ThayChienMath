@@ -20,13 +20,46 @@ router.use('/courses', (req, res, next) => {
 // ── Chi phí AI chấm bài (Claude) tháng này + trần ngân sách ───────────
 router.get('/ai-usage', (req, res) => {
   const { usageReport } = require('../services/aiUsage');
-  const { claudeReady, CLAUDE_ROLES } = require('../services/aiGrading');
+  const cc = require('../services/claudeClient');
+  const models = cc.chosenModels();
   res.json({
     ...usageReport(),
-    claude_configured: /^sk-ant-api/.test(process.env.ANTHROPIC_API_KEY || ''),
-    claude_active: claudeReady(),
-    models: { grade: CLAUDE_ROLES.grade.model, check: CLAUDE_ROLES.check.model, review: CLAUDE_ROLES.review.model },
+    claude_configured: cc.claudeConfigured(),
+    claude_active: cc.claudeReady(),
+    batch_mode: cc.batchEnabled(),
+    key: cc.keyInfo(), // chỉ vài ký tự đầu/cuối, không bao giờ trả cả khóa
+    models,
+    model_options: cc.MODEL_OPTIONS.map((o) => ({ ...o, price: require('../services/aiUsage').PRICES[o.id] })),
+    model_groups: Object.entries(cc.MODEL_GROUPS).map(([id, g]) => ({ id, label: g.label, hint: g.hint, default: g.default })),
   });
+});
+
+// Khóa API Claude do admin dán: kiểm tra với Anthropic rồi mới lưu; không bao giờ trả lại cả khóa
+router.put('/ai-usage/key', async (req, res) => {
+  try {
+    res.json({ key: await require('../services/claudeClient').saveApiKey(req.body?.key) });
+  } catch (err) {
+    res.status(err.status || 500).json({ message: err.status ? err.message : 'Lỗi lưu khóa' });
+  }
+});
+router.delete('/ai-usage/key', (req, res) => {
+  res.json({ key: require('../services/claudeClient').removeApiKey() });
+});
+
+// Model cho từng nhóm việc: { grade, check, review, rubric, light }
+router.put('/ai-usage/models', (req, res) => {
+  try {
+    res.json({ models: require('../services/claudeClient').saveModels(req.body || {}) });
+  } catch (err) {
+    res.status(err.status || 500).json({ message: err.status ? err.message : 'Lỗi lưu model' });
+  }
+});
+
+// Chế độ lô (Batch API): rẻ 50%, kết quả chấm có sau vài phút–vài giờ thay vì ngay
+router.put('/ai-usage/batch', (req, res) => {
+  const on = !!req.body?.enabled;
+  getDb().prepare("INSERT INTO site_settings (key,value) VALUES ('ai_batch_mode',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(on ? '1' : '0');
+  res.json({ batch_mode: on });
 });
 
 router.put('/ai-usage/budget', (req, res) => {
