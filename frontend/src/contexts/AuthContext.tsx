@@ -7,7 +7,7 @@ async function refreshFileTicket() {
   setFileTicket(data.ticket);
 }
 
-interface User {
+export interface User {
   id: number;
   username: string;
   full_name: string;
@@ -15,6 +15,8 @@ interface User {
   parent_phone?: string;
   email?: string | null;
   avatar_url?: string | null; // ảnh đại diện Google (tài khoản khách đăng nhập bằng Google)
+  google?: boolean; // đã liên kết tài khoản Google
+  google_email?: string | null;
 }
 
 // Mục chọn ở trang đăng nhập (admin đăng nhập ở mục Giáo viên; khách tự đăng ký / đăng nhập Google)
@@ -24,8 +26,9 @@ interface AuthCtx {
   user: User | null;
   token: string | null;
   login: (username: string, password: string, portal?: Portal) => Promise<User>;
-  loginWithGoogle: (credential: string) => Promise<User>;
+  loginWithGoogle: (credential: string, portal?: Portal) => Promise<User>;
   register: (data: { full_name: string; email: string; password: string }) => Promise<User>;
+  updateUser: (u: User) => void; // cập nhật thông tin người dùng đang đăng nhập (vd vừa liên kết Google)
   logout: () => void;
   loading: boolean;
 }
@@ -69,7 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string, portal?: Portal) =>
     startSession((await api.post('/auth/login', { username, password, portal })).data);
-  const loginWithGoogle = async (credential: string) => startSession((await api.post('/auth/google', { credential })).data);
+  const loginWithGoogle = async (credential: string, portal?: Portal) => startSession((await api.post('/auth/google', { credential, portal })).data);
+  const updateUser = (u: User) => {
+    try { localStorage.setItem('user', JSON.stringify(u)); } catch { /* trình duyệt chặn lưu trữ */ }
+    setUser(u);
+  };
   const register = async (body: { full_name: string; email: string; password: string }) => startSession((await api.post('/auth/register', body)).data);
 
   const logout = () => {
@@ -82,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, loginWithGoogle, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, loginWithGoogle, register, updateUser, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

@@ -9,6 +9,7 @@ import api from '../lib/api';
 import { useBrandName } from '../lib/brand';
 import GoogleSignInButton from '../components/GoogleSignInButton';
 import { safeNext } from '../lib/navigation';
+import { IS_NATIVE } from '../lib/native';
 
 // 4 mục đăng nhập. Phụ huynh gõ TÊN ĐĂNG NHẬP CỦA CON + mật khẩu phụ huynh (không phải nhớ thêm tên nào).
 // Khách: tự đăng ký bằng email, hoặc đăng nhập bằng Google.
@@ -53,8 +54,8 @@ export default function Login() {
   const onGoogle = async (credential: string) => {
     setLoading(true);
     try {
-      const user = await loginWithGoogle(credential);
-      try { localStorage.setItem(PORTAL_KEY, 'guest'); } catch { /* trình duyệt chặn lưu trữ */ }
+      const user = await loginWithGoogle(credential, portal);
+      try { localStorage.setItem(PORTAL_KEY, portal); } catch { /* trình duyệt chặn lưu trữ */ }
       goAfterLogin(user.role);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Đăng nhập Google không thành công');
@@ -123,10 +124,11 @@ export default function Login() {
             ))}
           </div>
 
-          {portal === 'guest' && (
+          {/* Mục khác Khách: chỉ vào được tài khoản đã liên kết Google (liên kết trong menu tài khoản) */}
+          {(portal === 'guest' || !IS_NATIVE) && (
             <>
               <GoogleSignInButton onCredential={onGoogle} />
-              <div className="auth-divider">hoặc đăng nhập bằng email</div>
+              <div className="auth-divider">{portal === 'guest' ? 'hoặc đăng nhập bằng email' : 'hoặc đăng nhập bằng tên đăng nhập'}</div>
             </>
           )}
 

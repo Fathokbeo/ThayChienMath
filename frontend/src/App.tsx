@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ToastContainer from './components/Toast';
+import GoogleLinkModal from './components/GoogleLink';
 import Layout from './components/Layout';
 
 import Login from './pages/Login';
@@ -126,6 +127,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <ToastContainer />
+        <GoogleLinkModal />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         <AppRoutes />
       </AuthProvider>

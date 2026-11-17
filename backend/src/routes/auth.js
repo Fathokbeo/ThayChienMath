@@ -21,6 +21,7 @@ const PORTAL_OF_ROLE = { admin: 'Giáo viên', teacher: 'Giáo viên', student: 
 const publicUser = (u) => ({
   id: u.id, username: u.username, role: u.role, full_name: u.full_name, parent_phone: u.parent_phone,
   email: u.email || null, avatar_url: u.avatar_url || null,
+  google: !!u.google_sub, google_email: u.google_sub ? (u.google_email || null) : null,
 });
 
 // Cấp token đăng nhập (+ cookie phiên để tải file) và trả về cho trình duyệt
@@ -110,24 +111,86 @@ router.post('/google', async (req, res) => {
   catch { return res.status(401).json({ message: 'Đăng nhập Google không thành công, vui lòng thử lại' }); }
   const db = getDb();
   let user = db.prepare('SELECT * FROM users WHERE google_sub=?').get(g.sub);
+  // Bấm Google ở mục Giáo viên / Học sinh / Phụ huynh: chỉ đăng nhập vào tài khoản ĐÃ liên kết, không tạo tài khoản khách mới
+  const portal = req.body?.portal;
+  if (!user && PORTAL_ROLES[portal] && portal !== 'guest') {
+    return res.status(404).json({ message: `Tài khoản Google ${g.email} chưa liên kết với tài khoản ${PORTAL_OF_ROLE[PORTAL_ROLES[portal][0]]} nào. Hãy đăng nhập bằng tên đăng nhập và mật khẩu, rồi vào menu tài khoản → "Liên kết Google".` });
+  }
   if (!user) {
     const same = findByEmail(db, g.email);
     if (same && same.role !== 'guest') {
       return res.status(409).json({ message: `Email này thuộc tài khoản ${PORTAL_OF_ROLE[same.role]} — hãy đăng nhập ở mục "${PORTAL_OF_ROLE[same.role]}" bằng tên đăng nhập và mật khẩu.` });
     }
     if (same) {
-      db.prepare('UPDATE users SET google_sub=?, avatar_url=COALESCE(avatar_url, ?), email=COALESCE(email, ?) WHERE id=?').run(g.sub, g.picture, g.email, same.id);
+      db.prepare('UPDATE users SET google_sub=?, google_email=?, avatar_url=COALESCE(avatar_url, ?), email=COALESCE(email, ?) WHERE id=?').run(g.sub, g.email, g.picture, g.email, same.id);
       user = db.prepare('SELECT * FROM users WHERE id=?').get(same.id);
     } else {
       if (tooManySignups(req.ip)) return res.status(429).json({ message: 'Bạn tạo quá nhiều tài khoản, vui lòng thử lại sau' });
       // Mật khẩu ngẫu nhiên không ai biết: tài khoản này chỉ đăng nhập bằng Google
-      const r = db.prepare("INSERT INTO users (username,password,full_name,email,role,google_sub,avatar_url) VALUES (?,?,?,?,'guest',?,?)")
-        .run(g.email, bcrypt.hashSync(require('crypto').randomBytes(24).toString('hex'), 10), g.name.slice(0, 80), g.email, g.sub, g.picture);
+      const r = db.prepare("INSERT INTO users (username,password,full_name,email,role,google_sub,google_email,avatar_url) VALUES (?,?,?,?,'guest',?,?,?)")
+        .run(g.email, bcrypt.hashSync(require('crypto').randomBytes(24).toString('hex'), 10), g.name.slice(0, 80), g.email, g.sub, g.email, g.picture);
       user = db.prepare('SELECT * FROM users WHERE id=?').get(r.lastInsertRowid);
     }
   }
   if (!user.active) return res.status(403).json({ message: 'Tài khoản đã bị khóa' });
   issueLogin(req, res, user);
+});
+
+// ── Liên kết Google cho tài khoản ĐANG đăng nhập (mọi vai trò) ──────────────────────────────────────
+// Người dùng đã chứng minh là chủ tài khoản (đang đăng nhập) + chứng minh là chủ Gmail (thẻ Google hợp lệ)
+// → gắn mã Google (sub) vào tài khoản. Từ đó đăng nhập được bằng nút Google lẫn mật khẩu cũ.
+// CHỈ tin token ở header Authorization, không tin cookie phiên: trang lạ không gắn được header nên không thể
+// lừa trình duyệt nạn nhân gửi yêu cầu "gắn Google của kẻ gian vào tài khoản này" (chiếm tài khoản kiểu CSRF).
+function currentUser(req) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return null;
+  try {
+    const me = jwt.verify(token, getJwtSecret());
+    return getDb().prepare('SELECT * FROM users WHERE id=? AND active=1').get(me.id);
+  } catch { return null; }
+}
+
+router.get('/google-link', (req, res) => {
+  const u = currentUser(req);
+  if (!u) return res.status(401).json({ message: 'Unauthorized' });
+  res.json({ linked: !!u.google_sub, google_email: u.google_sub ? (u.google_email || null) : null, user: publicUser(u) });
+});
+
+router.post('/google-link', async (req, res) => {
+  const u = currentUser(req);
+  if (!u) return res.status(401).json({ message: 'Unauthorized' });
+  let g;
+  try { g = await verifyGoogleCredential(req.body?.credential); }
+  catch { return res.status(401).json({ message: 'Xác nhận Google không thành công, vui lòng thử lại' }); }
+  const db = getDb();
+  const owner = db.prepare('SELECT id FROM users WHERE google_sub=?').get(g.sub);
+  if (owner && owner.id !== u.id) {
+    return res.status(409).json({ message: `Tài khoản Google ${g.email} đã liên kết với một tài khoản khác. Hãy chọn tài khoản Google khác, hoặc hủy liên kết ở tài khoản kia trước.` });
+  }
+  db.prepare('UPDATE users SET google_sub=?, google_email=?, avatar_url=COALESCE(avatar_url, ?) WHERE id=?').run(g.sub, g.email, g.picture, u.id);
+  const fresh = db.prepare('SELECT * FROM users WHERE id=?').get(u.id);
+  res.json({ linked: true, google_email: g.email, user: publicUser(fresh) });
+});
+
+// Hủy liên kết: phải nhập mật khẩu — vừa xác nhận chủ tài khoản, vừa chắc sau khi hủy vẫn còn cách đăng nhập
+// (tài khoản khách tạo bằng Google không có mật khẩu → không hủy được, tránh tự khóa mình ở ngoài).
+router.post('/google-unlink', (req, res) => {
+  const u = currentUser(req);
+  if (!u) return res.status(401).json({ message: 'Unauthorized' });
+  if (!u.google_sub) return res.json({ linked: false, google_email: null, user: publicUser(u) });
+  const password = typeof req.body?.password === 'string' ? req.body.password : '';
+  const wait = loginBlockedFor(req, u.username);
+  if (wait > 0) return res.status(429).json({ message: `Sai quá nhiều lần. Vui lòng thử lại sau ${Math.ceil(wait / 60)} phút.` });
+  if (!password || !bcrypt.compareSync(password, u.password)) {
+    recordLoginFailure(req, u.username);
+    return res.status(400).json({ field: 'password', message: u.role === 'guest'
+      ? 'Mật khẩu không đúng. (Tài khoản tạo bằng nút Google thì chưa có mật khẩu nên không hủy liên kết được.)'
+      : 'Mật khẩu không đúng' });
+  }
+  clearLoginFailures(req, u.username);
+  const db = getDb();
+  db.prepare('UPDATE users SET google_sub=NULL, google_email=NULL WHERE id=?').run(u.id);
+  res.json({ linked: false, google_email: null, user: publicUser(db.prepare('SELECT * FROM users WHERE id=?').get(u.id)) });
 });
 
 // Cấp lại cookie phiên cho người đang đăng nhập sẵn (token còn trong trình duyệt từ trước khi có tính

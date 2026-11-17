@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, LogOut, Search } from 'lucide-react';
+import { Home, LogOut, Search, Link2 } from 'lucide-react';
+import { openGoogleLink } from './GoogleLink';
 import { useAuth } from '../contexts/AuthContext';
 import { navItemsFor, roleColors, accountSubtitle } from '../lib/navigation';
 import { openPalette } from './CommandPalette';
@@ -46,6 +47,9 @@ export default function AccountMenu({ open, onClose, showNav }: { open: boolean;
         </>
       )}
       <button className="menu-item" onClick={() => { onClose(); openPalette(); }}><Search size={17} /> Tìm nhanh</button>
+      <button className="menu-item" onClick={() => { onClose(); openGoogleLink(); }}>
+        <Link2 size={17} /> {user.google ? 'Tài khoản Google đã liên kết' : 'Liên kết Google'}
+      </button>
       <Link to="/" className="menu-item" onClick={onClose}><Home size={17} /> Trang chủ</Link>
       <button className="menu-item" style={{ color: '#B04A2A' }} onClick={() => { onClose(); logout(); navigate('/login'); }}>
         <LogOut size={17} color="#B04A2A" /> Đăng xuất
