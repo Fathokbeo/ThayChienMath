@@ -11,20 +11,20 @@ import useIsMobile from '../../lib/useIsMobile';
 import { useAuth } from '../../contexts/AuthContext';
 import CourseCarousel, { type PublicCourse } from '../../components/CourseCarousel';
 import CourseRegisterModal from '../../components/CourseRegisterModal';
-import { recordExamView } from '../../lib/interest';
+import { recordExamView, recordExamDwell, recordExamDownload } from '../../lib/interest';
 
 type DownloadMode = 'all' | 'login' | 'none';
 type Exam = ExamItem & { description?: string | null; pdf_file?: string | null; pdf_download?: DownloadMode; docx_download?: DownloadMode; related: ExamItem[] };
 
 // Nút tải 1 bản đề theo quyền admin đặt: ai cũng tải / phải đăng nhập / không cho tải (không hiện nút)
-function DownloadButton({ examId, kind, mode, loggedIn }: { examId: number; kind: 'pdf' | 'docx'; mode?: DownloadMode; loggedIn: boolean }) {
+function DownloadButton({ examId, kind, mode, loggedIn, onDownload }: { examId: number; kind: 'pdf' | 'docx'; mode?: DownloadMode; loggedIn: boolean; onDownload?: () => void }) {
   const format = kind === 'pdf' ? 'PDF' : 'Word';
   const icon = kind === 'pdf' ? <Download size={14} /> : <FileText size={14} />;
   if (!mode || mode === 'none') return null;
   if (mode === 'login' && !loggedIn) {
     return <Link to={`/login?muc=khach&next=${encodeURIComponent(`/de-thi/${examId}`)}`} className="btn btn-ghost btn-sm" title="Đề này chỉ cho tài khoản đã đăng nhập tải về"><LogIn size={14} /> Đăng nhập để tải đề {format}</Link>;
   }
-  return <a href={fileUrl(`/api/public/exams/${examId}/file/${kind}`)} download className="btn btn-secondary btn-sm">{icon} Tải đề {format}</a>;
+  return <a href={fileUrl(`/api/public/exams/${examId}/file/${kind}`)} download className="btn btn-secondary btn-sm" onClick={onDownload}>{icon} Tải đề {format}</a>;
 }
 
 // Chi tiết 1 đề: mô tả + xem PDF ngay trên trang (pdf.js, không phụ thuộc trình xem PDF của trình duyệt/app)
@@ -78,6 +78,13 @@ export default function ExamDetail() {
     window.scrollTo(0, 0);
   }, [id]);
 
+  // Đọc đề ≥ 45 giây (trang đang mở trên màn hình) → khách thật sự quan tâm lớp / loại đề này
+  useEffect(() => {
+    if (!exam) return;
+    const t = setTimeout(() => { if (document.visibilityState === 'visible') recordExamDwell(exam.grade, exam.category); }, 45e3);
+    return () => clearTimeout(t);
+  }, [exam?.id]);
+
   const pdf = exam?.pdf_file ? fileUrl(`/uploads/exams/${exam.pdf_file}`) : null;
 
   return (
@@ -98,8 +105,8 @@ export default function ExamDetail() {
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={14} /> {fmtDay(exam.published_at || exam.created_at)}</span>
               {exam.grade && <Link to={`/de-thi?lop=${encodeURIComponent(exam.grade)}`} className="badge badge-blue" style={{ textDecoration: 'none' }}>{gradeLabel(exam.grade)}</Link>}
               <span style={{ marginLeft: 'auto', display: 'inline-flex', gap: 8, flexWrap: 'wrap' }}>
-                <DownloadButton examId={exam.id} kind="pdf" mode={exam.pdf_download} loggedIn={!!user} />
-                <DownloadButton examId={exam.id} kind="docx" mode={exam.docx_download} loggedIn={!!user} />
+                <DownloadButton examId={exam.id} kind="pdf" mode={exam.pdf_download} loggedIn={!!user} onDownload={() => recordExamDownload(exam.grade, exam.category)} />
+                <DownloadButton examId={exam.id} kind="docx" mode={exam.docx_download} loggedIn={!!user} onDownload={() => recordExamDownload(exam.grade, exam.category)} />
               </span>
             </div>
             {exam.description && (

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { syncGuestInterest } from '../lib/interest';
 import api from '../lib/api';
 import { useBrandName } from '../lib/brand';
 import { homeTitlesFrom } from '../lib/publicSite';
@@ -60,6 +61,8 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
   const homeMenu = HOME_MENU.map((it) => ({ ...it,
     label: it.to === '/de-thi' ? titles.exams : it.to === '/tin-tuc' ? titles.news : it.to === '/#khoa-hoc' ? titles.courses : it.label }));
   const [accountOpen, setAccountOpen] = useState(false); // menu tài khoản (đã đăng nhập)
+  // Tài khoản khách: gộp + đồng bộ mức quan tâm (đề đã xem…) với máy chủ → gợi ý khóa học theo người, kể cả khi đổi máy
+  useEffect(() => { syncGuestInterest(user?.role === 'guest'); }, [user?.role]);
   const accountRef = useRef<HTMLDivElement>(null);
 
   // Đóng danh sách thả xuống khi bấm ra ngoài hoặc nhấn Esc

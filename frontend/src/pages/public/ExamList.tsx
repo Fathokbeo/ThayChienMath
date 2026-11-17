@@ -7,6 +7,7 @@ import ExamMenuBar, { type ExamMeta } from '../../components/ExamMenuBar';
 import api from '../../lib/api';
 import { PAGE_MAX } from '../../lib/layout';
 import { gradeLabel, examHref, useHomeTitles } from '../../lib/publicSite';
+import { recordGradeBrowse } from '../../lib/interest';
 import useIsMobile from '../../lib/useIsMobile';
 
 // Trang "Đề và chuyên môn": thanh menu lớp → loại đề (?lop=8&loai=Đề HK1), tìm theo tên (?q=...).
@@ -22,6 +23,9 @@ export default function ExamList() {
   const [typing, setTyping] = useState(q);
 
   useEffect(() => { api.get('/public/exam-meta').then((r) => setMeta(r.data)).catch(() => {}); }, []);
+
+  // Khách lọc kho đề theo lớp → tín hiệu quan tâm nhẹ (gợi ý khóa học ở trang chủ)
+  useEffect(() => { if (grade) recordGradeBrowse(grade, category); }, [grade, category]);
 
   useEffect(() => {
     setExams(null);

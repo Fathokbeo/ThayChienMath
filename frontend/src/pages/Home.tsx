@@ -8,7 +8,7 @@ import ExamCard, { type ExamItem } from '../components/ExamCard';
 import { NewsFront, type NewsItem } from '../components/NewsCard';
 import ExamMenuBar, { type ExamMeta } from '../components/ExamMenuBar';
 import CourseCarousel from '../components/CourseCarousel';
-import { interestParam } from '../lib/interest';
+import { interestParam, syncGuestInterest } from '../lib/interest';
 import api from '../lib/api';
 import { PAGE_MAX } from '../lib/layout';
 import { examHref, homeTitlesFrom } from '../lib/publicSite';
@@ -57,15 +57,21 @@ export default function Home() {
   const [examMeta, setExamMeta] = useState<ExamMeta | null>(null);
   const [settings, setSettings] = useState<any>({});
   const [ready, setReady] = useState(false);
-  const [interest] = useState(interestParam);
+  const [personalized, setPersonalized] = useState(false);
   const [registering, setRegistering] = useState<any>(null); // khóa đang mở form đăng ký
 
   useEffect(() => {
     api.get('/public/ads').then((r) => setAds(r.data)).catch(() => {});
     api.get('/public/settings').then((r) => setSettings(r.data)).catch(() => {});
     Promise.all([
-      // Các lớp khách đã xem đề (theo số lần xem) → khóa học hợp nhất lên đầu băng chuyền (xếp ở máy chủ theo nhãn đã lưu)
-      api.get('/public/courses', { params: interest }).then((r) => setCourses(r.data)).catch(() => {}),
+      // Mức quan tâm của khách (đề đã xem / tải / đọc lâu, lớp hay lọc, khóa đã mở — mờ dần theo thời gian) → khóa học
+      // hợp nhất lên đầu mục Khóa học (xếp ở máy chủ theo nhãn đã lưu, không gọi AI). Tài khoản khách: gộp với dữ liệu
+      // đã lưu trên máy chủ trước (đăng nhập máy khác vẫn được gợi ý đúng).
+      syncGuestInterest(user?.role === 'guest').then(() => {
+        const params = interestParam();
+        setPersonalized(!!(params.interest || params.courses));
+        return api.get('/public/courses', { params }).then((r) => setCourses(r.data));
+      }).catch(() => {}),
       api.get('/public/news').then((r) => setNews(r.data)).catch(() => {}),
       // Lấy đủ danh sách để đếm số đề cho ô số liệu; mục Đề và chuyên môn chỉ hiện 6 đề mới nhất
       api.get('/public/exams').then((r) => setExams(r.data)).catch(() => {}),
@@ -145,7 +151,7 @@ export default function Home() {
       {/* 3. Khóa học — học phí + nút đăng ký (khách không cần tài khoản) */}
       <Section id="khoa-hoc" title={titles.courses} subtitle={titles.coursesSub} icon={BookOpen} color="#3A7D5C" alt>
         {courses.length === 0 ? <Empty text="Chưa có khóa học nào" /> : (
-          <CourseCarousel courses={courses} onRegister={setRegistering} personalized={!!interest.interest} />
+          <CourseCarousel courses={courses} onRegister={setRegistering} personalized={personalized} />
         )}
       </Section>
 

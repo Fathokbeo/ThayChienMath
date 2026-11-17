@@ -107,20 +107,30 @@ function rankCourses(courses, grade, category) {
     .map(({ c, s }) => ({ ...c, match: s }));
 }
 
-// Trang chủ: xếp khóa theo TẤT CẢ các lớp khách đã xem, theo số lần xem (vd lớp 10 ×6, lớp 8 ×2, thi vào 10 ×2).
-// Lớp xem nhiều chưa có khóa phù hợp thì các lớp xem ít hơn vẫn được ưu tiên. match = điểm cao nhất với 1 lớp đã xem
-// (để gắn nhãn "Phù hợp với bạn"); thứ tự theo tổng điểm có trọng số.
-function rankCoursesByInterest(courses, interest, category) {
-  const items = interest.filter((x) => x.grade && x.weight > 0);
-  if (!items.length) return rankCourses(courses, null, category);
-  const targets = items.map((x) => ({ w: x.weight, t: examTarget(x.grade, category) }));
+// Trang chủ — mục Khóa học: đẩy các khóa hợp với khách lên trước, các khóa còn lại giữ thứ tự mặc định.
+// interest: [{ grade, category, weight }] — mức quan tâm theo cặp (lớp, loại đề), đã mờ dần theo thời gian ở máy khách
+//   (xem đề, đọc lâu, tải đề, lọc theo lớp…). Mỗi cặp chiếm 1 TỈ PHẦN tổng mức quan tâm → điểm khóa = Σ tỉ phần × độ
+//   hợp (scoreCourse) của khóa với cặp đó. Lớp xem nhiều mà chưa có khóa thì khóa của lớp xem ít hơn vẫn được ưu tiên.
+// viewed: Map(mã khóa → mức quan tâm) các khóa khách đã mở xem chi tiết → ưu tiên nhẹ (nhắc lại khóa đang cân nhắc).
+// match = điểm hợp cao nhất với 1 cặp chiếm ≥ 15% mức quan tâm (để gắn nhãn "Phù hợp với bạn").
+function rankCoursesByInterest(courses, interest, category, viewed) {
+  const items = (interest || []).filter((x) => x.grade && x.weight > 0);
+  if (!items.length && !viewed) return rankCourses(courses, null, category);
+  const totalW = items.reduce((s, x) => s + x.weight, 0) || 1;
+  const targets = items.map((x) => ({ share: x.weight / totalW, t: examTarget(x.grade, x.category || category) }));
   return courses
     .map((c, i) => {
       const tags = parseTags(c.ai_tags);
-      const scores = targets.map(({ w, t }) => ({ w, s: scoreCourse(tags, t) }));
-      return { c, i, total: scores.reduce((sum, x) => sum + x.w * x.s, 0), best: Math.max(0, ...scores.map((x) => x.s)) };
+      let score = 0; let best = 0;
+      for (const { share, t } of targets) {
+        const s = scoreCourse(tags, t);
+        score += share * s;
+        if (share >= 0.15) best = Math.max(best, s);
+      }
+      score += Math.min(3, (viewed && viewed.get(c.id)) || 0) * 1.5;
+      return { c, i, score, best };
     })
-    .sort((a, b) => b.total - a.total || (b.c.open_registration - a.c.open_registration) || a.i - b.i)
+    .sort((a, b) => b.score - a.score || (b.c.open_registration - a.c.open_registration) || a.i - b.i)
     .map(({ c, best }) => ({ ...c, match: best }));
 }
 

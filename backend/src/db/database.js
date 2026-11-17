@@ -630,6 +630,16 @@ function initSchema() {
     );
   `);
 
+  // Mức quan tâm (lớp / loại đề / khóa đã xem) của tài khoản khách — để gợi ý khóa học khi đổi máy
+  db.exec(`CREATE TABLE IF NOT EXISTS user_interest (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    data TEXT NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  // Tin tức có video đầu bài: link YouTube/Vimeo hoặc tên file video đã tải lên (uploads/news)
+  if (!db.prepare('PRAGMA table_info(news_posts)').all().some((c) => c.name === 'video')) db.exec('ALTER TABLE news_posts ADD COLUMN video TEXT');
+
   // Đề có thể kèm bản Word (đăng song song với PDF). Quyền tải riêng cho từng bản:
   // 'all' = ai cũng tải được, 'login' = phải đăng nhập, 'none' = không cho tải (PDF vẫn xem trên web).
   const examCols = db.prepare('PRAGMA table_info(exam_papers)').all();

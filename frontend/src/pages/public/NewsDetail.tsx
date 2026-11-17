@@ -7,6 +7,7 @@ import api, { fileUrl } from '../../lib/api';
 import { fmtDay } from '../../lib/publicSite';
 import { toast } from '../../components/Toast';
 import useIsMobile from '../../lib/useIsMobile';
+import { parseNewsVideo } from '../../lib/newsVideo';
 
 type Post = NewsItem & { content?: string | null; related: NewsItem[] };
 
@@ -18,6 +19,17 @@ function articleHtml(content: string) {
   const isHtml = /<\/?(p|h[2-4]|ul|ol|blockquote|img|br|iframe)\b/i.test(content);
   const html = isHtml ? content : content.split(/\r?\n\s*\r?\n/).map((p) => `<p>${esc(p).replace(/\r?\n/g, '<br>')}</p>`).join('');
   return html.replace(/src="(\/uploads\/news\/[^"]+)"/g, (_, p) => `src="${fileUrl(p)}"`);
+}
+
+// Video đầu bài: YouTube / Vimeo nhúng khung phát; video tải lên phát bằng trình phát của trình duyệt (ảnh bìa làm hình chờ)
+function HeadVideo({ value, poster, title }: { value: string; poster?: string | null; title: string }) {
+  const v = parseNewsVideo(value);
+  if (!v) return null;
+  return v.kind === 'file' ? (
+    <video src={v.src} controls playsInline preload="metadata" poster={poster ? fileUrl(`/uploads/news/${poster}`) : undefined} className="article-video" />
+  ) : (
+    <iframe src={v.embed} title={title} className="article-video" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
+  );
 }
 
 // Ước lượng phút đọc (~220 chữ/phút)
@@ -64,7 +76,9 @@ export default function NewsDetail() {
               <button type="button" onClick={copyLink}><Link2 size={14} /> Chép link</button>
             </div>
             {post.summary && <p className="article-lead">{post.summary}</p>}
-            {post.image && <img src={fileUrl(`/uploads/news/${post.image}`)} alt={post.title} className="article-cover" />}
+            {post.video && parseNewsVideo(post.video)
+              ? <HeadVideo value={post.video} poster={post.image} title={post.title} />
+              : post.image && <img src={fileUrl(`/uploads/news/${post.image}`)} alt={post.title} className="article-cover" />}
             {body && <div className="article-body" dangerouslySetInnerHTML={{ __html: body }} />}
 
             {post.related.length > 0 && (

@@ -4,8 +4,8 @@ const path = require('path');
 const fs = require('fs');
 const { getDb } = require('../db/database');
 const { authMiddleware, requireRole } = require('../middleware/auth');
-const { uploadContent } = require('../middleware/upload');
-const { sanitizeNewsHtml, inlineImages } = require('../services/newsContent');
+const { uploadContent, uploadNewsVideo } = require('../middleware/upload');
+const { sanitizeNewsHtml, inlineImages, normalizeNewsVideo, isLocalVideo } = require('../services/newsContent');
 
 router.use(authMiddleware, requireRole('admin'));
 
@@ -16,8 +16,8 @@ const COLLECTIONS = {
   'featured-courses':  { table: 'featured_courses',   dir: 'featured_courses',   fields: ['title', 'student_count', 'description', 'display_order', 'active'] },
   'achievements':      { table: 'achievements',       dir: 'achievements',       fields: ['year', 'title', 'description', 'display_order', 'active'] },
   // Tin tức: bài mới nhất lên đầu (theo ngày đăng)
-  'news':              { table: 'news_posts',         dir: 'news',               fields: ['title', 'summary', 'content', 'published_at', 'display_order', 'active'],
-                         orderBy: 'COALESCE(published_at, created_at) DESC, id DESC', clean: { content: sanitizeNewsHtml } },
+  'news':              { table: 'news_posts',         dir: 'news',               fields: ['title', 'summary', 'content', 'video', 'published_at', 'display_order', 'active'],
+                         orderBy: 'COALESCE(published_at, created_at) DESC, id DESC', clean: { content: sanitizeNewsHtml, video: normalizeNewsVideo } },
 };
 
 // Giá trị 1 trường gửi lên → giá trị lưu (active/display_order là số; trường có hàm làm sạch thì làm sạch)
@@ -62,6 +62,12 @@ router.put('/settings', (req, res) => {
 router.post('/news/inline-image', uploadContent.news.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'Chưa chọn ảnh' });
   res.status(201).json({ url: `/uploads/news/${req.file.filename}` });
+});
+
+// Video bài tin tức (đầu bài hoặc chèn giữa bài): tải lên trước, bài chỉ lưu tên file / đường dẫn
+router.post('/news/video', uploadNewsVideo.single('video'), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'Chưa chọn video' });
+  res.status(201).json({ file: req.file.filename, url: `/uploads/news/${req.file.filename}` });
 });
 
 // Middleware chọn multer theo loại nội dung
@@ -123,6 +129,9 @@ router.put('/:collection/:id', imageUploadFor, (req, res) => {
   if (req.params.collection === 'news' && req.body.content !== undefined) {
     rmUnusedInlineImages(existing.content, db.prepare('SELECT content FROM news_posts WHERE id=?').get(existing.id).content);
   }
+  // Đổi / bỏ video đầu bài đã tải lên → xóa file cũ
+  if (req.params.collection === 'news' && req.body.video !== undefined && isLocalVideo(existing.video)
+    && db.prepare('SELECT video FROM news_posts WHERE id=?').get(existing.id).video !== existing.video) rmImage('news', existing.video);
   res.json({ message: 'Đã cập nhật' });
 });
 
@@ -134,7 +143,10 @@ router.delete('/:collection/:id', (req, res) => {
   const existing = db.prepare(`SELECT * FROM ${cfg.table} WHERE id=?`).get(req.params.id);
   if (existing) {
     rmImage(cfg.dir, existing.image);
-    if (req.params.collection === 'news') rmUnusedInlineImages(existing.content, '');
+    if (req.params.collection === 'news') {
+      rmUnusedInlineImages(existing.content, '');
+      if (isLocalVideo(existing.video)) rmImage('news', existing.video);
+    }
     db.prepare(`DELETE FROM ${cfg.table} WHERE id=?`).run(req.params.id);
   }
   res.json({ message: 'Đã xóa' });

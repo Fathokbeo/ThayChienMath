@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { recordCourseView } from '../../lib/interest';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import PublicLayout from '../../components/PublicLayout';
 import api, { fileUrl } from '../../lib/api';
@@ -25,7 +26,7 @@ export default function CourseDetail() {
 
     const loadPublic = () => {
       api.get(`/public/courses/${id}`)
-        .then((r) => { if (!cancelled) setCourse(r.data); })
+        .then((r) => { if (!cancelled) { setCourse(r.data); if (user?.role !== 'student') recordCourseView(r.data.id); } })
         .catch(() => { if (!cancelled) { toast.error('Không tìm thấy khóa học'); navigate('/'); } })
         .finally(() => { if (!cancelled) setLoading(false); });
     };

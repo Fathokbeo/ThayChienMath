@@ -18,25 +18,74 @@ router.get('/ads', (req, res) => {
 
 // Danh sách khóa học công khai — chỉ các khóa admin chọn hiện ở trang chủ (show_on_home), kèm sĩ số
 // ?grade=9&category=Đề HSG → sắp khóa phù hợp nhất lên đầu (theo nhãn AI đã lưu, không gọi AI); không có → mới nhất trước
-function publicCourses(db, grade, category, interest) {
+// interest / viewed: bảng tổng hợp mức quan tâm của khách (trang chủ) → xếp khóa hợp nhất lên đầu mục Khóa học
+function publicCourses(db, grade, category, interest, viewed) {
   const rows = db.prepare(`
     SELECT c.id, c.title, c.description, c.thumbnail, c.price, c.open_registration, c.ai_tags,
     (SELECT COUNT(DISTINCT cs.student_id) FROM class_students cs JOIN classes cl ON cs.class_id=cl.id
      WHERE cl.course_id=c.id AND cl.active=1) student_count
     FROM courses c WHERE c.active=1 AND COALESCE(c.show_on_home,1)=1 ORDER BY c.created_at DESC
   `).all();
-  return (interest ? rankCoursesByInterest(rows, interest, category) : rankCourses(rows, grade, category)).map(({ ai_tags, ...c }) => ({ ...c, fit_grades: parseTags(ai_tags)?.grades || [] }));
+  return (interest || viewed ? rankCoursesByInterest(rows, interest || [], category, viewed) : rankCourses(rows, grade, category)).map(({ ai_tags, ...c }) => ({ ...c, fit_grades: parseTags(ai_tags)?.grades || [] }));
 }
 const q = (v) => (v ? String(v).slice(0, 60) : '');
 
-// ?interest=10:6,8:2,Thi vào 10:2 — các lớp khách đã xem đề kèm số lần (trang chủ, xem lib/interest.ts ở frontend)
-const parseInterest = (v) => (v ? String(v).slice(0, 300).split(',').slice(0, 8).map((p) => {
-  const i = p.lastIndexOf(':');
-  return { grade: p.slice(0, i).trim().slice(0, 40), weight: Math.min(1000, Math.max(0, parseInt(p.slice(i + 1), 10) || 0)) };
-}).filter((x) => x.grade) : null);
+// ?interest=10|Đề HK1:3.4,10|:1.2,9|Đề HSG:0.6 — mức quan tâm (đã mờ dần theo thời gian) theo cặp lớp|loại đề
+// (trang chủ, xem lib/interest.ts ở frontend). Vẫn đọc dạng cũ 10:6,8:2 (lớp:số lần xem) của bản web cũ còn trong cache.
+const parseInterest = (v) => {
+  if (!v) return null;
+  const list = String(v).slice(0, 900).split(',').slice(0, 12).map((p) => {
+    const i = p.lastIndexOf(':');
+    const [g, c] = (i > 0 ? p.slice(0, i) : p).split('|');
+    return { grade: String(g || '').trim().slice(0, 40), category: String(c || '').trim().slice(0, 40) || null,
+      weight: Math.min(1000, Math.max(0, parseFloat(p.slice(i + 1)) || 0)) };
+  }).filter((x) => x.grade && x.weight > 0);
+  return list.length ? list : null;
+};
+// ?courses=12:1.8,5:0.9 — các khóa khách đã mở xem chi tiết (mức quan tâm)
+const parseViewed = (v) => {
+  if (!v) return null;
+  const m = new Map(String(v).slice(0, 300).split(',').slice(0, 10).map((p) => {
+    const [id, w] = p.split(':');
+    return [parseInt(id, 10), Math.min(5, Math.max(0, parseFloat(w) || 0))];
+  }).filter(([id, w]) => id > 0 && w > 0));
+  return m.size ? m : null;
+};
 
 router.get('/courses', (req, res) => {
-  res.json(publicCourses(getDb(), q(req.query.grade), q(req.query.category), parseInterest(req.query.interest)));
+  res.json(publicCourses(getDb(), q(req.query.grade), q(req.query.category), parseInterest(req.query.interest), parseViewed(req.query.courses)));
+});
+
+// Tài khoản khách: lưu mức quan tâm lên máy chủ để gợi ý khóa học theo người dùng, kể cả khi đổi máy.
+// Chỉ tài khoản khách; dữ liệu chỉ là lớp / loại đề / mã khóa học kèm thời điểm, đã kiểm tra & giới hạn kích thước.
+function guestOnly(req, res) {
+  const user = userFromRequest(req);
+  if (!user || user.role !== 'guest') { res.status(403).json({ message: 'Chỉ dành cho tài khoản khách' }); return null; }
+  return user;
+}
+router.get('/my-interest', (req, res) => {
+  const user = guestOnly(req, res); if (!user) return;
+  const row = getDb().prepare('SELECT data FROM user_interest WHERE user_id=?').get(user.id);
+  let data = { ev: [], courses: {} };
+  try { if (row) data = JSON.parse(row.data); } catch { /* hỏng → coi như rỗng */ }
+  res.json(data);
+});
+router.put('/my-interest', (req, res) => {
+  const user = guestOnly(req, res); if (!user) return;
+  const now = Date.now();
+  const str = (s) => String(s || '').replace(/[,:|]/g, ' ').trim().slice(0, 40);
+  const okTime = (t) => Number.isFinite(t) && t > now - 400 * 864e5 && t < now + 864e5;
+  const ev = (Array.isArray(req.body?.ev) ? req.body.ev : []).slice(0, 80)
+    .map((e) => ({ g: str(e && e.g), c: str(e && e.c) || undefined, w: Math.min(5, Math.max(0, +(e && e.w) || 0)), t: +(e && e.t) }))
+    .filter((e) => e.g && e.w > 0 && okTime(e.t));
+  const courses = {};
+  Object.entries(req.body?.courses && typeof req.body.courses === 'object' ? req.body.courses : {}).slice(0, 20).forEach(([id, x]) => {
+    const n = parseInt(id, 10); const t = +(x && x.t); const w = Math.min(5, Math.max(0, +(x && x.w) || 0));
+    if (n > 0 && w > 0 && okTime(t)) courses[n] = { w, t };
+  });
+  getDb().prepare(`INSERT INTO user_interest (user_id,data,updated_at) VALUES (?,?,CURRENT_TIMESTAMP)
+    ON CONFLICT(user_id) DO UPDATE SET data=excluded.data, updated_at=CURRENT_TIMESTAMP`).run(user.id, JSON.stringify({ ev, courses }));
+  res.json({ ok: true });
 });
 
 // Gợi ý khóa học dưới 1 đề: chỉ các khóa đúng lớp hoặc đúng mục tiêu (điểm ≥ 6), tối đa ?limit (mặc định 3)
@@ -150,14 +199,14 @@ const NEWS_ORDER = 'ORDER BY COALESCE(published_at, created_at) DESC, id DESC';
 // ?limit=6 — danh sách không kèm nội dung đầy đủ cho nhẹ
 router.get('/news', (req, res) => {
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 100, 1), 200);
-  res.json(getDb().prepare(`SELECT id,title,summary,image,published_at,created_at FROM news_posts WHERE active=1 ${NEWS_ORDER} LIMIT ${limit}`).all());
+  res.json(getDb().prepare(`SELECT id,title,summary,image,video,published_at,created_at FROM news_posts WHERE active=1 ${NEWS_ORDER} LIMIT ${limit}`).all());
 });
 
 router.get('/news/:id', (req, res) => {
   const db = getDb();
-  const post = db.prepare('SELECT id,title,summary,content,image,published_at,created_at FROM news_posts WHERE id=? AND active=1').get(req.params.id);
+  const post = db.prepare('SELECT id,title,summary,content,image,video,published_at,created_at FROM news_posts WHERE id=? AND active=1').get(req.params.id);
   if (!post) return res.status(404).json({ message: 'Không tìm thấy bài viết' });
-  const related = db.prepare(`SELECT id,title,summary,image,published_at,created_at FROM news_posts WHERE active=1 AND id<>? ${NEWS_ORDER} LIMIT 3`).all(post.id);
+  const related = db.prepare(`SELECT id,title,summary,image,video,published_at,created_at FROM news_posts WHERE active=1 AND id<>? ${NEWS_ORDER} LIMIT 3`).all(post.id);
   res.json({ ...post, related });
 });
 

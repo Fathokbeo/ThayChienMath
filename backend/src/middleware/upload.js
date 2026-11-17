@@ -158,4 +158,15 @@ const uploadExam = multer({
   limits: { fileSize: 30 * 1024 * 1024 },
 }).fields([{ name: 'thumbnail', maxCount: 1 }, { name: 'pdf', maxCount: 1 }, { name: 'docx', maxCount: 1 }]);
 
-module.exports = { EXAM_DOCS_DIR, uploadExam, uploadAd, uploadHomework, uploadSubmission, uploadVideo, uploadCourseThumbnail, uploadContent, uploadLessonFile, uploadAssistantPhoto };
+// Video trong bài tin tức (đầu bài hoặc chèn giữa bài) — công khai như ảnh tin, tối đa 300MB.
+// Video dài nên đăng YouTube rồi dán link (đỡ tốn dung lượng máy chủ, xem mượt hơn).
+const uploadNewsVideo = multer({
+  storage: createStorage('news'),
+  fileFilter: (req, file, cb) => {
+    if (/^video\/(mp4|webm|quicktime)$/i.test(file.mimetype || '')) cb(null, true);
+    else cb(badFile('Chỉ nhận video MP4, WebM hoặc MOV'));
+  },
+  limits: { fileSize: 300 * 1024 * 1024 },
+});
+
+module.exports = { uploadNewsVideo, EXAM_DOCS_DIR, uploadExam, uploadAd, uploadHomework, uploadSubmission, uploadVideo, uploadCourseThumbnail, uploadContent, uploadLessonFile, uploadAssistantPhoto };
