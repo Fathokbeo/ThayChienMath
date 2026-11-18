@@ -7,7 +7,8 @@
 //     Lô đang chạy + kết quả lô (giữ 3 ngày) được lưu vào DB (bảng ai_batch_requests) → server khởi động lại / cập
 //     nhật code giữa chừng: bài được chấm lại nhưng các lượt đã có kết quả dùng lại luôn, không trả tiền lần 2.
 //  2. LƯU CACHE phần giống nhau cho cả lớp (đề + barem + hướng dẫn chấm): đánh dấu cache_control ở cuối phần đó,
-//     các bài sau của cùng đề chỉ tính ~10% giá phần này.
+//     các bài sau của cùng đề chỉ tính ~5–10% giá phần này. Hàng đợi chấm "mồi cache" theo từng đề (1 bài ghi cache
+//     trước, các bài còn lại gửi sau để đọc được) và bỏ cache cho bài lẻ — xem gradingQueue.js + applyCachePolicy.
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -167,7 +168,20 @@ const cached = (block) => ({ ...block, cache_control: { type: 'ephemeral' } });
 // ── BATCH ──────────────────────────────────────────────────────────────────────────────────────────
 // Chỉ các lượt gọi chạy BÊN TRONG batchScope (hàng đợi chấm nền bọc mỗi bài bằng runInBatchScope) mới đi đường lô.
 const batchScope = new AsyncLocalStorage();
-const runInBatchScope = (fn) => batchScope.run({ batch: true }, fn);
+// opts (hàng đợi chấm truyền vào, xem "MỒI CACHE" ở gradingQueue.js):
+//   cache: 'off' bỏ đánh dấu cache | '5m' / '1h' thời hạn cache | không có = giữ nguyên như trong nội dung
+//   realtime: true → mọi lượt gọi của bài này gọi trực tiếp (bài mồi khi cả lớp đang chờ)
+// Store là object dùng chung cho mọi lượt gọi của 1 bài → callClaude ghi lại cachedSent=true khi đã gửi phần có cache.
+const runInBatchScope = (fn, opts = {}) => batchScope.run({ batch: true, ...opts }, fn);
+
+// Áp cách dùng cache của hàng đợi lên các khối nội dung đã đánh dấu cache_control
+function applyCachePolicy(content, scope) {
+  if (!scope?.cache || !content.some((b) => b.cache_control)) return content;
+  if (scope.cache === 'off') return content.map(({ cache_control, ...b }) => b); // eslint-disable-line no-unused-vars
+  scope.cachedSent = true;
+  const cc = scope.cache === '1h' ? { type: 'ephemeral', ttl: '1h' } : { type: 'ephemeral' };
+  return content.map((b) => (b.cache_control ? { ...b, cache_control: cc } : b));
+}
 
 // Admin bật/tắt ở trang Tổng quan (mặc định BẬT). Tắt → mọi lượt gọi trực tiếp (nhanh hơn, giá gấp đôi).
 function batchEnabled() {
@@ -332,15 +346,16 @@ function parseError(msg) { const e = new Error(msg); e.isParseError = true; retu
 async function callClaude(role, content, label, { maxTokens = 16000, forceRealtime = false } = {}) {
   if (!claudeReady()) throw aiOffError();
   const { model, effort } = roleConfig(role);
+  const scope = batchScope.getStore();
   const params = {
     model,
     max_tokens: maxTokens,
     thinking: { type: 'adaptive' },
     output_config: { effort },
-    messages: [{ role: 'user', content }],
+    messages: [{ role: 'user', content: applyCachePolicy(content, scope) }],
   };
   let res; let batch = false;
-  if (!forceRealtime && inBatchMode()) {
+  if (!forceRealtime && !scope?.realtime && inBatchMode()) {
     try { res = await batchCreate(params, role); batch = true; } catch (err) {
       if (!err.batchInfra) throw err;
       console.warn(`[claude] ${label}: ${err.message} → gọi trực tiếp`);
@@ -379,6 +394,6 @@ async function generate(role, content, parse, label, opts = {}) {
 
 module.exports = {
   CLAUDE_ROLES, claudeReady, claudeConfigured, aiOffError, fileBlock, text, cached, generate, parseError,
-  runInBatchScope, batchEnabled, resumeBatches, aiStats, keyInfo, saveApiKey, removeApiKey, storedKey,
+  runInBatchScope, applyCachePolicy, batchEnabled, resumeBatches, aiStats, keyInfo, saveApiKey, removeApiKey, storedKey,
   MODEL_OPTIONS, MODEL_GROUPS, chosenModels, saveModels,
 };

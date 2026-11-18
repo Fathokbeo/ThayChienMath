@@ -3,7 +3,7 @@
 // AI_MONTHLY_BUDGET_USD trong .env, hoặc admin sửa ở trang Tổng quan → lưu site_settings.ai_monthly_budget).
 const { getDb } = require('../db/database');
 
-// Giá USD / 1 triệu token: [vào, ra]. Đọc cache = 10% giá vào; ghi cache (5 phút) = 125% giá vào.
+// Giá USD / 1 triệu token: [vào, ra]. Đọc cache = 5–10% giá vào (CACHE_READ_RATE); ghi cache 5 phút = 125%, 1 giờ = 200%.
 // Model lạ (vd model dự phòng phía máy chủ Anthropic) → tính theo giá Opus cho an toàn (không đếm thiếu).
 const PRICES = {
   'claude-opus-5-5': [4, 20],
@@ -14,6 +14,8 @@ const PRICES = {
   'claude-opus-4-8': [5, 25],
 };
 const FALLBACK_PRICE = [5, 25];
+// Giá đọc cache so với giá vào: Opus 5.5 / Sonnet 5.5 chỉ 5%, còn lại 10%
+const CACHE_READ_RATE = { 'claude-opus-5-5': 0.05, 'claude-sonnet-5-5': 0.05 };
 
 // batch=true: gửi qua Message Batches → giảm 50% mọi loại token
 function costOf(model, usage = {}, batch = false) {
@@ -21,8 +23,12 @@ function costOf(model, usage = {}, batch = false) {
   const inTok = usage.input_tokens || 0;
   const cacheRead = usage.cache_read_input_tokens || 0;
   const cacheWrite = usage.cache_creation_input_tokens || 0;
+  // Ghi cache 1 giờ = 200% giá vào, 5 phút = 125% (API tách sẵn 2 loại trong usage.cache_creation)
+  const write1h = Math.min(cacheWrite, usage.cache_creation?.ephemeral_1h_input_tokens || 0);
   const outTok = usage.output_tokens || 0;
-  return ((inTok * pin + cacheRead * pin * 0.1 + cacheWrite * pin * 1.25 + outTok * pout) / 1e6) * (batch ? 0.5 : 1);
+  const readRate = CACHE_READ_RATE[model] ?? 0.1;
+  return ((inTok * pin + cacheRead * pin * readRate + write1h * pin * 2 + (cacheWrite - write1h) * pin * 1.25 + outTok * pout) / 1e6)
+    * (batch ? 0.5 : 1);
 }
 
 // Tháng theo giờ Việt Nam (UTC+7), dạng YYYY-MM

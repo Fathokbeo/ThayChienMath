@@ -15,10 +15,29 @@ const SWEEP_INTERVAL_MS = 60_000;  // quét định kỳ để gom các bài cò
 
 const queue = [];          // FIFO các submission id chờ chấm
 const inQueue = new Set();
+const hwOf = new Map();    // submission id → homework id (để gom bài cùng đề khi mồi cache)
 let active = 0;            // số bài đang chấm
 // Gọi trực tiếp: chấm 2 bài một lúc. Chế độ lô: tới 40 bài một lúc (mỗi bài chờ kết quả lô vài phút, nên cần
 // chấm song song nhiều bài thì 1 lô mới gom được nhiều yêu cầu).
 const concurrency = () => (batchEnabled() ? 40 : 2);
+
+// ── MỒI CACHE THEO TỪNG ĐỀ ──────────────────────────────────────────────────────────────────────────
+// Phần [file đáp án + barem + hướng dẫn chấm] giống hệt nhau cho mọi bài của cùng đề → Claude lưu cache được:
+// bài sau chỉ trả ~5–10% giá phần đó. Nhưng cache phải có người GHI trước (đắt hơn 25–100%) rồi bài sau mới ĐỌC,
+// và trong 1 lô các yêu cầu chạy song song nên tự chúng không đọc được cache của nhau. Vì vậy:
+//  • Nhiều bài cùng đề đang chờ, cache chưa có → chấm 1 bài TRƯỚC (bài mồi, ghi cache), các bài còn lại chờ nó xong
+//    rồi gửi cùng 1 lô (đọc cache). Từ PRIME_REALTIME_MIN bài trở lên (vd giáo viên nộp hộ cả lớp) bài mồi gọi
+//    trực tiếp (giá gấp đôi cho riêng 1 bài, có kết quả sau ~1 phút) để cả lớp không phải chờ thêm 1 vòng lô.
+//  • Cache còn sống (vừa chấm bài cùng đề) → gửi ngay, đọc cache.
+//  • Bài lẻ một mình, cache chưa có → KHÔNG ghi cache (ghi mà không ai đọc thì chỉ tốn thêm).
+// Chế độ lô dùng cache 1 giờ (lô thường xong sau vài phút, cache 5 phút dễ hết hạn trước khi các bài sau chạy).
+// Bài mồi gọi trực tiếp tốn thêm ~1 bài giá lô; mỗi bài sau đọc cache tiết kiệm ~1/5 bài → từ 8 bài mới có lời
+const PRIME_REALTIME_MIN = 8;
+const cacheTtl = () => (batchEnabled() ? '1h' : '5m');
+// Coi cache còn sống tới (lúc gửi + thời hạn − lề an toàn). Mỗi lần đọc cache thì hạn được tính lại từ đầu.
+const warmWindowMs = (ttl) => (ttl === '1h' ? 50 * 60e3 : 4 * 60e3);
+const hwState = new Map(); // homework id → { priming: submission id | null, warmUntil: ms }
+const stateOf = (hw) => { if (!hwState.has(hw)) hwState.set(hw, { priming: null, warmUntil: 0 }); return hwState.get(hw); };
 
 // Cache đáp án AI đọc được từ file đáp án, theo (homework_id : tên file đáp án).
 // Nhờ đó nhiều học sinh cùng bài chỉ tốn 1 lần đọc file; file đổi (tên mới) → tự đọc lại.
@@ -54,19 +73,64 @@ function enqueue(submissionId) {
   const id = Number(submissionId);
   if (!id || inQueue.has(id)) return;
   inQueue.add(id);
+  try { hwOf.set(id, getDb().prepare('SELECT homework_id FROM submissions WHERE id=?').get(id)?.homework_id ?? null); }
+  catch { hwOf.set(id, null); }
   queue.push(id);
-  pump();
+  schedulePump();
+}
+
+// Bài mới vào: đợi gom một chút rồi mới xét (giáo viên nộp hộ cả lớp → các bài vào lần lượt trong vài giây; xét ngay
+// thì bài đầu tưởng mình là bài lẻ). Chế độ lô vốn gom 20 giây mới gửi nên đợi thêm 15 giây gần như không chậm hơn.
+const gatherMs = () => +process.env.GRADING_GATHER_MS || (batchEnabled() ? 15_000 : 1_000);
+let pumpTimer = null;
+function schedulePump() {
+  if (pumpTimer) return;
+  pumpTimer = setTimeout(() => { pumpTimer = null; pump(); }, gatherMs());
+}
+
+// Chọn cách chấm 1 bài lấy ra khỏi hàng đợi (xem "MỒI CACHE" ở trên). siblings = số bài CÙNG ĐỀ còn trong hàng đợi.
+function planFor(hw, siblings) {
+  if (hw == null) return {};
+  const st = stateOf(hw);
+  if (Date.now() < st.warmUntil) return { cache: cacheTtl() };
+  if (siblings === 0) return { cache: 'off' };
+  return { cache: cacheTtl(), prime: true, realtime: batchEnabled() && siblings + 1 >= PRIME_REALTIME_MIN };
 }
 
 function pump() {
-  while (active < concurrency() && queue.length) {
-    const id = queue.shift();
-    active++;
-    // Chạy trong "batchScope" → các lượt gọi Claude của bài này đi đường lô (nếu admin đang bật chế độ lô)
-    runInBatchScope(() => gradeOne(id))
-      .catch((err) => { if (err.code !== 'AI_OFF') console.error(`[grading-queue] Bài nộp #${id} chấm lỗi: ${err.message}`); })
-      .finally(() => { inQueue.delete(id); active--; pump(); });
+  for (let i = 0; i < queue.length && active < concurrency();) {
+    const id = queue[i];
+    const hw = hwOf.get(id);
+    if (hw != null && stateOf(hw).priming) { i++; continue; } // đề này đang chấm bài mồi → chờ, xét bài tiếp theo
+    queue.splice(i, 1);
+    const plan = planFor(hw, hw == null ? 0 : queue.filter((x) => hwOf.get(x) === hw).length);
+    start(id, hw, plan);
   }
+}
+
+function start(id, hw, plan) {
+  active++;
+  const sentAt = Date.now();
+  if (plan.prime) {
+    stateOf(hw).priming = id;
+    console.log(`[grading-queue] 🔥 Mồi cache đề #${hw} bằng bài #${id}${plan.realtime ? ' (gọi trực tiếp — nhiều bài đang chờ)' : ''}`);
+  }
+  // Chạy trong "batchScope" → các lượt gọi Claude của bài này đi đường lô (nếu admin đang bật chế độ lô),
+  // kèm cách dùng cache + có gọi trực tiếp không. claudeClient đánh dấu scope.cachedSent khi đã gửi phần có cache.
+  const scope = { cache: plan.cache, realtime: plan.realtime, prime: plan.prime };
+  runInBatchScope(() => gradeOne(id), scope)
+    .then(() => {
+      if (hw == null || !scope.cachedSent || plan.cache === 'off') return;
+      const st = stateOf(hw);
+      // Bài mồi về chậm (lô lâu) thì vẫn cho các bài đang chờ đi ngay — tệ nhất chúng tự ghi cache như trước đây
+      st.warmUntil = Math.max(st.warmUntil, sentAt + warmWindowMs(plan.cache), plan.prime ? Date.now() + 2 * 60e3 : 0);
+    })
+    .catch((err) => { if (err.code !== 'AI_OFF') console.error(`[grading-queue] Bài nộp #${id} chấm lỗi: ${err.message}`); })
+    .finally(() => {
+      if (plan.prime && stateOf(hw).priming === id) stateOf(hw).priming = null; // lỗi → bài kế tiếp cùng đề làm bài mồi
+      inQueue.delete(id); hwOf.delete(id); active--;
+      pump();
+    });
 }
 
 // Chấm 1 bài nộp kiểu HSA: hoàn toàn tự động theo đáp án giáo viên nhập, KHÔNG dùng AI,
