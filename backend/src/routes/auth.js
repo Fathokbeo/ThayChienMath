@@ -193,6 +193,27 @@ router.post('/google-unlink', (req, res) => {
   res.json({ linked: false, google_email: null, user: publicUser(db.prepare('SELECT * FROM users WHERE id=?').get(u.id)) });
 });
 
+// Khách TỰ XÓA tài khoản (Google Play bắt buộc với app cho tự tạo tài khoản). Xóa hẳn tài khoản + dữ liệu gắn với nó
+// (mục quan tâm khóa học). Tài khoản giáo viên/học sinh/phụ huynh do trung tâm cấp, gắn với lớp, điểm, bài nộp
+// → không tự xóa ở đây, phải liên hệ trung tâm (chính sách bảo mật mục 9).
+// Chỉ tin token ở header (như liên kết Google) để trang lạ không lừa trình duyệt xóa hộ.
+router.post('/delete-account', (req, res) => {
+  const u = currentUser(req);
+  if (!u) return res.status(401).json({ message: 'Unauthorized' });
+  if (u.role !== 'guest') {
+    return res.status(403).json({ message: 'Tài khoản do trung tâm cấp — vui lòng liên hệ trung tâm để xóa tài khoản và dữ liệu.' });
+  }
+  if (req.body?.confirm !== true) return res.status(400).json({ message: 'Thiếu xác nhận xóa tài khoản' });
+  const db = getDb();
+  db.transaction(() => {
+    db.prepare('DELETE FROM user_interest WHERE user_id=?').run(u.id);
+    db.prepare("DELETE FROM users WHERE id=? AND role='guest'").run(u.id);
+  })();
+  clearSessionCookie(res);
+  console.log(`[auth] Khách #${u.id} đã tự xóa tài khoản`);
+  res.json({ message: 'Đã xóa tài khoản' });
+});
+
 // Cấp lại cookie phiên cho người đang đăng nhập sẵn (token còn trong trình duyệt từ trước khi có tính
 // năng này), để họ không phải đăng nhập lại mới xem được file.
 router.post('/session', (req, res) => {

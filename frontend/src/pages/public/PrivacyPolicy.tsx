@@ -7,7 +7,7 @@ import useIsMobile from '../../lib/useIsMobile';
 
 // Chính sách bảo mật cho website edugrade.vn và app Android (Google Play bắt buộc có URL công khai).
 // Nội dung phải khớp đúng những gì app làm — sửa tính năng liên quan dữ liệu thì cập nhật trang này.
-const UPDATED = '30/10/2026';
+const UPDATED = '22/11/2026';
 
 function H({ id, children }: { id?: string; children: ReactNode }) {
   return <h2 id={id} style={{ fontSize: '1.15rem', fontWeight: 700, margin: '1.75rem 0 0.6rem', scrollMarginTop: 80 }}>{children}</h2>;
@@ -39,7 +39,9 @@ export default function PrivacyPolicy() {
 
         <H>1. Dữ liệu chúng tôi thu thập</H>
         <ul>
-          <li><strong>Tài khoản</strong> (do trung tâm tạo, người dùng không tự đăng ký): họ tên, tên đăng nhập, mật khẩu, số điện thoại phụ huynh, lớp học đang tham gia.</li>
+          <li><strong>Tài khoản giáo viên, học sinh, phụ huynh</strong> (do trung tâm tạo): họ tên, tên đăng nhập, mật khẩu, số điện thoại phụ huynh, lớp học đang tham gia.</li>
+          <li><strong>Tài khoản khách</strong> (người dùng tự đăng ký để xem kho đề, tin tức, khóa học): họ tên, địa chỉ email, mật khẩu (lưu dạng mã hóa); các khóa học/đề bạn đã xem trên web để gợi ý khóa học phù hợp.</li>
+          <li><strong>Đăng nhập bằng Google</strong> (tùy chọn, mọi loại tài khoản): khi bạn bấm “Đăng nhập bằng Google” hoặc “Liên kết Google”, Google gửi cho chúng tôi <strong>mã định danh tài khoản Google, địa chỉ email, họ tên và ảnh đại diện</strong>. Chúng tôi chỉ dùng các thông tin này để đăng nhập và hiển thị tài khoản; không truy cập Gmail, danh bạ, Drive hay dữ liệu nào khác trong tài khoản Google của bạn.</li>
           <li><strong>Dữ liệu học tập</strong>: bài làm nộp lên (ảnh chụp, file PDF), câu trả lời trắc nghiệm, điểm số, nhận xét, thời gian nộp bài.</li>
           <li><strong>Đơn đăng ký học</strong> (khách gửi ở trang chủ, không cần tài khoản): họ tên học sinh, số điện thoại phụ huynh, trường, lớp, điểm tổng kết môn Toán học kỳ gần nhất, ca thi thử đầu vào đã chọn, ghi chú; kèm địa chỉ IP để chặn gửi đơn rác.</li>
           <li><strong>Dữ liệu kỹ thuật</strong>: mã phiên đăng nhập và bản nháp bài làm lưu trên chính thiết bị của bạn (bộ nhớ trình duyệt/ứng dụng); nhật ký máy chủ thông thường (thời gian truy cập, địa chỉ IP) để vận hành và bảo mật.</li>
@@ -58,6 +60,7 @@ export default function PrivacyPolicy() {
           <li>Tổ chức lớp học: bài giảng, bài tập, nộp bài, chấm và trả điểm.</li>
           <li>Cho học sinh và phụ huynh theo dõi kết quả học tập; cho giáo viên theo dõi lớp.</li>
           <li>Liên hệ tư vấn và xếp lịch thi thử đầu vào cho người gửi đơn đăng ký học.</li>
+          <li>Đăng nhập (kể cả bằng Google) và gợi ý khóa học phù hợp cho tài khoản khách.</li>
         </ul>
 
         <H>4. Chấm bài bằng trí tuệ nhân tạo (AI)</H>
@@ -87,10 +90,12 @@ export default function PrivacyPolicy() {
         </ul>
 
         <H>8. Trẻ em</H>
-        <p>Người dùng chính là học sinh THCS. Tài khoản học sinh do trung tâm tạo khi phụ huynh đăng ký cho con theo học; phụ huynh có quyền xem kết quả, yêu cầu sửa hoặc xóa dữ liệu của con bất kỳ lúc nào.</p>
+        <p>Người dùng chính là học sinh THCS. Tài khoản học sinh do trung tâm tạo khi phụ huynh đăng ký cho con theo học; phụ huynh có quyền xem kết quả, yêu cầu sửa hoặc xóa dữ liệu của con bất kỳ lúc nào. Tài khoản khách dành cho phụ huynh và người quan tâm đến khóa học.</p>
 
         <H id="xoa-du-lieu">9. Quyền của bạn và yêu cầu xóa tài khoản, dữ liệu</H>
-        <p>Học sinh, phụ huynh hoặc người đã gửi đơn đăng ký có thể yêu cầu <strong>xem, sửa, hoặc xóa</strong> tài khoản và dữ liệu bằng cách liên hệ trung tâm (thông tin ở mục 11), nêu rõ tên đăng nhập hoặc họ tên học sinh và số điện thoại phụ huynh. Chúng tôi xác minh và xử lý trong vòng <strong>7 ngày làm việc</strong>. Khi xóa tài khoản, bài làm, điểm số và nhận xét của tài khoản đó bị xóa khỏi hệ thống; bản sao lưu cũ tự hết hạn sau 14 ngày.</p>
+        <p><strong>Tài khoản khách — tự xóa ngay:</strong> đăng nhập trên ứng dụng hoặc website edugrade.vn → mở <strong>Tài khoản của tôi</strong> → <strong>Xóa tài khoản</strong> → gõ “XÓA” để xác nhận. Tài khoản cùng họ tên, email, liên kết Google và danh sách khóa học đã xem bị xóa ngay lập tức. Bạn cũng có thể hủy liên kết Google bất kỳ lúc nào ở mục “Liên kết Google”.</p>
+        <p><strong>Tài khoản học sinh, phụ huynh, giáo viên và đơn đăng ký học:</strong> liên hệ trung tâm (thông tin ở mục 11) để yêu cầu <strong>xem, sửa, hoặc xóa</strong> tài khoản và dữ liệu, nêu rõ tên đăng nhập hoặc họ tên học sinh và số điện thoại phụ huynh. Chúng tôi xác minh và xử lý trong vòng <strong>7 ngày làm việc</strong>. Khi xóa tài khoản, bài làm, điểm số và nhận xét của tài khoản đó bị xóa khỏi hệ thống.</p>
+        <p>Với mọi loại tài khoản, bản sao lưu cũ tự hết hạn sau 14 ngày.</p>
 
         <H>10. Thay đổi chính sách</H>
         <p>Khi chính sách thay đổi, chúng tôi cập nhật trang này và ngày “Cập nhật lần cuối” ở đầu trang.</p>

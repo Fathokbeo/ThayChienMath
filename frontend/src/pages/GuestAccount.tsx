@@ -1,5 +1,9 @@
-import { Link } from 'react-router-dom';
-import { FileStack, Newspaper, BookOpen, LogOut, Mail } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { FileStack, Newspaper, BookOpen, LogOut, Mail, Trash2 } from 'lucide-react';
+import api from '../lib/api';
+import Modal from '../components/Modal';
+import { toast } from '../components/Toast';
 import PublicLayout from '../components/PublicLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { PAGE_MAX } from '../lib/layout';
@@ -49,7 +53,58 @@ export default function GuestAccount() {
             </Link>
           ))}
         </div>
+
+        <DeleteAccountCard isMobile={isMobile} />
       </section>
     </PublicLayout>
+  );
+}
+
+// Xóa tài khoản ngay trong app/web (Google Play bắt buộc với app cho tự tạo tài khoản). Gõ "XÓA" để xác nhận.
+function DeleteAccountCard({ isMobile }: { isMobile: boolean }) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState('');
+  const [busy, setBusy] = useState(false);
+  const ok = ['XÓA', 'XOA'].includes(typed.trim().toUpperCase()); // bàn phím không dấu gõ "xoa" cũng được
+
+  const close = () => { setOpen(false); setTyped(''); };
+  const doDelete = async () => {
+    setBusy(true);
+    try {
+      await api.post('/auth/delete-account', { confirm: true });
+      logout();
+      navigate('/', { replace: true });
+      toast.success('Đã xóa tài khoản và dữ liệu của bạn');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Xóa tài khoản không thành công, vui lòng thử lại');
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div style={{ background: '#fff', borderRadius: 20, padding: isMobile ? '1.25rem' : '1.4rem 1.8rem', marginTop: 16, maxWidth: 560 }}>
+      <h2 style={{ margin: '0 0 6px', fontSize: '1.05rem', fontWeight: 700 }}>Xóa tài khoản</h2>
+      <p style={{ margin: '0 0 12px', color: '#6E6E73', fontSize: '0.9rem', lineHeight: 1.5 }}>
+        Xóa vĩnh viễn tài khoản khách này cùng dữ liệu gắn với nó (họ tên, email, liên kết Google, các khóa học bạn đã xem).
+        Không thể khôi phục. Đơn đăng ký học đã gửi được xử lý riêng — liên hệ trung tâm nếu muốn xóa.
+      </p>
+      <button type="button" className="btn btn-ghost" style={{ color: '#B04A2A' }} onClick={() => setOpen(true)}>
+        <Trash2 size={16} /> Xóa tài khoản
+      </button>
+      <Modal open={open} onClose={close} title="Xóa tài khoản vĩnh viễn?"
+        footer={<>
+          <button type="button" className="btn btn-ghost" onClick={close} disabled={busy}>Thôi</button>
+          <button type="button" className="btn btn-primary" style={{ background: '#B04A2A' }} disabled={!ok || busy} onClick={doDelete}>
+            {busy ? 'Đang xóa…' : 'Xóa vĩnh viễn'}
+          </button>
+        </>}>
+        <p style={{ margin: '0 0 10px', fontSize: '0.92rem', lineHeight: 1.5 }}>
+          Tài khoản và dữ liệu sẽ bị xóa ngay, không khôi phục được. Gõ <b>XÓA</b> vào ô dưới để xác nhận.
+        </p>
+        <input className="input" value={typed} onChange={(e) => setTyped(e.target.value)} placeholder="XÓA" aria-label="Gõ XÓA để xác nhận" autoFocus />
+      </Modal>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-# Đưa app Thầy Chiến Math lên Google Play
+# Đưa app EduGrade Aplus lên Google Play
 
 App Android (`frontend/android`, mã ứng dụng **`vn.thaychienmath.app`**) dùng chung giao diện với web và gọi máy
 chủ thật **https://edugrade.vn**. Thư mục `store/` chứa sẵn ảnh cho trang ứng dụng:
@@ -33,6 +33,15 @@ Thử lần lượt — ghi lại chỗ nào lỗi:
 - [ ] Nút **Back** của điện thoại: đóng menu/hộp thoại trước, rồi lùi trang; ở trang chính thì thu nhỏ app (không thoát nhầm về trang đăng nhập)
 - [ ] Điện thoại bật **chế độ tối**: chữ & biểu tượng trên thanh trạng thái vẫn nhìn rõ
 - [ ] Tắt mạng giữa chừng rồi bật lại: app không treo, tải lại được
+- [ ] Mục **Khách**: tạo tài khoản bằng email → vào **Tài khoản của tôi** → **Xóa tài khoản** (gõ XÓA) → bị đăng xuất, đăng nhập lại báo sai
+
+---
+
+> **Máy dùng Java 25 (Android Studio bản mới):** dự án dùng Gradle 8.14.3 — bản này **không chạy với Java 25**
+> (lỗi `Unsupported class file major version 69`). Trong Android Studio vào **Settings → Build, Execution, Deployment →
+> Build Tools → Gradle → Gradle JDK**, chọn **jbr-21** (máy đã có sẵn ở `C:\Users\Admin\.jdks\jbr-21.0.11`).
+> **Đừng nâng Gradle lên 9.6 trở lên**: plugin Android 8.13 (Capacitor 8 dùng) không chạy được với các bản đó.
+> Build bằng dòng lệnh: đặt `JAVA_HOME` trỏ tới thư mục jbr-21 rồi chạy `gradlew bundleRelease` trong `frontend/android`.
 
 ---
 
@@ -59,7 +68,7 @@ Google Play chỉ nhận bản cập nhật được ký bằng **đúng khóa c
 
 ## Bước 4 — Trang ứng dụng (chép sẵn)
 
-**Tên ứng dụng** (≤ 30 ký tự): `Thầy Chiến Math`
+**Tên ứng dụng** (≤ 30 ký tự): `EduGrade Aplus` (trùng tên hiện trên điện thoại)
 
 **Mô tả ngắn** (≤ 80 ký tự):
 
@@ -67,7 +76,7 @@ Google Play chỉ nhận bản cập nhật được ký bằng **đúng khóa c
 
 **Mô tả đầy đủ:**
 
-> Thầy Chiến Math là ứng dụng học Toán THCS (lớp 6–9) dành cho học sinh, phụ huynh và giáo viên của trung tâm Thầy Chiến Math.
+> EduGrade Aplus là ứng dụng học Toán THCS (lớp 6–9) dành cho học sinh, phụ huynh và giáo viên của trung tâm.
 >
 > DÀNH CHO HỌC SINH
 > • Xem bài giảng, video và tài liệu của lớp
@@ -86,6 +95,7 @@ Google Play chỉ nhận bản cập nhật được ký bằng **đúng khóa c
 > KHO ĐỀ & ĐĂNG KÝ HỌC
 > • Kho đề kiểm tra, đề khảo sát Toán theo từng lớp
 > • Xem học phí các khóa học, đăng ký học và chọn lịch thi thử đầu vào
+> • Tạo tài khoản khách bằng email để lưu đề, nhận gợi ý khóa học phù hợp
 >
 > Tài khoản học sinh do trung tâm cấp. Website: https://edugrade.vn
 
@@ -115,12 +125,16 @@ Giữ tài khoản này hoạt động suốt thời gian app trên cửa hàng.
 | Có thu thập/chia sẻ dữ liệu người dùng? | **Có** thu thập |
 | Mã hóa khi truyền? | **Có** (HTTPS) |
 | Người dùng yêu cầu xóa dữ liệu được không? | **Có** — URL: `https://edugrade.vn/chinh-sach-bao-mat#xoa-du-lieu` |
+| App cho phép tạo tài khoản? | **Có** (tài khoản khách tự đăng ký bằng email) |
+| **URL xóa tài khoản** (mục *Xóa tài khoản*) | `https://edugrade.vn/chinh-sach-bao-mat#xoa-du-lieu` — trang này ghi rõ các bước; trong app: *Tài khoản của tôi → Xóa tài khoản* |
 | Thông tin cá nhân → **Tên** | Thu thập · Bắt buộc · Mục đích: *Chức năng ứng dụng*, *Quản lý tài khoản* |
+| Thông tin cá nhân → **Địa chỉ email** | Thu thập (tài khoản khách, đăng nhập Google) · Bắt buộc với tài khoản khách · *Quản lý tài khoản* |
 | Thông tin cá nhân → **Số điện thoại** | Thu thập (số phụ huynh) · Bắt buộc · *Chức năng ứng dụng*, *Quản lý tài khoản* |
 | **Ảnh** | Thu thập (ảnh bài làm) · Bắt buộc khi nộp bài · *Chức năng ứng dụng* |
 | **Tệp và tài liệu** | Thu thập (PDF bài làm) · *Chức năng ứng dụng* |
 | Hoạt động trong ứng dụng → **Nội dung khác do người dùng tạo** | Thu thập (câu trả lời, bài làm) · *Chức năng ứng dụng* |
-| Có **chia sẻ** cho bên thứ ba? | **Không** — gửi bài cho AI (Google, Anthropic) để chấm là *nhà cung cấp dịch vụ xử lý thay cho trung tâm*, Google không tính là "chia sẻ" |
+| Hoạt động trong ứng dụng → **Lịch sử duyệt trong ứng dụng** | Thu thập (khóa học/đề tài khoản khách đã xem) · Không bắt buộc · *Cá nhân hóa* |
+| Có **chia sẻ** cho bên thứ ba? | **Không** — gửi bài cho AI (Anthropic – Claude) để chấm là *nhà cung cấp dịch vụ xử lý thay cho trung tâm*, Google không tính là "chia sẻ" |
 
 **Đối tượng mục tiêu:** chọn **đúng độ tuổi người dùng thật**. Học sinh lớp 6–7 khoảng 11–13 tuổi → nhóm tuổi có cả **dưới 13** → app thuộc **chính sách Gia đình (Families)** của Google. App đã đáp ứng các điểm chính: không quảng cáo, không SDK theo dõi/quảng cáo, có chính sách bảo mật, không thu thập vị trí hay mã quảng cáo. Đừng chọn "chỉ 18+" để né — Google có thể gỡ app nếu khai sai.
 
