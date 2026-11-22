@@ -18,7 +18,7 @@ import { emptyPartsConfig, normalizePartsConfig, computeMaxScore, anyPartEnabled
 import ParentInfoModal from '../../components/ParentInfoModal';
 import {
   Users, BookOpen, ClipboardList, Edit, Trash2,
-  UserPlus, UserMinus, Play, File, ChevronLeft, Upload, Clock, Eye, EyeOff, Layers, Video, Search,
+  UserPlus, UserMinus, Play, File, Upload, Clock, Eye, EyeOff, Layers, Video, Search,
   ChevronDown, ChevronRight, Trophy, FileSpreadsheet, Download, Paperclip, FileText, X, Plus, GripVertical,
   Repeat, HeartHandshake, MessageSquareQuote
 } from 'lucide-react';

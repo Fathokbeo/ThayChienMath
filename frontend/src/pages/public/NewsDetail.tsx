@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { BackButton, useBackLabel } from '../../lib/backNav';
-import { ChevronLeft, Clock, BookOpenText, Link2 } from 'lucide-react';
+import { Clock, BookOpenText, Link2 } from 'lucide-react';
 import PublicLayout from '../../components/PublicLayout';
 import { NewsGrid, type NewsItem } from '../../components/NewsCard';
 import api, { fileUrl } from '../../lib/api';

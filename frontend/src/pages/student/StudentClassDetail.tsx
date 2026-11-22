@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { BackButton, useBackLabel } from '../../lib/backNav';
 import api, { fileUrl } from '../../lib/api';
 import { buildContentSections } from '../../lib/classContent';
@@ -15,7 +15,7 @@ import { parsePartsConfig, hasObjectiveParts, hasEssay, emptyStudentAnswers, PAR
 import { parseAttachments, isViewableFile } from '../../lib/attachments';
 import RankingBoard from '../../components/RankingBoard';
 import {
-  ChevronLeft, Play, ClipboardList, BookOpen, Upload, CheckCircle, Clock, Eye, Bot, Lock, FileText, Layers, Video,
+  Play, ClipboardList, BookOpen, Upload, CheckCircle, Clock, Eye, Bot, Lock, FileText, Layers, Video,
   ChevronDown, ChevronRight, ChevronUp, Trophy, Star, Paperclip, Download, Timer
 } from 'lucide-react';
 

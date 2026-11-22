@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BackButton, useBackLabel } from '../../lib/backNav';
-import { ChevronLeft, Clock, Download, ZoomIn, ZoomOut, Maximize2, Minimize2, FileText, LogIn } from 'lucide-react';
+import { Clock, Download, ZoomIn, ZoomOut, Maximize2, Minimize2, FileText, LogIn } from 'lucide-react';
 import PublicLayout from '../../components/PublicLayout';
 import PdfCanvasViewer, { TWO_UP_ZOOM } from '../../components/PdfCanvasViewer';
 import ExamCard, { type ExamItem } from '../../components/ExamCard';

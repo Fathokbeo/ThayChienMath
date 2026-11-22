@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { BackButton, useBackLabel } from '../../lib/backNav';
-import { ChevronLeft, ChevronDown, ChevronRight, Lock, Eye, FileCheck2, Bot, Phone, MessageSquareQuote } from 'lucide-react';
+import { ChevronDown, ChevronRight, Lock, Eye, FileCheck2, Bot, Phone, MessageSquareQuote } from 'lucide-react';
 import api, { fileUrl } from '../../lib/api';
 import { PageHeader, SectionHeader, EmptyState, scoreTone } from '../../components/ui';
 import GradingDetails from '../../components/GradingDetails';

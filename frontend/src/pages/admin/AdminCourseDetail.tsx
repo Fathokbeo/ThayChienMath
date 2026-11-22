@@ -4,7 +4,7 @@ import { BackButton, useBackLabel } from '../../lib/backNav';
 import api, { fileUrl } from '../../lib/api';
 import Modal from '../../components/Modal';
 import { toast } from '../../components/Toast';
-import { ArrowLeft, School, Users, BookOpen, Plus, Edit, Trash2, ChevronRight } from 'lucide-react';
+import { School, Users, BookOpen, Plus, Edit, Trash2, ChevronRight } from 'lucide-react';
 
 export default function AdminCourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();

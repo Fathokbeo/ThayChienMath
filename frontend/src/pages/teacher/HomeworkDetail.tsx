@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { BackButton, useBackLabel } from '../../lib/backNav';
 import api, { fileUrl } from '../../lib/api';
 import Modal from '../../components/Modal';
@@ -13,7 +13,7 @@ import { toast } from '../../components/Toast';
 import { saveWorkbook } from '../../lib/native';
 import { parsePartsConfig, hasObjectiveParts } from '../../lib/homeworkParts';
 import { summarizeEssayFeedback, homeworkHasEssay } from '../../lib/feedbackSummary';
-import { ChevronLeft, Users, CheckCircle, XCircle, Clock, Bot, Star, Eye, Download, Repeat, Camera } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Clock, Bot, Star, Eye, Download, Repeat, Camera } from 'lucide-react';
 
 // Danh sách URL file của một bài nộp (hỗ trợ cũ: 1 file, mới: nhiều file dạng JSON)
 function submissionFileUrls(s: any): string[] {

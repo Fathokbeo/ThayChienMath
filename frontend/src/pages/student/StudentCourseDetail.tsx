@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { BackButton, useBackLabel } from '../../lib/backNav';
 import api, { fileUrl } from '../../lib/api';
 import { toast } from '../../components/Toast';
-import { ArrowLeft, School, BookOpen, ChevronRight, Trophy } from 'lucide-react';
+import { School, BookOpen, ChevronRight, Trophy } from 'lucide-react';
 
 // Màu huy hiệu xếp hạng: top 1 vàng, 2 bạc, 3 đồng, còn lại tím
 function rankStyle(rank: number): { bg: string; color: string } {
