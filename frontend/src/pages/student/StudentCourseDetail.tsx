@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { BackButton, useBackLabel } from '../../lib/backNav';
 import api, { fileUrl } from '../../lib/api';
 import { toast } from '../../components/Toast';
 import { ArrowLeft, School, BookOpen, ChevronRight, Trophy } from 'lucide-react';
@@ -16,6 +17,7 @@ export default function StudentCourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const [course, setCourse] = useState<any>(null);
+  useBackLabel(course?.title);
 
   useEffect(() => {
     api.get(`/student/my-courses/${courseId}`)
@@ -31,9 +33,7 @@ export default function StudentCourseDetail() {
 
   return (
     <div className="fade-in">
-      <button className="btn btn-ghost btn-sm" onClick={() => navigate('/student')} style={{ marginBottom: '1rem', gap: 6 }}>
-        <ArrowLeft size={15} /> Quay lại
-      </button>
+      <BackButton fallback="/student" style={{ marginBottom: '1rem', fontSize: '0.9rem' }} />
 
       {/* Course header */}
       <div style={{ background: 'white', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.07)', marginBottom: '1.5rem' }}>

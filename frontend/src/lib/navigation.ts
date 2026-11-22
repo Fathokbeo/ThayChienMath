@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Users, BookOpen, GraduationCap, Image, School, LayoutTemplate, Bell, ClipboardCheck, FileStack,
+  LayoutDashboard, Users, BookOpen, GraduationCap, Image, School, LayoutTemplate, Bell, ClipboardCheck, ClipboardList, FileStack,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -20,6 +20,7 @@ const ADMIN: NavItem[] = [
 
 const TEACHER: NavItem[] = [
   { to: '/teacher', icon: LayoutDashboard, label: 'Tổng quát', short: 'Tổng quát' },
+  { to: '/teacher/homework', icon: ClipboardList, label: 'Bài tập', short: 'Bài tập' },
   { to: '/teacher/courses', icon: BookOpen, label: 'Khóa học', short: 'Khóa học' },
   { to: '/teacher/students', icon: GraduationCap, label: 'Học sinh', short: 'Học sinh' },
 ];

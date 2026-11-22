@@ -33,6 +33,8 @@ import TeacherCourseDetail from './pages/teacher/TeacherCourseDetail';
 import ClassDetail from './pages/teacher/ClassDetail';
 import HomeworkDetail from './pages/teacher/HomeworkDetail';
 import StudentManagement from './pages/teacher/StudentManagement';
+import { NavTracker } from './lib/backNav';
+import TeacherHomework from './pages/teacher/TeacherHomework';
 
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentClasses from './pages/student/StudentClasses';
@@ -100,6 +102,7 @@ function AppRoutes() {
         <Route path="courses/:courseId" element={<TeacherCourseDetail />} />
         <Route path="classes/:id" element={<ClassDetail />} />
         <Route path="homework/:id" element={<HomeworkDetail />} />
+        <Route path="homework" element={<TeacherHomework />} />
         <Route path="students" element={<StudentManagement />} />
       </Route>
 
@@ -129,6 +132,7 @@ export default function App() {
         <ToastContainer />
         <GoogleLinkModal />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <NavTracker />
         <AppRoutes />
       </AuthProvider>
     </BrowserRouter>

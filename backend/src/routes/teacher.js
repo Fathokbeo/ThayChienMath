@@ -383,6 +383,33 @@ router.get('/classes', (req, res) => {
   res.json(db.prepare(q + ' ORDER BY co.title, cl.title').all(...p));
 });
 
+// ── Mục "Bài tập": mọi bài tập của các lớp giáo viên dạy (admin: mọi lớp), chia theo lớp ──
+// Mỗi bài: hạn nộp, chương, số học sinh đã nộp / sĩ số, số bài chờ chấm tay, đang chờ AI chấm, điểm TB (thang bài).
+router.get('/homework', (req, res) => {
+  const db = getDb();
+  const own = req.user.role === 'teacher' ? ' AND cl.teacher_id=?' : '';
+  const p = req.user.role === 'teacher' ? [req.user.id] : [];
+  const classes = db.prepare(`
+    SELECT cl.id, cl.title, co.title course_title,
+      (SELECT COUNT(*) FROM class_students cs JOIN users u ON u.id=cs.student_id WHERE cs.class_id=cl.id AND u.active=1) student_count
+    FROM classes cl LEFT JOIN courses co ON cl.course_id=co.id
+    WHERE cl.active=1${own} ORDER BY co.title, cl.title
+  `).all(...p);
+  const homework = db.prepare(`
+    SELECT h.id, h.class_id, h.title, h.due_date, h.created_at, h.max_score, h.exam_type, h.parts_config,
+      h.pdf_file IS NOT NULL has_pdf, h.answer_file IS NOT NULL has_answer, ch.title chapter_title,
+      (SELECT COUNT(*) FROM submissions s JOIN users u ON u.id=s.student_id WHERE s.homework_id=h.id AND u.active=1) submitted,
+      (SELECT COUNT(*) FROM submissions s WHERE s.homework_id=h.id AND s.score IS NULL
+        AND (s.grading_status IS NULL OR s.grading_status='failed')) to_grade,
+      (SELECT COUNT(*) FROM submissions s WHERE s.homework_id=h.id AND s.grading_status IN ('pending','grading')) ai_pending,
+      (SELECT ROUND(AVG(COALESCE(s.score, s.best_score)), 2) FROM submissions s WHERE s.homework_id=h.id AND COALESCE(s.score, s.best_score) IS NOT NULL) avg_score
+    FROM homework h JOIN classes cl ON h.class_id=cl.id LEFT JOIN chapters ch ON ch.id=h.chapter_id
+    WHERE cl.active=1${own}
+    ORDER BY CASE WHEN h.due_date IS NULL THEN 1 ELSE 0 END, h.due_date DESC, h.created_at DESC
+  `).all(...p);
+  res.json({ classes, homework, now: new Date().toISOString() });
+});
+
 // ── Class Students ─────────────────────────────────────────────────────
 // Thêm học sinh vào lớp: tạo tài khoản mới (username/password) HOẶC thêm HS có sẵn (student_id)
 router.post('/classes/:id/students', (req, res) => {

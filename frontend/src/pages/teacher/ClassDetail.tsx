@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { BackButton, useBackLabel } from '../../lib/backNav';
 import api, { fileUrl } from '../../lib/api';
 import { buildContentSections, chapterSubject, existingSectionTitles, sectionKey, type ChapterSubject } from '../../lib/classContent';
 import Modal from '../../components/Modal';
@@ -60,6 +61,7 @@ export default function ClassDetail() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const [cls, setCls] = useState<any>(null);
+  useBackLabel(cls?.title);
   const [allStudents, setAllStudents] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'students' | 'content' | 'ranking'>('content');
   const [lessonModal, setLessonModal] = useState(false);
@@ -734,11 +736,9 @@ export default function ClassDetail() {
 
   return (
     <div className="fade-in">
+      <BackButton fallback={cls.course_id_ref ? `/teacher/courses/${cls.course_id_ref}` : '/teacher/courses'} style={{ marginBottom: 10, fontSize: '0.9rem' }} />
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: '1.5rem' }}>
-        <Link to={cls.course_id_ref ? `/teacher/courses/${cls.course_id_ref}` : '/teacher/courses'} style={{ color: '#6E6E73', textDecoration: 'none', display: 'flex', alignItems: 'center', marginTop: 4 }}>
-          <ChevronLeft size={18} />
-        </Link>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             {cls.course_title && <span className="badge badge-blue">{cls.course_title}</span>}

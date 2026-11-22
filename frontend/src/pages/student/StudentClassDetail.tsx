@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { BackButton, useBackLabel } from '../../lib/backNav';
 import api, { fileUrl } from '../../lib/api';
 import { buildContentSections } from '../../lib/classContent';
 import VideoPlayer from '../../components/VideoPlayer';
@@ -32,6 +33,7 @@ function submittedFileUrls(hw: any): string[] {
 export default function StudentClassDetail() {
   const { id } = useParams();
   const [cls, setCls] = useState<any>(null);
+  useBackLabel(cls?.title);
   // ?tab=todo|ranking: mở thẳng tab đó (vd từ "Việc cần làm" ở trang Tổng quan)
   const [searchParams] = useSearchParams();
   const initialTab = searchParams.get('tab');
@@ -552,11 +554,9 @@ export default function StudentClassDetail() {
 
   return (
     <div className="fade-in">
+      <BackButton fallback={'/student'} style={{ marginBottom: 10, fontSize: '0.9rem' }} />
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: '1.5rem' }}>
-        <Link to="/student" style={{ color: '#6E6E73', textDecoration: 'none', marginTop: 4 }}>
-          <ChevronLeft size={18} />
-        </Link>
         <div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
             {cls.course_title && <span className="badge badge-blue">{cls.course_title}</span>}

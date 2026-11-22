@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { BackButton, useBackLabel } from '../../lib/backNav';
 import api, { fileUrl } from '../../lib/api';
 import Modal from '../../components/Modal';
 import GradingDetails from '../../components/GradingDetails';
@@ -25,6 +26,7 @@ function submissionFileUrls(s: any): string[] {
 export default function HomeworkDetail() {
   const { id } = useParams();
   const [hw, setHw] = useState<any>(null);
+  useBackLabel(hw?.title);
   const [gradeModal, setGradeModal] = useState(false);
   const [grading, setGrading] = useState<any>(null);
   const [gradeForm, setGradeForm] = useState({ score: '', feedback: '' });
@@ -153,11 +155,9 @@ export default function HomeworkDetail() {
 
   return (
     <div className="fade-in">
+      <BackButton fallback={`/teacher/classes/${hw.class_id}`} style={{ marginBottom: 10, fontSize: '0.9rem' }} />
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: '1.5rem' }}>
-        <Link to={`/teacher/classes/${hw.class_id}`} style={{ color: '#6E6E73', textDecoration: 'none', display: 'flex', alignItems: 'center', marginTop: 4 }}>
-          <ChevronLeft size={18} />
-        </Link>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: '0.82rem', color: '#6E6E73', marginBottom: 4 }}>{hw.class_title}</div>
           <h1 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>{hw.title}</h1>

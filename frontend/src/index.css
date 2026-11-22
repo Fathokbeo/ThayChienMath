@@ -386,6 +386,37 @@ button.list-row { width: 100%; border: none; background: #fff; font-family: inhe
 .ph-hero-sub { font-size: 0.8rem; color: var(--tc-ink-3); margin-top: 2px; }
 .ph-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 99px; border: 1px solid var(--tc-line-strong); background: #fff; font-family: inherit; font-size: 0.9rem; font-weight: 600; color: var(--tc-ink-2); cursor: pointer; }
 .ph-chip.active { background: var(--tc-accent); border-color: var(--tc-accent); color: #fff; }
+/* Mục Bài tập (giáo viên): cột lớp bên trái + danh sách bài bên phải; lọc trạng thái, dòng bài tập */
+.hw-layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; align-items: start; }
+.hw-side { position: sticky; top: calc(var(--tc-nav-h, 56px) + 16px); }
+.hw-side-list { background: #fff; border-radius: var(--tc-radius); padding: 6px; max-height: calc(100vh - 220px); overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.hw-side-item { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; border-radius: 10px; padding: 9px 10px; font-family: inherit; font-size: 0.9rem; color: var(--tc-ink); text-align: left; cursor: pointer; }
+.hw-side-item:hover { background: var(--tc-surface-2, #F5F5F7); }
+.hw-side-item.active { background: var(--tc-accent); color: #fff; }
+.hw-side-name { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hw-side-name small { display: block; font-weight: 400; font-size: 0.74rem; opacity: 0.7; overflow: hidden; text-overflow: ellipsis; }
+.hw-side-count { font-size: 0.8rem; opacity: 0.65; min-width: 18px; text-align: right; }
+.hw-side-grade { font-size: 0.72rem; font-weight: 700; background: #FBE3D2; color: #B8673E; border-radius: 99px; padding: 1px 7px; }
+.hw-side-item.active .hw-side-grade { background: rgba(255,255,255,0.25); color: #fff; }
+.hw-class-tag { display: inline-block; font-size: 0.72rem; font-weight: 600; background: var(--tc-sky-tint); color: var(--tc-sky); border-radius: 6px; padding: 0 6px; margin-right: 6px; }
+.segmented { display: inline-flex; background: #E9E9EE; border-radius: 10px; padding: 3px; gap: 2px; }
+.segmented button { border: 0; background: none; font-family: inherit; font-size: 0.86rem; font-weight: 600; color: var(--tc-ink-2); padding: 6px 12px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+.segmented button.active { background: #fff; color: var(--tc-ink); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.hw-search { flex: 1 1 200px; min-width: 0; display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--tc-line-strong); border-radius: 10px; padding: 0 12px; color: #86868B; }
+.hw-search input { flex: 1; min-width: 0; border: 0; outline: none; background: none; font-family: inherit; font-size: 0.92rem; padding: 9px 0; color: var(--tc-ink); }
+.hw-row { gap: 12px; }
+.hw-due { width: 56px; flex-shrink: 0; text-align: center; display: flex; flex-direction: column; line-height: 1.25; }
+.hw-stats { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+.hw-progress { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--tc-ink-2); white-space: nowrap; }
+.hw-bar { width: 70px; height: 5px; border-radius: 99px; background: #EDEDF0; overflow: hidden; display: inline-block; }
+.hw-bar > span { display: block; height: 100%; background: var(--tc-accent); border-radius: 99px; }
+@media (max-width: 640px) {
+  .hw-row { flex-wrap: wrap; }
+  .hw-row .list-row-main { flex: 1 1 calc(100% - 100px); }
+  .hw-stats { width: 100%; flex-direction: row; align-items: center; justify-content: space-between; padding-left: 68px; }
+  .hw-row > svg:last-child { display: none; }
+  .segmented { width: 100%; } .segmented button { flex: 1; padding: 6px 4px; }
+}
 .ph-badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--tc-rust); color: #fff; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
 .ph-status { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 99px; font-size: 0.76rem; font-weight: 600; white-space: nowrap; }
 .ph-quote { border-left: 3px solid var(--tc-accent); padding: 2px 0 2px 12px; margin: 0; color: var(--tc-ink); line-height: 1.6; font-size: 0.93rem; }

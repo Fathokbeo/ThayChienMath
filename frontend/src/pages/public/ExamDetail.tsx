@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { BackButton, useBackLabel } from '../../lib/backNav';
 import { ChevronLeft, Clock, Download, ZoomIn, ZoomOut, Maximize2, Minimize2, FileText, LogIn } from 'lucide-react';
 import PublicLayout from '../../components/PublicLayout';
 import PdfCanvasViewer, { TWO_UP_ZOOM } from '../../components/PdfCanvasViewer';
@@ -33,6 +34,7 @@ export default function ExamDetail() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const [exam, setExam] = useState<Exam | null>(null);
+  useBackLabel(exam?.title);
   const [missing, setMissing] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [suggested, setSuggested] = useState<PublicCourse[]>([]);
@@ -90,9 +92,7 @@ export default function ExamDetail() {
   return (
     <PublicLayout>
       <section style={{ maxWidth: PAGE_MAX, margin: '0 auto', padding: isMobile ? '1.25rem 16px 2.5rem' : '2.5rem 22px' }}>
-        <Link to="/de-thi" className="link" style={{ display: 'inline-flex', alignItems: 'center', gap: 2, marginBottom: 12 }}>
-          <ChevronLeft size={16} /> Đề và chuyên môn
-        </Link>
+        <BackButton fallback="/de-thi" style={{ marginBottom: 14 }} />
 
         {missing ? (
           <div style={{ color: '#86868B', padding: '3rem 1rem', textAlign: 'center', background: '#fff', borderRadius: 18 }}>Không tìm thấy đề này (có thể đã bị gỡ).</div>

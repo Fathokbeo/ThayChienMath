@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { BackButton, useBackLabel } from '../../lib/backNav';
 import { ChevronLeft, ChevronDown, ChevronRight, Lock, Eye, FileCheck2, Bot, Phone, MessageSquareQuote } from 'lucide-react';
 import api, { fileUrl } from '../../lib/api';
 import { PageHeader, SectionHeader, EmptyState, scoreTone } from '../../components/ui';
@@ -19,6 +20,7 @@ export default function ParentClassDetail() {
   const [params] = useSearchParams();
   const { current } = useChildren();
   const [cls, setCls] = useState<any>(null);
+  useBackLabel(cls ? classLabel(cls.title) : null);
   const [filter, setFilter] = useState<Filter>('all');
   const [open, setOpen] = useState<Set<number>>(new Set());
   const [viewFiles, setViewFiles] = useState<string[] | null>(null);
@@ -47,9 +49,7 @@ export default function ParentClassDetail() {
 
   return (
     <div>
-      <Link to={withChild('/parent', current.id)} className="link" style={{ display: 'inline-flex', alignItems: 'center', gap: 2, marginBottom: 10, fontSize: '0.9rem' }}>
-        <ChevronLeft size={16} /> Tổng quan
-      </Link>
+      <BackButton fallback={withChild('/parent', current.id)} fallbackLabel="Tổng quan" style={{ marginBottom: 10, fontSize: '0.9rem' }} />
       <PageHeader eyebrow={cls.course_title} title={classLabel(cls.title)} subtitle={`Giáo viên: ${cls.teacher_name || '—'} · Kết quả của ${current.full_name}`} />
 
       <div className="ph-hero" style={{ marginBottom: '2rem' }}>

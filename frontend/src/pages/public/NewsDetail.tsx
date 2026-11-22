@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { BackButton, useBackLabel } from '../../lib/backNav';
 import { ChevronLeft, Clock, BookOpenText, Link2 } from 'lucide-react';
 import PublicLayout from '../../components/PublicLayout';
 import { NewsGrid, type NewsItem } from '../../components/NewsCard';
@@ -40,6 +41,7 @@ export default function NewsDetail() {
   const { id } = useParams<{ id: string }>();
   const isMobile = useIsMobile();
   const [post, setPost] = useState<Post | null>(null);
+  useBackLabel(post?.title);
   const [missing, setMissing] = useState(false);
 
   useEffect(() => {
@@ -58,9 +60,7 @@ export default function NewsDetail() {
   return (
     <PublicLayout>
       <article style={{ maxWidth: 780, margin: '0 auto', padding: isMobile ? '1.25rem 16px 2.5rem' : '2.5rem 22px 3rem' }}>
-        <Link to="/tin-tuc" className="link" style={{ display: 'inline-flex', alignItems: 'center', gap: 2, marginBottom: 14 }}>
-          <ChevronLeft size={16} /> Tin tức
-        </Link>
+        <BackButton fallback="/tin-tuc" style={{ marginBottom: 14 }} />
 
         {missing ? (
           <div style={{ color: '#86868B', padding: '3rem 1rem', textAlign: 'center', background: '#fff', borderRadius: 18 }}>Không tìm thấy bài viết này (có thể đã bị gỡ).</div>

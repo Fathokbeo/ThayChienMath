@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { BackButton, useBackLabel } from '../../lib/backNav';
 import api, { fileUrl } from '../../lib/api';
 import Modal from '../../components/Modal';
 import { toast } from '../../components/Toast';
@@ -9,6 +10,7 @@ export default function TeacherCourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const [course, setCourse] = useState<any>(null);
+  useBackLabel(course?.title);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState({ title: '', description: '' });
@@ -80,9 +82,7 @@ export default function TeacherCourseDetail() {
   return (
     <div className="fade-in">
       {/* Back */}
-      <button className="btn btn-ghost btn-sm" onClick={() => navigate('/teacher/courses')} style={{ marginBottom: '1rem', gap: 6 }}>
-        <ArrowLeft size={15} /> Quay lại
-      </button>
+      <BackButton fallback="/teacher/courses" style={{ marginBottom: '1rem', fontSize: '0.9rem' }} />
 
       {/* Course header */}
       <div style={{ background: 'white', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.07)', marginBottom: '1.5rem' }}>
