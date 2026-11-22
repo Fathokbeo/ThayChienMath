@@ -1,6 +1,26 @@
 apply plugin: 'com.android.application'
 
+// Khóa ký bản phát hành (khóa tải lên Google Play): đường dẫn file .jks + tên khóa đặt trong android/keystore.properties
+// (không đưa lên git). MẬT KHẨU KHÔNG lưu ở file nào: script build-aab.ps1 hỏi mật khẩu rồi truyền qua biến môi trường
+// EDUGRADE_KEY_PASSWORD cho riêng lần build đó. Thiếu một trong hai → bản release không ký (Android Studio
+// "Generate Signed App Bundle" vẫn dùng được như bình thường).
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file('keystore.properties')
+if (keystorePropsFile.exists()) keystorePropsFile.withInputStream { keystoreProps.load(it) }
+def keyPasswordEnv = System.getenv('EDUGRADE_KEY_PASSWORD')
+def canSignRelease = keystoreProps.getProperty('storeFile') && keyPasswordEnv
+
 android {
+    signingConfigs {
+        if (canSignRelease) {
+            release {
+                storeFile file(keystoreProps.getProperty('storeFile'))
+                storePassword keyPasswordEnv
+                keyAlias keystoreProps.getProperty('keyAlias', 'upload')
+                keyPassword keyPasswordEnv
+            }
+        }
+    }
     namespace = "vn.thaychienmath.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
@@ -21,6 +41,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (canSignRelease) signingConfig signingConfigs.release
         }
     }
 }

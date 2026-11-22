@@ -47,6 +47,16 @@ Thử lần lượt — ghi lại chỗ nào lỗi:
 
 ## Bước 2 — Tạo khóa ký app (làm 1 lần, cực kỳ quan trọng)
 
+> **Đã làm ngày 22/11/2026** bằng script (thay cho cách Android Studio bên dưới):
+> - Khóa: `D:\KhoaKyApp\edugrade-upload.jks`, tên khóa `upload`, hiệu lực tới 2054. Bản sao: `D:\job\SaoLuuKhoaKy\`.
+>   Vẫn cần chép thêm 1 bản ra USB / ổ đám mây riêng. Mật khẩu **không** lưu ở file nào — tự giữ.
+> - Tạo khóa: `frontend/android/tao-khoa-ky.ps1` (đã có khóa thì script từ chối, không ghi đè).
+> - **Build bản AAB đã ký** (mỗi lần phát hành): trong `frontend/android` chạy
+>   `powershell -ExecutionPolicy Bypass -File .\build-aab.ps1` → gõ mật khẩu khóa → file
+>   `frontend/android/app/build/outputs/bundle/release/app-release.aab`.
+>   Script tự build lại giao diện app và dùng Java 21. Đường dẫn khóa nằm trong `frontend/android/keystore.properties`
+>   (không lên git); mật khẩu chỉ truyền lúc build.
+
 Google Play chỉ nhận bản cập nhật được ký bằng **đúng khóa của lần đầu**. Mất khóa = không cập nhật app được nữa.
 
 1. Android Studio → **Build → Generate Signed App Bundle or APK** → chọn **Android App Bundle** → Next.
