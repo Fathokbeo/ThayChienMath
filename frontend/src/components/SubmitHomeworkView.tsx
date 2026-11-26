@@ -141,7 +141,7 @@ export default function SubmitHomeworkView({
 
   const dePanel = pdfUrl && (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <PdfCanvasViewer url={pdfUrl} zoom={zoom} />
+      <PdfCanvasViewer url={pdfUrl} zoom={zoom} onZoomChange={setZoom} minZoom={ZOOM_MIN} maxZoom={ZOOM_MAX} />
       <div style={{
         position: 'absolute', bottom: 14, right: 14, display: 'flex', alignItems: 'center', gap: 2,
         background: 'rgba(32,32,40,0.72)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',

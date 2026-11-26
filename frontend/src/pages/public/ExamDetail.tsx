@@ -117,7 +117,7 @@ export default function ExamDetail() {
               <div ref={viewerRef} style={full
                 ? { position: 'fixed', inset: 0, zIndex: 2000, height: '100dvh', background: '#26343A' }
                 : { position: 'relative', height: isMobile ? '78vh' : '85vh', background: '#26343A', borderRadius: 16, overflow: 'hidden' }}>
-                <PdfCanvasViewer url={pdf} zoom={zoom} />
+                <PdfCanvasViewer url={pdf} zoom={zoom} onZoomChange={setZoom} />
                 <div style={{ position: 'absolute', bottom: 14, right: 14, display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(32,32,40,0.72)', borderRadius: 99, padding: 3 }}>
                   <button type="button" className="zoom-pill-btn" onClick={() => setZoom((z) => Math.max(TWO_UP_ZOOM, z - 0.25))} disabled={zoom <= TWO_UP_ZOOM} aria-label="Thu nhỏ" title="Thu nhỏ (nhỏ nhất: xem 2 trang cạnh nhau)"><ZoomOut size={17} /></button>
                   <span style={{ color: '#fff', fontSize: '0.75rem', fontWeight: 600, minWidth: 44, textAlign: 'center' }}>{zoom <= TWO_UP_ZOOM ? '2 trang' : `${Math.round(zoom * 100)}%`}</span>

@@ -34,7 +34,7 @@ export default function FileViewer({ files, onClose }: { files: string[]; onClos
             ? IS_NATIVE
               ? (
                 <>
-                  <PdfCanvasViewer url={url} zoom={zoom} />
+                  <PdfCanvasViewer url={url} zoom={zoom} onZoomChange={setZoom} />
                   <div style={{ position: 'absolute', bottom: 14, right: 14, display: 'flex', gap: 4, background: 'rgba(32,32,40,0.72)', borderRadius: 99, padding: 3 }}>
                     <button type="button" className="zoom-pill-btn" onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))} disabled={zoom <= 0.5} aria-label="Thu nhỏ"><ZoomOut size={17} /></button>
                     <button type="button" className="zoom-pill-btn" onClick={() => setZoom((z) => Math.min(3, z + 0.25))} disabled={zoom >= 3} aria-label="Phóng to"><ZoomIn size={17} /></button>
