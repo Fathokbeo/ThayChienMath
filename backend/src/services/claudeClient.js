@@ -66,7 +66,10 @@ const CLAUDE_ROLES = new Proxy({}, { get: (_, role) => (ROLES[role] ? roleConfig
 // ── KHÓA API ───────────────────────────────────────────────────────────────────────────────────────
 // Admin dán khóa ở trang Tổng quan (lưu site_settings.anthropic_api_key — KHÔNG bao giờ gửi lại về trình duyệt);
 // chưa có thì dùng ANTHROPIC_API_KEY trong .env. Đổi khóa → tự tạo lại client, không cần khởi động lại server.
-const KEY_RE = /^sk-ant-api\d*-[A-Za-z0-9_-]{20,}$/;
+// Claude Console có nhiều loại khóa (khóa cá nhân, khóa tài khoản dịch vụ, khóa workspace kiểu cũ) với tiền tố khác
+// nhau (sk-ant-api03-…, sk-ant-usr-…) và Anthropic không cam kết tiền tố → chỉ kiểm tra dạng chung sk-ant-<loại>-…,
+// còn khóa có dùng được không thì saveApiKey GỌI THỬ Anthropic mới biết.
+const KEY_RE = /^sk-ant-[a-z]+\d*-[A-Za-z0-9_-]{20,}$/;
 const KEY_SETTING = 'anthropic_api_key';
 
 function storedKey() {
@@ -98,15 +101,15 @@ function keyInfo() {
 // Admin lưu khóa mới: kiểm tra dạng + gọi thử API (liệt kê model — không tốn tiền) rồi mới lưu
 async function saveApiKey(raw) {
   const key = String(raw || '').trim();
-  if (/^sk-ant-(usr|oat|sid)/.test(key)) {
-    throw Object.assign(new Error('Đây là mã đăng nhập tài khoản Claude (gói đăng ký), không phải khóa API. Hãy tạo khóa ở console.anthropic.com → API Keys (dạng sk-ant-api03-…).'), { status: 400 });
+  if (/^sk-ant-admin/.test(key)) {
+    throw Object.assign(new Error('Đây là khóa quản trị (Admin API), không gọi Claude chấm bài được. Hãy tạo khóa thường ở platform.claude.com → API Keys.'), { status: 400 });
   }
-  if (!KEY_RE.test(key)) throw Object.assign(new Error('Khóa không đúng dạng — khóa API Claude bắt đầu bằng sk-ant-api03-'), { status: 400 });
+  if (!KEY_RE.test(key)) throw Object.assign(new Error('Khóa không đúng dạng — khóa API Claude bắt đầu bằng sk-ant-'), { status: 400 });
   try {
     await newClient(key).models.list({ limit: 1 });
   } catch (err) {
     const s = err.status;
-    const msg = s === 401 ? 'Anthropic báo khóa không hợp lệ hoặc đã bị xóa'
+    const msg = s === 401 ? 'Anthropic báo khóa không hợp lệ, đã bị xóa hoặc hết hạn (mã đăng nhập claude.ai không phải khóa API)'
       : s === 403 ? 'Khóa không có quyền dùng API (kiểm tra tài khoản trên console.anthropic.com)'
         : `Không kiểm tra được khóa với Anthropic (${s || 'lỗi mạng'}) — thử lại sau`;
     throw Object.assign(new Error(msg), { status: s === 401 || s === 403 ? 400 : 502 });

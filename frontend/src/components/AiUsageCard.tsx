@@ -128,14 +128,14 @@ export default function AiUsageCard() {
           <>
             {r.key.hint && !r.key.valid && <div style={{ ...muted, color: '#B04A2A', marginBottom: 6 }}>Khóa hiện tại ({r.key.hint}) không phải khóa API nên không dùng được.</div>}
             <form onSubmit={(e) => { e.preventDefault(); saveKey(); }} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <input className="input" type="password" autoComplete="off" spellCheck={false} placeholder="sk-ant-api03-…"
+              <input className="input" type="password" autoComplete="off" spellCheck={false} placeholder="sk-ant-…"
                 value={keyInput} onChange={(e) => setKeyInput(e.target.value)} style={{ flex: '1 1 260px', minWidth: 0, fontFamily: 'monospace' }} />
               <button type="submit" className="btn btn-primary btn-sm" disabled={savingKey || !keyInput.trim()}>{savingKey ? 'Đang kiểm tra…' : 'Lưu & kiểm tra'}</button>
               {editingKey && <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setEditingKey(false); setKeyInput(''); }}>Hủy</button>}
             </form>
             <div style={{ ...muted, marginTop: 6, lineHeight: 1.5 }}>
-              Tạo khóa ở <b>console.anthropic.com</b> → Settings → <b>API Keys</b> → Create Key (khóa bắt đầu bằng <code>sk-ant-api03-</code>),
-              nạp tiền ở mục <b>Billing</b>. Mã đăng nhập claude.ai (<code>sk-ant-usr-…</code>) không dùng được.
+              Tạo khóa ở <b>platform.claude.com</b> → <b>API Keys</b> → Create Key (khóa bắt đầu bằng <code>sk-ant-</code>),
+              nạp tiền ở mục <b>Billing</b>.
               Khóa được kiểm tra với Anthropic trước khi lưu và không bao giờ hiện lại đầy đủ.
             </div>
           </>
