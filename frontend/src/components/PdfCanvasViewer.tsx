@@ -69,12 +69,36 @@ export default function PdfCanvasViewer({ url, zoom, onZoomChange, minZoom = TWO
   }, [url]);
 
   // ── Chiều rộng khung (bỏ qua thay đổi < 24px do thanh cuộn hiện/ẩn) ──
+  // Đổi cỡ khung (kéo cửa sổ, xoay điện thoại): nhớ ĐIỂM NỘI DUNG đang ở giữa khung (theo khung CŨ) để sau khi
+  // vẽ lại cỡ mới vẫn đặt đúng điểm đó vào giữa khung mới — xoay ngang/dọc không bị nhảy sang chỗ khác.
+  const scaleRef = useRef(scale); scaleRef.current = scale;
+  const availRef = useRef(avail);
+  const sizeRef = useRef<{ w: number; h: number } | null>(null);
+  const resizeAnchorRef = useRef<{ x: number; y: number } | null>(null); // toạ độ nội dung ở tỉ lệ 1
+  const placeResizeAnchor = (el: HTMLDivElement, s: number) => {
+    const a = resizeAnchorRef.current;
+    if (!a) return;
+    el.scrollLeft = a.x * s + PAD - el.clientWidth / 2;
+    el.scrollTop = a.y * s + PAD - el.clientHeight / 2;
+    resizeAnchorRef.current = null;
+  };
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const measure = () => {
-      const w = Math.max(100, el.clientWidth - PAD * 2);
-      setAvail((cur) => (Math.abs(cur - w) < 24 && cur ? cur : w));
+      const prev = sizeRef.current;
+      const size = { w: el.clientWidth, h: el.clientHeight };
+      sizeRef.current = size;
+      if (prev && (prev.w !== size.w || prev.h !== size.h) && scaleRef.current) {
+        const s = scaleRef.current;
+        resizeAnchorRef.current = resizeAnchorRef.current
+          || { x: (el.scrollLeft + prev.w / 2 - PAD) / s, y: (el.scrollTop + prev.h / 2 - PAD) / s };
+      }
+      const w = Math.max(100, size.w - PAD * 2);
+      const cur = availRef.current;
+      const next = Math.abs(cur - w) < 24 && cur ? cur : w;
+      if (next === cur) placeResizeAnchor(el, scaleRef.current); // chỉ đổi chiều cao: tỉ lệ giữ nguyên, đặt lại ngay
+      else { availRef.current = next; setAvail(next); }
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -90,6 +114,7 @@ export default function PdfCanvasViewer({ url, zoom, onZoomChange, minZoom = TWO
     const prev = prevRef.current;
     prevRef.current = { scale, twoUp };
     if (!el || !prev || prev.scale === scale) return;
+    if (resizeAnchorRef.current && prev.twoUp === twoUp) { placeResizeAnchor(el, scale); anchorRef.current = null; return; }
     if (prev.twoUp !== twoUp) { // đổi bố cục 1 ↔ 2 trang: giữ tỉ lệ cuộn dọc
       const ratio = el.scrollHeight ? el.scrollTop / el.scrollHeight : 0;
       requestAnimationFrame(() => { el.scrollTop = ratio * el.scrollHeight; });
@@ -156,10 +181,14 @@ export default function PdfCanvasViewer({ url, zoom, onZoomChange, minZoom = TWO
     let scrollTimer: ReturnType<typeof setTimeout> | undefined;
     const onScroll = () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(pass, 120); };
     el.addEventListener('scroll', onScroll, { passive: true });
+    // Kéo cửa sổ sang màn hình khác độ phân giải / phóng to trình duyệt (Ctrl +) / xoay điện thoại → mật độ điểm ảnh
+    // đổi mà tỉ lệ trang không đổi → vẽ nét lại cho khỏi mờ
+    window.addEventListener('resize', onScroll);
     return () => {
       cancelled = true;
       clearTimeout(timer); clearTimeout(scrollTimer);
       el.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
       tasks.forEach((t) => t.cancel());
       tasks.clear();
     };
