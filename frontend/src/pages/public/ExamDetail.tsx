@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BackButton, useBackLabel } from '../../lib/backNav';
-import { Clock, Download, ZoomIn, ZoomOut, Maximize2, Minimize2, FileText, LogIn } from 'lucide-react';
+import { Clock, ZoomIn, ZoomOut, Maximize2, Minimize2, FileText } from 'lucide-react';
 import PublicLayout from '../../components/PublicLayout';
 import PdfCanvasViewer, { TWO_UP_ZOOM } from '../../components/PdfCanvasViewer';
 import ExamCard, { type ExamItem } from '../../components/ExamCard';
@@ -13,20 +13,13 @@ import { useAuth } from '../../contexts/AuthContext';
 import CourseCarousel, { type PublicCourse } from '../../components/CourseCarousel';
 import CourseRegisterModal from '../../components/CourseRegisterModal';
 import { recordExamView, recordExamDwell, recordExamDownload } from '../../lib/interest';
+import ExamDownloads from '../../components/ExamDownloads';
+import type { FileAccess, VipPlan, VipStatus } from '../../lib/payments';
 
-type DownloadMode = 'all' | 'login' | 'none';
-type Exam = ExamItem & { description?: string | null; pdf_file?: string | null; pdf_download?: DownloadMode; docx_download?: DownloadMode; related: ExamItem[] };
-
-// Nút tải 1 bản đề theo quyền admin đặt: ai cũng tải / phải đăng nhập / không cho tải (không hiện nút)
-function DownloadButton({ examId, kind, mode, loggedIn, onDownload }: { examId: number; kind: 'pdf' | 'docx'; mode?: DownloadMode; loggedIn: boolean; onDownload?: () => void }) {
-  const format = kind === 'pdf' ? 'PDF' : 'Word';
-  const icon = kind === 'pdf' ? <Download size={14} /> : <FileText size={14} />;
-  if (!mode || mode === 'none') return null;
-  if (mode === 'login' && !loggedIn) {
-    return <Link to={`/login?muc=khach&next=${encodeURIComponent(`/de-thi/${examId}`)}`} className="btn btn-ghost btn-sm" title="Đề này chỉ cho tài khoản đã đăng nhập tải về"><LogIn size={14} /> Đăng nhập để tải đề {format}</Link>;
-  }
-  return <a href={fileUrl(`/api/public/exams/${examId}/file/${kind}`)} download className="btn btn-secondary btn-sm" onClick={onDownload}>{icon} Tải đề {format}</a>;
-}
+type Exam = ExamItem & {
+  description?: string | null; pdf_file?: string | null; related: ExamItem[];
+  access: { pdf: FileAccess; docx: FileAccess }; payments: { enabled: boolean; vip_plans: VipPlan[] }; vip: VipStatus | null;
+};
 
 // Chi tiết 1 đề: mô tả + xem PDF ngay trên trang (pdf.js, không phụ thuộc trình xem PDF của trình duyệt/app)
 export default function ExamDetail() {
@@ -104,11 +97,11 @@ export default function ExamDetail() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', color: '#86868B', fontSize: '0.88rem', marginBottom: 16 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={14} /> {fmtDay(exam.published_at || exam.created_at)}</span>
               {exam.grade && <Link to={`/de-thi?lop=${encodeURIComponent(exam.grade)}`} className="badge badge-blue" style={{ textDecoration: 'none' }}>{gradeLabel(exam.grade)}</Link>}
-              <span style={{ marginLeft: 'auto', display: 'inline-flex', gap: 8, flexWrap: 'wrap' }}>
-                <DownloadButton examId={exam.id} kind="pdf" mode={exam.pdf_download} loggedIn={!!user} onDownload={() => recordExamDownload(exam.grade, exam.category)} />
-                <DownloadButton examId={exam.id} kind="docx" mode={exam.docx_download} loggedIn={!!user} onDownload={() => recordExamDownload(exam.grade, exam.category)} />
-              </span>
             </div>
+            {/* Tải PDF / Word theo quyền admin tích: miễn phí, học sinh, VIP, mua lẻ (QR chuyển khoản tự xác nhận) */}
+            <ExamDownloads examId={exam.id} access={exam.access} payments={exam.payments} vip={exam.vip} loggedIn={!!user}
+              onDownload={() => recordExamDownload(exam.grade, exam.category)}
+              onChanged={() => api.get(`/public/exams/${exam.id}`).then((r) => setExam(r.data)).catch(() => {})} />
             {exam.description && (
               <div style={{ background: '#fff', borderRadius: 16, padding: '1rem 1.15rem', marginBottom: 16, whiteSpace: 'pre-wrap', lineHeight: 1.65, color: '#3A3A3C' }}>{exam.description}</div>
             )}
@@ -132,7 +125,7 @@ export default function ExamDetail() {
             ) : exam.has_docx ? (
               <div style={{ background: '#fff', borderRadius: 16, padding: '2rem 1rem', textAlign: 'center', color: '#6E6E73' }}>
                 <FileText size={36} color="#6E5A94" style={{ marginBottom: 8 }} />
-                <div>Đề này có bản Word để tải về{exam.docx_download === 'none' ? ' (hiện chưa mở tải)' : ''}.</div>
+                <div>Đề này có bản Word — xem cách tải ở phía trên.</div>
               </div>
             ) : null}
 

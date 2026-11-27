@@ -39,7 +39,8 @@ function rmImage(dir, name) {
 
 // ── Site settings (liên hệ, hero, số liệu) ─────────────────────────────
 // Cài đặt bí mật (khóa API) chỉ đọc/ghi qua route riêng có kiểm tra — không lộ ra / không ghi đè ở đây
-const PRIVATE_SETTINGS = new Set(['anthropic_api_key']);
+// Khóa bí mật + cài đặt thanh toán chỉ đọc/sửa qua API riêng (không lộ, không bị form khác ghi đè)
+const PRIVATE_SETTINGS = new Set(['anthropic_api_key', 'payment_webhook_key', 'payments_enabled', 'bank_bin', 'bank_name', 'bank_account', 'bank_account_name', 'vip_plans']);
 
 router.get('/settings', (req, res) => {
   const db = getDb();

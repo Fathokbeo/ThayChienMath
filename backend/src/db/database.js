@@ -651,6 +651,54 @@ function initSchema() {
   // Loại đề (Đề cương, Đề HK1, Đề HSG...) — danh sách loại admin đặt ở site_settings.exam_categories
   if (!examCols.some(c => c.name === 'category')) db.exec('ALTER TABLE exam_papers ADD COLUMN category TEXT');
 
+  // ── Quyền tải từng bản đề (thay pdf_download/docx_download cũ) + VIP + mua lẻ + thanh toán QR ──
+  // pdf_access / docx_access: danh sách quyền cách nhau dấu phẩy, rỗng = chỉ xem:
+  //   account = mọi tài khoản đã đăng nhập · student = học sinh của trung tâm · vip = tài khoản VIP · buy = mua lẻ (giá *_price)
+  if (!examCols.some(c => c.name === 'pdf_access')) {
+    db.exec("ALTER TABLE exam_papers ADD COLUMN pdf_access TEXT");
+    db.exec("ALTER TABLE exam_papers ADD COLUMN docx_access TEXT");
+    db.exec('ALTER TABLE exam_papers ADD COLUMN pdf_price INTEGER');
+    db.exec('ALTER TABLE exam_papers ADD COLUMN docx_price INTEGER');
+    // Chuyển quyền cũ: ai cũng tải / phải đăng nhập → mọi tài khoản đăng nhập; không cho tải → chỉ xem
+    db.exec(`UPDATE exam_papers SET
+      pdf_access = CASE COALESCE(pdf_download,'all') WHEN 'none' THEN '' ELSE 'account' END,
+      docx_access = CASE COALESCE(docx_download,'all') WHEN 'none' THEN '' ELSE 'account' END`);
+  }
+  const userCols = db.prepare('PRAGMA table_info(users)').all();
+  // VIP: hạn dùng + số lượt tải file Word còn lại (mỗi file chỉ trừ 1 lần, tải lại không trừ)
+  if (!userCols.some(c => c.name === 'vip_until')) db.exec('ALTER TABLE users ADD COLUMN vip_until TEXT');
+  if (!userCols.some(c => c.name === 'vip_word_quota')) db.exec('ALTER TABLE users ADD COLUMN vip_word_quota INTEGER DEFAULT 0');
+  db.exec(`
+    -- File đã mở khóa cho từng tài khoản: mua lẻ (source='buy') hoặc dùng 1 lượt VIP (source='vip')
+    CREATE TABLE IF NOT EXISTS exam_unlocks (
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      exam_id INTEGER NOT NULL REFERENCES exam_papers(id) ON DELETE CASCADE,
+      kind TEXT NOT NULL,            -- 'pdf' | 'docx'
+      source TEXT NOT NULL,          -- 'buy' | 'vip'
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (user_id, exam_id, kind)
+    );
+    -- Đơn thanh toán chuyển khoản QR. code = nội dung chuyển khoản (máy chủ nhận báo giao dịch → khớp code → đánh dấu đã trả)
+    CREATE TABLE IF NOT EXISTS payment_orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      code TEXT NOT NULL UNIQUE,
+      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      kind TEXT NOT NULL,            -- 'vip' | 'file'
+      plan_id TEXT,                  -- gói VIP
+      exam_id INTEGER,               -- mua lẻ
+      file_kind TEXT,                -- 'pdf' | 'docx'
+      title TEXT,                    -- mô tả hiện cho người mua / admin
+      amount INTEGER NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',   -- pending | paid | cancelled
+      paid_amount INTEGER,
+      paid_at DATETIME,
+      paid_via TEXT,                 -- 'webhook' | 'admin'
+      provider_txn TEXT UNIQUE,      -- mã giao dịch ngân hàng (chống ghi nhận 2 lần)
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_payment_orders_user ON payment_orders(user_id, status);
+  `);
+
   // Tài khoản quản trị đầu tiên (chỉ khi database chưa có admin nào):
   // - ADMIN_USERNAME / ADMIN_PASSWORD trong .env → tạo đúng tài khoản đó (mật khẩu không lưu dạng chữ thường).
   // - Không đặt: máy cá nhân / bản demo vẫn tạo admin / admin123 cho tiện; còn bản chạy thật (NODE_ENV=production,

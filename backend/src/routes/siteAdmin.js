@@ -9,6 +9,7 @@ const { authMiddleware, requireRole } = require('../middleware/auth');
 const { uploadExam, EXAM_DOCS_DIR } = require('../middleware/upload');
 const { getForm, saveForm } = require('../services/registrationForm');
 const { examMeta, normalizeMenu } = require('../services/examMenu');
+const pay = require('../services/payments');
 
 router.use(authMiddleware, requireRole('admin'));
 
@@ -23,8 +24,9 @@ const rmExamDoc = (name) => {
   const f = path.join(EXAM_DOCS_DIR, path.basename(name));
   if (fs.existsSync(f)) { try { fs.unlinkSync(f); } catch {} }
 };
-const DOWNLOAD_MODES = ['all', 'login', 'none'];
-const downloadMode = (v, fallback) => (DOWNLOAD_MODES.includes(v) ? v : fallback);
+// Quyền tải từng bản: chuỗi các quyền admin tích (account,student,vip,buy); thiếu trong form → giữ giá trị cũ
+const accessOf = (v, fallback) => (v === undefined ? fallback : pay.accessString(v));
+const priceOf = (v, fallback) => (v === undefined ? fallback : pay.toPrice(v));
 const isIsoDate = (v) => typeof v === 'string' && !Number.isNaN(Date.parse(v));
 const optInt = (v) => (v === '' || v == null ? null : Math.max(0, parseInt(v, 10) || 0));
 
@@ -154,11 +156,12 @@ router.post('/exams', uploadExam, (req, res) => {
     rmExamFile(uploaded(req, 'thumbnail')); rmExamFile(uploaded(req, 'pdf')); rmExamDoc(uploaded(req, 'docx'));
     return res.status(400).json({ message: 'Cần tên đề' });
   }
-  const r = getDb().prepare(`INSERT INTO exam_papers (title,grade,category,description,published_at,thumbnail,pdf_file,docx_file,pdf_download,docx_download,active)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?)`)
+  const r = getDb().prepare(`INSERT INTO exam_papers (title,grade,category,description,published_at,thumbnail,pdf_file,docx_file,pdf_access,docx_access,pdf_price,docx_price,active)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`)
     .run(f.title, f.grade, f.category, f.description, f.published_at || new Date().toISOString().slice(0, 10),
       uploaded(req, 'thumbnail'), uploaded(req, 'pdf'), uploaded(req, 'docx'),
-      downloadMode(req.body.pdf_download, 'all'), downloadMode(req.body.docx_download, 'all'), req.body.active === '0' ? 0 : 1);
+      accessOf(req.body.pdf_access, 'account'), accessOf(req.body.docx_access, 'account'),
+      priceOf(req.body.pdf_price, null), priceOf(req.body.docx_price, null), req.body.active === '0' ? 0 : 1);
   res.status(201).json({ id: r.lastInsertRowid });
 });
 
@@ -177,9 +180,10 @@ router.put('/exams/:id', uploadExam, (req, res) => {
   if (nextPdf !== cur.pdf_file) rmExamFile(cur.pdf_file);
   if (nextDocx !== cur.docx_file) rmExamDoc(cur.docx_file);
   db.prepare(`UPDATE exam_papers SET title=?, grade=?, category=?, description=?, published_at=?, thumbnail=?, pdf_file=?, docx_file=?,
-    pdf_download=?, docx_download=?, active=? WHERE id=?`).run(
+    pdf_access=?, docx_access=?, pdf_price=?, docx_price=?, active=? WHERE id=?`).run(
     f.title, f.grade, f.category, f.description, f.published_at || cur.published_at, nextThumb, nextPdf, nextDocx,
-    downloadMode(req.body.pdf_download, cur.pdf_download || 'all'), downloadMode(req.body.docx_download, cur.docx_download || 'all'),
+    accessOf(req.body.pdf_access, cur.pdf_access ?? 'account'), accessOf(req.body.docx_access, cur.docx_access ?? 'account'),
+    priceOf(req.body.pdf_price, cur.pdf_price), priceOf(req.body.docx_price, cur.docx_price),
     req.body.active === undefined ? cur.active : (req.body.active === '0' || req.body.active === false ? 0 : 1), cur.id,
   );
   res.json({ message: 'Đã cập nhật' });
@@ -190,6 +194,41 @@ router.delete('/exams/:id', (req, res) => {
   const cur = db.prepare('SELECT thumbnail,pdf_file,docx_file FROM exam_papers WHERE id=?').get(req.params.id);
   if (cur) { rmExamFile(cur.thumbnail); rmExamFile(cur.pdf_file); rmExamDoc(cur.docx_file); db.prepare('DELETE FROM exam_papers WHERE id=?').run(req.params.id); }
   res.json({ message: 'Đã xóa đề' });
+});
+
+// ── Thanh toán QR: tài khoản nhận tiền, gói VIP, khóa webhook, danh sách đơn ─────────────
+router.get('/payments', (req, res) => {
+  const db = getDb();
+  const orders = db.prepare(`SELECT o.*, u.full_name, u.username, u.email FROM payment_orders o LEFT JOIN users u ON u.id=o.user_id
+    ORDER BY o.id DESC LIMIT 300`).all();
+  const cfg = pay.paymentConfig(db);
+  const stats = db.prepare(`SELECT COUNT(*) n, COALESCE(SUM(paid_amount),0) total FROM payment_orders WHERE status='paid' AND paid_at >= date('now','start of month')`).get();
+  res.json({ config: { ...cfg, ready: pay.paymentsReady(cfg) }, orders, month: stats });
+});
+
+router.put('/payments/config', (req, res) => {
+  const cfg = pay.saveConfig(getDb(), req.body || {});
+  res.json({ config: { ...cfg, ready: pay.paymentsReady(cfg) } });
+});
+
+// Tạo khóa mới cho webhook (khóa cũ hết hiệu lực ngay) — dán khóa này vào dịch vụ đọc giao dịch ngân hàng
+router.post('/payments/webhook-key', (req, res) => {
+  res.json({ webhook_key: pay.rotateWebhookKey(getDb()) });
+});
+
+// Admin xác nhận tay (đã thấy tiền về trong sao kê nhưng webhook chưa báo / ghi sai nội dung)
+router.post('/payments/orders/:id/confirm', (req, res) => {
+  const db = getDb();
+  const o = db.prepare('SELECT * FROM payment_orders WHERE id=?').get(req.params.id);
+  if (!o) return res.status(404).json({ message: 'Không tìm thấy đơn' });
+  if (o.status === 'paid') return res.status(400).json({ message: 'Đơn đã được thanh toán' });
+  pay.markPaid(db, o.id, { amount: o.amount, via: 'admin', txn: null });
+  res.json({ message: 'Đã xác nhận thanh toán' });
+});
+
+router.post('/payments/orders/:id/cancel', (req, res) => {
+  const r = getDb().prepare("UPDATE payment_orders SET status='cancelled' WHERE id=? AND status='pending'").run(req.params.id);
+  res.json({ cancelled: r.changes > 0 });
 });
 
 module.exports = router;

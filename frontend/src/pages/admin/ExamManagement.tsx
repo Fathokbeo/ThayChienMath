@@ -9,21 +9,48 @@ import { fmtDay, gradeLabel } from '../../lib/publicSite';
 import { loadPdfjs } from '../../lib/pdfjs';
 import ExamMenuBar, { type ExamMeta } from '../../components/ExamMenuBar';
 import ExamStructureEditor from '../../components/ExamStructureEditor';
+import { ACCESS_OPTIONS, parseFlags, vnd, type AccessFlag } from '../../lib/payments';
 
-type DownloadMode = 'all' | 'login' | 'none';
 type Exam = {
   id: number; title: string; grade: string | null; description: string | null; thumbnail: string | null; pdf_file: string | null;
-  docx_file: string | null; pdf_download: DownloadMode | null; docx_download: DownloadMode | null; published_at: string | null; active: number; created_at: string;
+  docx_file: string | null; pdf_access: string | null; docx_access: string | null; pdf_price: number | null; docx_price: number | null; published_at: string | null; active: number; created_at: string;
   category: string | null;
 };
-const DOWNLOAD_OPTIONS: { value: DownloadMode; label: string }[] = [
-  { value: 'all', label: 'Ai cũng tải được' },
-  { value: 'login', label: 'Phải đăng nhập mới tải' },
-  { value: 'none', label: 'Không cho tải (chỉ xem trên web)' },
-];
+// Tóm tắt quyền tải để hiện ở danh sách đề
+const accessSummary = (flags: AccessFlag[], price: number | null) => !flags.length ? 'chỉ xem'
+  : flags.map((f) => (f === 'buy' ? `mua lẻ ${vnd(price)}` : ACCESS_OPTIONS.find((o) => o.value === f)?.label.toLowerCase())).join(', ');
+
+// Ô tích quyền tải 1 bản đề: "Chỉ xem" (không tích gì) hoặc tích nhiều quyền cùng lúc; tích "Mua lẻ" thì nhập giá
+function AccessPicker({ title, flags, price, onChange, onPrice }: {
+  title: string; flags: AccessFlag[]; price: string; onChange: (f: AccessFlag[]) => void; onPrice: (p: string) => void;
+}) {
+  const toggle = (f: AccessFlag) => onChange(flags.includes(f) ? flags.filter((x) => x !== f) : [...flags, f]);
+  return (
+    <div className="access-box">
+      <div className="access-title">{title}</div>
+      <label className={`access-opt ${!flags.length ? 'on' : ''}`}>
+        <input type="checkbox" checked={!flags.length} onChange={() => onChange([])} />
+        <span><b>Chỉ xem</b><small>Không cho tải về</small></span>
+      </label>
+      {ACCESS_OPTIONS.map((o) => (
+        <label key={o.value} className={`access-opt ${flags.includes(o.value) ? 'on' : ''}`}>
+          <input type="checkbox" checked={flags.includes(o.value)} onChange={() => toggle(o.value)} />
+          <span><b>{o.label}</b><small>{o.hint}</small></span>
+        </label>
+      ))}
+      {flags.includes('buy') && (
+        <label className="access-price">Giá bán lẻ
+          <input className="input" inputMode="numeric" value={price} onChange={(e) => onPrice(e.target.value.replace(/[^d]/g, ''))} placeholder="vd 20000" />
+          <span>{price ? vnd(Number(price)) : 'đồng'}</span>
+        </label>
+      )}
+    </div>
+  );
+}
 
 const today = () => new Date().toISOString().slice(0, 10);
-const EMPTY = { title: '', grade: '', category: '', description: '', published_at: today(), pdf_download: 'all' as DownloadMode, docx_download: 'all' as DownloadMode };
+const EMPTY = { title: '', grade: '', category: '', description: '', published_at: today(),
+  pdf_access: ['account'] as AccessFlag[], docx_access: ['vip', 'buy'] as AccessFlag[], pdf_price: '', docx_price: '' };
 const NO_CATEGORY = '__none'; // lọc "Chưa phân loại" ở thanh menu admin
 
 // Vẽ trang đầu của file PDF thành ảnh JPEG làm ảnh bìa (khi admin không chọn ảnh bìa riêng)
@@ -94,7 +121,8 @@ export default function ExamManagement() {
     // Đăng đề mới khi đang lọc 1 lớp / 1 loại → điền sẵn đúng lớp, loại đó
     setForm(e === 'new' ? { ...EMPTY, grade: filter.grade || grades[0] || '', category: filter.category && filter.category !== NO_CATEGORY ? filter.category : '' }
       : { title: e.title, grade: e.grade || '', category: e.category || '', description: e.description || '', published_at: e.published_at || today(),
-        pdf_download: e.pdf_download || 'all', docx_download: e.docx_download || 'all' });
+        pdf_access: parseFlags(e.pdf_access), docx_access: parseFlags(e.docx_access),
+        pdf_price: e.pdf_price ? String(e.pdf_price) : '', docx_price: e.docx_price ? String(e.docx_price) : '' });
     setPdf(null); setDocx(null); setThumb(null);
     setModal(e);
   };
@@ -106,7 +134,10 @@ export default function ExamManagement() {
     setSaving(true);
     try {
       const body = new FormData();
-      Object.entries(form).forEach(([k, v]) => body.append(k, v));
+      if ([...form.pdf_access, ...form.docx_access].includes('buy') && ((form.pdf_access.includes('buy') && !Number(form.pdf_price)) || (form.docx_access.includes('buy') && !Number(form.docx_price)))) {
+        toast.error('Nhập giá cho file bán lẻ'); setSaving(false); return;
+      }
+      Object.entries(form).forEach(([k, v]) => body.append(k, Array.isArray(v) ? v.join(',') : v));
       if (pdf) body.append('pdf', pdf);
       if (docx) body.append('docx', docx);
       // Không chọn ảnh bìa (và đề chưa có ảnh bìa) → tự lấy trang đầu của PDF
@@ -180,8 +211,8 @@ export default function ExamManagement() {
                   <span>{fmtDay(e.published_at || e.created_at)}</span>
                   {!e.pdf_file && <span className="badge badge-red">Chưa có PDF</span>}
                   {e.docx_file && <span className="badge badge-purple">Có bản Word</span>}
-                  {e.pdf_file && <span>Tải PDF: {DOWNLOAD_OPTIONS.find((o) => o.value === (e.pdf_download || 'all'))?.label.toLowerCase()}</span>}
-                  {e.docx_file && <span>· Tải Word: {DOWNLOAD_OPTIONS.find((o) => o.value === (e.docx_download || 'all'))?.label.toLowerCase()}</span>}
+                  {e.pdf_file && <span>PDF: {accessSummary(parseFlags(e.pdf_access), e.pdf_price)}</span>}
+                  {e.docx_file && <span>· Word: {accessSummary(parseFlags(e.docx_access), e.docx_price)}</span>}
                   {!e.active && <span className="badge badge-gray">Đang ẩn</span>}
                 </div>
               </div>
@@ -225,23 +256,20 @@ export default function ExamManagement() {
             <label className="form-field"><span>File đề PDF {editing?.pdf_file ? '— chọn file mới để thay' : ''}</span>
               <input className="input" type="file" accept="application/pdf" onChange={(e) => setPdf(e.target.files?.[0] || null)} />
               {editing?.pdf_file && !pdf && <a href={fileUrl(`/uploads/exams/${editing.pdf_file}`)} target="_blank" rel="noreferrer" className="link" style={{ fontSize: '0.85rem' }}>Xem file đang dùng</a>}</label>
-            <label className="form-field"><span>Quyền tải bản PDF</span>
-              <select className="input" value={form.pdf_download} onChange={(e) => setForm({ ...form, pdf_download: e.target.value as DownloadMode })}>
-                {DOWNLOAD_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select></label>
             <label className="form-field"><span>File đề Word (.doc, .docx) {editing?.docx_file ? '— chọn file mới để thay' : ''}</span>
               <input className="input" type="file" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(e) => setDocx(e.target.files?.[0] || null)} />
               {editing?.docx_file && !docx && <a href={fileUrl(`/api/public/exams/${editing.id}/file/docx`)} className="link" style={{ fontSize: '0.85rem' }}>Tải bản Word đang dùng</a>}</label>
-            <label className="form-field"><span>Quyền tải bản Word</span>
-              <select className="input" value={form.docx_download} onChange={(e) => setForm({ ...form, docx_download: e.target.value as DownloadMode })}>
-                {DOWNLOAD_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select></label>
           </div>
-          {form.pdf_download !== 'all' && (
-            <div style={{ fontSize: '0.78rem', color: '#B8673E', marginTop: -4 }}>
-              Lưu ý: bản PDF vẫn hiện để xem trên web, nên nút tải bị ẩn nhưng người rành máy tính vẫn có thể lưu lại được. Bản Word thì chặn hẳn.
-            </div>
-          )}
+          {/* Quyền tải từng bản: tích nhiều quyền cùng lúc (vd vừa miễn phí cho học sinh, vừa bán lẻ cho khách) */}
+          <div className="access-grid">
+            <AccessPicker title="Ai được tải bản PDF" flags={form.pdf_access} price={form.pdf_price}
+              onChange={(f) => setForm({ ...form, pdf_access: f })} onPrice={(p) => setForm({ ...form, pdf_price: p })} />
+            <AccessPicker title="Ai được tải bản Word" flags={form.docx_access} price={form.docx_price}
+              onChange={(f) => setForm({ ...form, docx_access: f })} onPrice={(p) => setForm({ ...form, docx_price: p })} />
+          </div>
+          <div style={{ fontSize: '0.78rem', color: '#86868B', marginTop: -4 }}>
+            Bản PDF luôn xem được trên web; quyền ở trên chỉ áp dụng cho nút tải về. Bản Word chỉ tải được khi đúng quyền. Giáo viên và quản trị luôn tải được.
+          </div>
           <label className="form-field"><span>Ảnh bìa (không bắt buộc — để trống sẽ tự lấy trang đầu của PDF)</span>
             <input className="input" type="file" accept="image/*" onChange={(e) => setThumb(e.target.files?.[0] || null)} /></label>
         </div>

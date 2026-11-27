@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import AiUsageCard from '../../components/AiUsageCard';
 import api from '../../lib/api';
-import { Users, BookOpen, School, ClipboardList, FileCheck, GraduationCap, LayoutTemplate, Image, ChevronRight, ClipboardCheck, FileStack } from 'lucide-react';
+import { Users, BookOpen, School, ClipboardList, FileCheck, GraduationCap, ChevronRight, ClipboardCheck, FileStack } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import TeachingOverview from '../../components/TeachingOverview';
@@ -21,18 +21,16 @@ export default function AdminDashboard() {
     { label: 'Học sinh', value: stats.totalStudents, icon: Users, color: '#1F5C68', link: '/admin/users?role=student' },
     { label: 'Giáo viên', value: stats.totalTeachers, icon: GraduationCap, color: '#2F6F82', link: '/admin/users?role=teacher' },
     { label: 'Khóa học', value: stats.totalCourses, icon: BookOpen, color: '#3A7D5C', link: '/admin/courses' },
-    { label: 'Lớp học', value: stats.totalClasses, icon: School, color: '#B8673E', link: '/admin/classes' },
+    { label: 'Lớp học', value: stats.totalClasses, icon: School, color: '#B8673E', link: '/admin/courses' },
     { label: 'Bài tập', value: stats.totalHomework, icon: ClipboardList, color: '#6E5A94', link: '' },
     { label: 'Bài nộp', value: stats.totalSubmissions, icon: FileCheck, color: '#2E6B60', link: '' },
   ] : [];
 
   const shortcuts = [
-    { to: '/admin/users', icon: Users, title: 'Quản lý tài khoản', sub: 'Tạo, sửa, khóa tài khoản giáo viên và học sinh' },
-    { to: '/admin/courses', icon: BookOpen, title: 'Khóa học', sub: 'Khóa học, lớp học và giáo viên phụ trách' },
     { to: '/admin/registrations', icon: ClipboardCheck, title: 'Đăng ký học', sub: 'Đơn đăng ký từ trang chủ, ca thi thử đầu vào' },
-    { to: '/admin/exams', icon: FileStack, title: 'Đề và chuyên môn', sub: 'Đăng đề PDF theo từng lớp lên trang chủ' },
-    { to: '/admin/content', icon: LayoutTemplate, title: 'Nội dung trang giới thiệu', sub: 'Đội ngũ, liên hệ, số liệu trang chủ' },
-    { to: '/admin/ads', icon: Image, title: 'Quảng cáo', sub: 'Ảnh băng chuyền ở trang chủ' },
+    { to: '/admin/courses', icon: BookOpen, title: 'Khóa học', sub: 'Khóa học, lớp học và giáo viên phụ trách' },
+    { to: '/admin/exams', icon: FileStack, title: 'Trang web', sub: 'Đề thi, tin tức, ảnh quảng cáo, thông tin liên hệ, thanh toán & VIP' },
+    { to: '/admin/users', icon: Users, title: 'Tài khoản', sub: 'Tạo, sửa, khóa tài khoản giáo viên và học sinh' },
   ];
 
   return (
@@ -67,13 +65,9 @@ export default function AdminDashboard() {
         })}
       </div>
 
-      <AiUsageCard />
-
-      {/* Danh sách lớp (trang admin không hiện "Hôm nay" / "Sắp đến hạn") */}
-      <TeachingOverview showDeadlines={false} />
-
+      {/* Lối tắt quản trị lên trước danh sách lớp — việc admin làm nhiều nhất */}
       <SectionHeader title="Quản trị" />
-      <div className="list">
+      <div className="list" style={{ marginBottom: '2.25rem' }}>
         {shortcuts.map(({ to, icon: Icon, title, sub }) => (
           <Link key={to} to={to} className="list-row">
             <span style={{ width: 36, height: 36, borderRadius: 10, background: '#E6F0F2', color: '#1F5C68', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -87,6 +81,12 @@ export default function AdminDashboard() {
           </Link>
         ))}
       </div>
+
+      <AiUsageCard />
+
+      {/* Danh sách lớp (trang admin không hiện "Hôm nay" / "Sắp đến hạn") */}
+      <TeachingOverview showDeadlines={false} />
+
     </div>
   );
 }

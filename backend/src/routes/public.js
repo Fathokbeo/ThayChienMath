@@ -8,8 +8,11 @@ const { EXAM_DOCS_DIR } = require('../middleware/upload');
 const { getForm, getFormFields, validateSubmission } = require('../services/registrationForm');
 const { examGrades, examMeta } = require('../services/examMenu');
 const { rankCourses, rankCoursesByInterest, parseTags } = require('../services/courseTags');
+const pay = require('../services/payments');
 
 const EXAMS_DIR = path.join(__dirname, '../../uploads/exams');
+// Bỏ dấu tiếng Việt + chữ thường để tìm kiếm ("Giữa Kỳ" → "giua ky")
+const fold = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 
 router.get('/ads', (req, res) => {
   const db = getDb();
@@ -226,12 +229,21 @@ router.get('/exams', (req, res) => {
   const where = ['active=1']; const vals = [];
   if (req.query.grade) { where.push('grade=?'); vals.push(String(req.query.grade)); }
   if (req.query.category) { where.push('category=?'); vals.push(String(req.query.category)); }
-  if (req.query.q) { where.push('(title LIKE ? OR description LIKE ?)'); const q = `%${String(req.query.q).slice(0, 80)}%`; vals.push(q, q); }
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 200, 1), 200);
-  res.json(db.prepare(`
-    SELECT id,title,grade,category,thumbnail,pdf_file,(docx_file IS NOT NULL) has_docx,published_at,created_at FROM exam_papers
-    WHERE ${where.join(' AND ')} ORDER BY COALESCE(published_at, created_at) DESC, id DESC LIMIT ${limit}
-  `).all(...vals));
+  const rows = db.prepare(`
+    SELECT id,title,grade,category,description,thumbnail,pdf_file,(docx_file IS NOT NULL) has_docx,published_at,created_at FROM exam_papers
+    WHERE ${where.join(' AND ')} ORDER BY COALESCE(published_at, created_at) DESC, id DESC
+  `).all(...vals);
+  // Tìm không phân biệt dấu, khớp mọi từ trong tên đề / mô tả / lớp / loại đề ("giua ky lop 9" ra "Đề giữa kỳ … Toán 9").
+  // Lọc bằng JS vì SQLite LIKE phân biệt dấu tiếng Việt; số đề chỉ vài trăm nên không đáng kể.
+  // Từ là số thì phải khớp nguyên số: "9" không khớp "90 phút"
+  const words = fold(String(req.query.q || '').slice(0, 80)).split(/\s+/).filter(Boolean)
+    .map((w) => (/^\d+$/.test(w) ? new RegExp(`(^|\\D)${w}(\\D|$)`) : w));
+  const hit = (r) => {
+    const hay = fold(`${r.title} ${r.description || ''} ${/^\d+$/.test(r.grade || '') ? `lop ${r.grade}` : r.grade || ''} ${r.category || ''}`);
+    return words.every((w) => (typeof w === 'string' ? hay.includes(w) : w.test(hay)));
+  };
+  res.json((words.length ? rows.filter(hit) : rows).slice(0, limit).map(({ description, ...r }) => r));
 });
 
 router.get('/exams/:id', (req, res) => {
@@ -242,9 +254,14 @@ router.get('/exams/:id', (req, res) => {
   const exam = {
     id: row.id, title: row.title, grade: row.grade, category: row.category, description: row.description, thumbnail: row.thumbnail,
     pdf_file: row.pdf_file, published_at: row.published_at, created_at: row.created_at, has_docx: !!row.docx_file,
-    pdf_download: row.pdf_file ? (row.pdf_download || 'all') : 'none',
-    docx_download: row.docx_file ? (row.docx_download || 'all') : 'none',
   };
+  // Quyền tải của NGƯỜI ĐANG XEM với từng bản: được tải chưa, nếu chưa thì cần làm gì (đăng nhập / VIP / mua lẻ)
+  const viewer = userFromRequest(req);
+  const access = { pdf: pay.fileAccess(db, row, 'pdf', viewer), docx: pay.fileAccess(db, row, 'docx', viewer) };
+  const cfg = pay.paymentConfig(db);
+  exam.access = access;
+  exam.payments = { enabled: pay.paymentsReady(cfg), vip_plans: cfg.vip_plans };
+  exam.vip = viewer ? pay.vipStatus(db, viewer) : null;
   const related = db.prepare(`
     SELECT id,title,grade,thumbnail,published_at,created_at FROM exam_papers
     WHERE active=1 AND id<>? AND grade IS ? ORDER BY COALESCE(published_at, created_at) DESC LIMIT 4
@@ -252,22 +269,27 @@ router.get('/exams/:id', (req, res) => {
   res.json({ ...exam, related });
 });
 
-// Tải đề theo quyền admin đặt cho từng bản (PDF / Word). Dùng được với link thường (<a href>):
-// web gửi kèm cookie phiên, app gắn vé ?t= (xem fileUrl ở frontend). Admin luôn tải được.
+// Tải đề theo quyền admin tích cho từng bản (PDF / Word): mọi tài khoản / học sinh / VIP / đã mua lẻ (services/payments.js).
+// Dùng được với link thường (<a href>): web gửi kèm cookie phiên, app gắn vé ?t= (xem fileUrl ở frontend). Admin, giáo viên luôn tải được.
 router.get('/exams/:id/file/:kind', (req, res) => {
   const kind = req.params.kind;
   if (kind !== 'pdf' && kind !== 'docx') return res.status(404).json({ message: 'Không tìm thấy file' });
   const exam = getDb().prepare('SELECT * FROM exam_papers WHERE id=? AND active=1').get(req.params.id);
   const file = exam && (kind === 'pdf' ? exam.pdf_file : exam.docx_file);
   if (!file) return res.status(404).json({ message: 'Không tìm thấy file' });
-  const mode = (kind === 'pdf' ? exam.pdf_download : exam.docx_download) || 'all';
   const user = userFromRequest(req) || userFromFileTicket(req);
-  if (user?.role !== 'admin') {
-    if (mode === 'none') return res.status(403).json({ message: 'Đề này không cho tải về' });
-    if (mode === 'login' && !user) return res.status(401).json({ message: 'Vui lòng đăng nhập để tải đề này' });
+  const db = getDb();
+  const acc = pay.fileAccess(db, exam, kind, user);
+  if (!acc.allowed) {
+    if (acc.need_login) return res.status(401).json({ message: 'Vui lòng đăng nhập để tải đề này' });
+    return res.status(403).json({ message: acc.flags.length ? 'Bạn chưa có quyền tải file này' : 'Đề này chỉ xem trên web, không cho tải về' });
   }
   const full = path.join(kind === 'pdf' ? EXAMS_DIR : EXAM_DOCS_DIR, path.basename(file));
   if (!fs.existsSync(full)) return res.status(404).json({ message: 'Không tìm thấy file' });
+  // VIP tải file Word lần đầu → trừ 1 lượt (tải lại sau đó không trừ nữa)
+  if (acc.via === 'vip_quota' && !pay.consumeVipQuota(db, user.id, exam.id, kind)) {
+    return res.status(403).json({ message: 'Gói VIP đã hết lượt tải file Word' });
+  }
   const safeTitle = String(exam.title || '').replace(/[\\/:*?"<>|\r\n]+/g, ' ').trim().slice(0, 150) || 'de-thi';
   res.setHeader('Cache-Control', 'private, no-store');
   res.download(full, safeTitle + path.extname(file));

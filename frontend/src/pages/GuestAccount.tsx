@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { PAGE_MAX } from '../lib/layout';
 import useIsMobile from '../lib/useIsMobile';
 import { GoogleLinkPanel } from '../components/GoogleLink';
+import MyVipCard from '../components/MyVipCard';
 
 const SHORTCUTS = [
   { to: '/de-thi', icon: FileStack, title: 'Kho đề', sub: 'Xem và tải đề theo từng lớp', color: '#1F5C68' },
@@ -36,6 +37,9 @@ export default function GuestAccount() {
           </div>
           <button type="button" className="btn btn-ghost" style={{ color: '#B04A2A' }} onClick={logout}><LogOut size={16} /> Đăng xuất</button>
         </div>
+
+        {/* VIP, file đã mua, đơn đang chờ thanh toán */}
+        <MyVipCard isMobile={isMobile} />
 
         <div style={{ background: '#fff', borderRadius: 20, padding: isMobile ? '1.25rem' : '1.4rem 1.8rem', marginTop: 16, maxWidth: 560 }}>
           <h2 style={{ margin: '0 0 10px', fontSize: '1.05rem', fontWeight: 700 }}>Đăng nhập bằng Google</h2>

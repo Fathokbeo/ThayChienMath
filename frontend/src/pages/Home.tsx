@@ -14,7 +14,7 @@ import { PAGE_MAX } from '../lib/layout';
 import { examHref, homeTitlesFrom } from '../lib/publicSite';
 import useIsMobile from '../lib/useIsMobile';
 import { BRAND_DEFAULT } from '../lib/brand';
-import { BookOpen, ChevronRight, GraduationCap, Newspaper, Sparkles, Smartphone, LineChart, FileStack } from 'lucide-react';
+import { BookOpen, ChevronRight, GraduationCap, Sparkles, Smartphone, LineChart } from 'lucide-react';
 
 const SCROLL_OFFSET = 86; // chừa chỗ cho thanh điều hướng dính ở trên
 
@@ -26,16 +26,20 @@ function scrollToSection(id: string) {
   history.replaceState(null, '', `#${id}`);
 }
 
+// Không truyền title → mục không có khối tiêu đề lớn, nội dung hiện ngay (đề, tin tức)
 function Section({ id, title, subtitle, icon: Icon, color, alt, children }: any) {
   const isMobile = useIsMobile();
+  const pad = title ? (isMobile ? '2.5rem 16px' : '4rem 22px') : (isMobile ? '1.5rem 16px' : '2.25rem 22px');
   return (
-    <section id={id} style={{ background: alt ? 'white' : 'transparent', scrollMarginTop: SCROLL_OFFSET, padding: isMobile ? '2.5rem 16px' : '4rem 22px' }}>
+    <section id={id} style={{ background: alt ? 'white' : 'transparent', scrollMarginTop: SCROLL_OFFSET, padding: pad }}>
       <div style={{ maxWidth: PAGE_MAX, margin: '0 auto' }}>
-        <div style={{ marginBottom: isMobile ? '1.4rem' : '2.25rem', textAlign: 'center' }}>
-          <Icon size={26} color={color} style={{ margin: '0 auto 10px' }} />
-          <h2 style={{ margin: 0, fontSize: 'clamp(1.6rem, 3.6vw, 2.5rem)', fontWeight: 700, letterSpacing: '-0.03em', color: '#1D1D1F' }}>{title}</h2>
-          {subtitle && <p style={{ margin: '8px auto 0', color: '#6E6E73', fontSize: isMobile ? '0.95rem' : '1.08rem', maxWidth: 620 }}>{subtitle}</p>}
-        </div>
+        {title && (
+          <div style={{ marginBottom: isMobile ? '1.4rem' : '2.25rem', textAlign: 'center' }}>
+            <Icon size={26} color={color} style={{ margin: '0 auto 10px' }} />
+            <h2 style={{ margin: 0, fontSize: 'clamp(1.6rem, 3.6vw, 2.5rem)', fontWeight: 700, letterSpacing: '-0.03em', color: '#1D1D1F' }}>{title}</h2>
+            {subtitle && <p style={{ margin: '8px auto 0', color: '#6E6E73', fontSize: isMobile ? '0.95rem' : '1.08rem', maxWidth: 620 }}>{subtitle}</p>}
+          </div>
+        )}
         {children}
       </div>
     </section>
@@ -91,38 +95,26 @@ export default function Home() {
 
   return (
     <PublicLayout>
-      {/* Mở đầu: tiêu đề lớn ở giữa + 2 nút; ảnh quảng cáo (nếu có) ngay bên dưới */}
-      <section style={{ background: '#fff', textAlign: 'center', padding: isMobile ? '2.75rem 16px 2.25rem' : '4.5rem 22px 3.5rem' }}>
-        <img src="/logo.png" alt={settings.hero_title || BRAND_DEFAULT} style={{ width: 64, height: 64, borderRadius: 16, margin: '0 auto' }} />
-        <h1 style={{ fontSize: 'clamp(2.2rem, 6vw, 4rem)', fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1.05, margin: '18px auto 14px', maxWidth: 900, color: '#1D1D1F' }}>
-          {settings.hero_title || BRAND_DEFAULT}
-        </h1>
-        <p style={{ color: '#6E6E73', fontSize: 'clamp(1.02rem, 2.2vw, 1.35rem)', maxWidth: 640, margin: '0 auto', lineHeight: 1.45 }}>
-          {settings.hero_subtitle || 'Học Toán vững vàng — tự tin chinh phục mọi kỳ thi'}
-        </p>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 26 }}>
-          {/* Nút theo người xem: khách / chưa đăng nhập → Đăng ký ngay (xuống mục khóa học); học sinh → Vào học;
-              phụ huynh → xem kết quả của con; giáo viên, admin → vào trang quản lý (không cần nút đăng ký học) */}
-          {!user || user.role === 'guest' ? (
-            <>
-              <a href="#khoa-hoc" className="btn btn-primary btn-lg" onClick={(e) => { e.preventDefault(); scrollToSection('khoa-hoc'); }}>Đăng ký ngay <ChevronRight size={18} /></a>
-              {!user && <Link to="/login" className="btn btn-outline btn-lg">Đăng nhập</Link>}
-            </>
-          ) : (
-            <Link to={`/${user.role}`} className="btn btn-primary btn-lg">
-              {user.role === 'student' ? 'Vào học' : user.role === 'parent' ? 'Xem kết quả học tập của con' : 'Vào trang quản lý'} <ChevronRight size={18} />
-            </Link>
-          )}
-        </div>
+      {/* Mở đầu: khung ảnh quảng cáo (admin đăng ở mục Quảng cáo). Chưa có ảnh nào → khung cùng cỡ
+          với logo, tên trung tâm và khẩu hiệu thay cho ảnh */}
+      <section style={{ maxWidth: PAGE_MAX, margin: '0 auto', padding: isMobile ? '12px 12px 0' : '20px 22px 0' }}>
+        <AdCarousel ads={ads} fallback={
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 20px', color: '#fff',
+            background: 'radial-gradient(circle at 85% 15%, rgba(233,165,126,0.45), transparent 42%), radial-gradient(circle at 10% 90%, rgba(156,199,210,0.35), transparent 45%), linear-gradient(135deg, #174A55, #1F5C68 45%, #2F6F82)' }}>
+            {/* Khung 3:1 trên điện thoại chỉ cao ~115px → bỏ logo, chữ nhỏ lại cho vừa */}
+            {!isMobile && <img src="/logo.png" alt="" style={{ width: 84, height: 84, borderRadius: '50%', background: '#fff', padding: 6 }} />}
+            <h1 style={{ fontSize: isMobile ? '1.5rem' : 'clamp(2rem, 4.4vw, 3.6rem)', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.05, margin: isMobile ? '0 0 6px' : '20px 0 10px' }}>
+              {settings.hero_title || BRAND_DEFAULT}
+            </h1>
+            <p style={{ fontSize: isMobile ? '0.85rem' : 'clamp(1rem, 1.6vw, 1.3rem)', margin: 0, opacity: 0.9, maxWidth: 640, lineHeight: 1.4 }}>
+              {settings.hero_subtitle || 'Học Toán vững vàng — tự tin chinh phục mọi kỳ thi'}
+            </p>
+          </div>
+        } />
       </section>
-      {ads.length > 0 && (
-        <section style={{ maxWidth: PAGE_MAX, margin: '0 auto', padding: isMobile ? '1.5rem 16px 0' : '2rem 22px 0' }}>
-          <AdCarousel ads={ads} />
-        </section>
-      )}
 
-      {/* 1. Đề và chuyên môn — thanh menu lớp → loại đề + 6 đề mới nhất */}
-      <Section id="de-thi" title={titles.exams} subtitle={titles.examsSub} icon={FileStack} color="#1F5C68" alt>
+      {/* 1. Đề — vào thẳng giao diện xem đề (menu lớp → loại đề + 6 đề mới nhất), không còn khối tiêu đề lớn */}
+      <Section id="de-thi" alt>
         {examMeta && examMeta.menu.length > 0 && <ExamMenuBar meta={examMeta} hrefFor={examHref} />}
         {exams.length === 0 ? <Empty text="Chưa có đề nào" /> : (
           <div className="exam-list" style={{ background: '#F5F5F7', ...(isMobile ? {} : { display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 32 }) }}>
@@ -134,8 +126,8 @@ export default function Home() {
         </div>
       </Section>
 
-      {/* 2. Tin tức — 4 bài mới nhất kiểu trang báo */}
-      <Section id="tin-tuc" title={titles.news} subtitle={titles.newsSub} icon={Newspaper} color="#2F6F82">
+      {/* 2. Tin tức — 4 bài mới nhất kiểu trang báo (không còn khối tiêu đề lớn) */}
+      <Section id="tin-tuc">
         {news.length === 0 ? <Empty text="Chưa có bài viết nào" /> : (
           <>
             <NewsFront posts={news.slice(0, 4)} isMobile={isMobile} />

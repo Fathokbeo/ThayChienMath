@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, School, BookOpen, Home, CornerDownLeft, PlayCircle, ClipboardList, type LucideIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/api';
-import { navItemsFor } from '../lib/navigation';
+import { navPagesFor } from '../lib/navigation';
 
 // Tìm nhanh (Ctrl/⌘+K): gõ tên trang, lớp, khóa học, bài giảng hoặc bài tập rồi Enter để mở ngay.
 // Bài giảng / bài tập chỉ hiện khi đã gõ từ khóa (để danh sách mặc định gọn).
@@ -79,7 +79,7 @@ export default function CommandPalette() {
   const items = useMemo(() => {
     if (!user) return [];
     const pages: Item[] = [
-      ...navItemsFor(user.role).map((n) => ({ id: `p${n.to}`, group: 'Trang', label: n.label, to: n.to, icon: n.icon })),
+      ...navPagesFor(user.role).map((n) => ({ id: `p${n.to}`, group: 'Trang', label: n.label, to: n.to, icon: n.icon })),
       { id: 'home', group: 'Trang', label: 'Trang chủ', to: '/', icon: Home },
     ];
     const base = [...pages, ...(data?.classes || []), ...(data?.courses || [])];

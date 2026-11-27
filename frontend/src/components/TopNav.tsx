@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { navItemsFor, navEnd, roleColors } from '../lib/navigation';
+import { navItemsFor, isNavActive, roleColors } from '../lib/navigation';
 import AccountMenu from './AccountMenu';
 import { openPalette } from './CommandPalette';
 import { useBrandName } from '../lib/brand';
@@ -11,6 +11,7 @@ import { useBrandName } from '../lib/brand';
 // Trên điện thoại các mục chính chuyển xuống thanh dưới đáy (TabBar).
 export default function TopNav() {
   const { user } = useAuth();
+  const { pathname } = useLocation();
   const brand = useBrandName();
   const [menuOpen, setMenuOpen] = useState(false);
   const [bg, fg] = roleColors(user?.role);
@@ -25,10 +26,11 @@ export default function TopNav() {
         </Link>
 
         <nav className="topnav-links" aria-label="Điều hướng chính">
-          {navItemsFor(user?.role).map(({ to, label }) => (
-            <NavLink key={to} to={to} end={navEnd(to)} className={({ isActive }) => `topnav-link ${isActive ? 'active' : ''}`}>
-              {label}
-            </NavLink>
+          {navItemsFor(user?.role).map((item) => (
+            <Link key={item.to} to={item.to} className={`topnav-link ${isNavActive(item, pathname) ? 'active' : ''}`}
+              aria-current={isNavActive(item, pathname) ? 'page' : undefined}>
+              {item.label}
+            </Link>
           ))}
         </nav>
 

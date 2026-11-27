@@ -22,8 +22,8 @@ import UserManagement from './pages/admin/UserManagement';
 import AdManagement from './pages/admin/AdManagement';
 import CourseManagement from './pages/admin/CourseManagement';
 import AdminCourseDetail from './pages/admin/AdminCourseDetail';
-import ClassManagement from './pages/admin/ClassManagement';
-import SiteContent from './pages/admin/SiteContent';
+import SiteContent, { SiteInfo } from './pages/admin/SiteContent';
+import PaymentsAdmin from './pages/admin/PaymentsAdmin';
 import Registrations from './pages/admin/Registrations';
 import ExamManagement from './pages/admin/ExamManagement';
 
@@ -87,8 +87,10 @@ function AppRoutes() {
         <Route path="users" element={<UserManagement />} />
         <Route path="courses" element={<CourseManagement />} />
         <Route path="courses/:courseId" element={<AdminCourseDetail />} />
-        <Route path="classes" element={<ClassManagement />} />
+        <Route path="classes" element={<Navigate to="/admin/courses" replace />} /> {/* lớp học đã nằm trong từng khóa học */}
         <Route path="content" element={<SiteContent />} />
+        <Route path="info" element={<SiteInfo />} />
+        <Route path="payments" element={<PaymentsAdmin />} />
         <Route path="news/:id" element={<NewsEditor />} />
         <Route path="ads" element={<AdManagement />} />
         <Route path="registrations" element={<Registrations />} />

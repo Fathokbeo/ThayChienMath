@@ -4,10 +4,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { syncGuestInterest } from '../lib/interest';
 import api from '../lib/api';
 import { useBrandName } from '../lib/brand';
+import ExamSearch from './ExamSearch';
 import { homeTitlesFrom } from '../lib/publicSite';
 import { PAGE_MAX } from '../lib/layout';
 import useIsMobile from '../lib/useIsMobile';
-import { Phone, MapPin, Clock, Mail, ExternalLink, LogIn, LogOut, ChevronDown, Home, BookOpen, Newspaper, FileStack, LayoutDashboard, LayoutGrid, type LucideIcon } from 'lucide-react';
+import { Phone, MapPin, Clock, Mail, ExternalLink, LogIn, LogOut, ChevronDown, Home, BookOpen, Newspaper, FileStack, LayoutDashboard, LayoutGrid, Settings, GraduationCap, LineChart, type LucideIcon } from 'lucide-react';
 import { ENTER_LABEL, roleColors, accountSubtitle } from '../lib/navigation';
 
 // Các mục của trang chủ — gom vào 1 nút "Trang chủ" thả xuống
@@ -18,6 +19,11 @@ const HOME_MENU: { to: string; label: string; sub: string; icon: LucideIcon }[] 
   { to: '/#khoa-hoc', label: 'Khóa học & đăng ký', sub: 'Học phí, đăng ký thi thử đầu vào', icon: BookOpen },
   { to: '#contact', label: 'Liên hệ', sub: 'Địa chỉ, điện thoại, giờ học', icon: Phone },
 ];
+
+// Chữ ngắn cho nút vào hệ thống trên thanh trên cùng (menu tài khoản vẫn dùng ENTER_LABEL đầy đủ)
+const BAR_LABEL: Record<string, string> = { admin: 'Trang quản trị', teacher: 'Trang giáo viên', student: 'Vào học', parent: 'Kết quả của con' };
+// Biểu tượng riêng theo vai trò — khác hẳn biểu tượng "Trang chủ" (ô lưới) để trên điện thoại không nhầm hai nút
+const BAR_ICON: Record<string, LucideIcon> = { admin: Settings, teacher: Settings, student: GraduationCap, parent: LineChart };
 
 // Mục trong danh sách thả xuống: "#contact" cuộn trong trang hiện tại, còn lại điều hướng về trang chủ
 function MenuLink({ item, onPick, style }: { item: (typeof HOME_MENU)[number]; onPick: () => void; style?: React.CSSProperties }) {
@@ -125,13 +131,17 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         transition: 'border-color 0.2s', padding: 'var(--sa-top) 22px 0',
       }}>
         <div style={{ maxWidth: PAGE_MAX, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 52 }}>
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', color: '#1D1D1F', fontWeight: 700, letterSpacing: '-0.02em' }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', color: '#1D1D1F', fontWeight: 700, letterSpacing: '-0.02em', flexShrink: 0, whiteSpace: 'nowrap' }}>
             <img src="/logo.png" alt={brand} style={{ width: 28, height: 28, borderRadius: 7 }} />
             {brand}
           </Link>
 
+          {/* Ô tìm đề ở giữa thanh (máy tính); điện thoại thành nút kính lúp trong nhóm nút bên phải */}
+          {!narrowNav && <ExamSearch variant="bar" />}
+
           {/* Thanh công cụ: máy tính hiện chữ; điện thoại chỉ hiện biểu tượng (.pub-label ẩn, .pub-icon hiện) */}
           <div className="pub-nav">
+            {narrowNav && <ExamSearch variant="icon" />}
             {/* Rê chuột chỉ áp dụng cho chuột thật ở giao diện rộng — trên điện thoại một lần chạm sẽ vừa "rê vào" vừa bấm */}
             <div ref={homeRef} style={{ position: 'relative' }}
               onPointerEnter={(e) => { if (e.pointerType === 'mouse' && !narrowNav) hoverHome(true); }}
@@ -161,6 +171,13 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
               )}
             </div>
 
+            {/* Đã đăng nhập (trừ tài khoản khách): nút vào hệ thống theo vai trò ngay trên thanh, không phải mở menu tài khoản.
+                Điện thoại chỉ còn biểu tượng */}
+            {user && user.role !== 'guest' && (
+              <Link to={dashLink} className="btn btn-primary btn-sm pub-btn" style={{ marginLeft: 8 }} aria-label={ENTER_LABEL[user.role]} title={ENTER_LABEL[user.role]}>
+                {(() => { const Icon = BAR_ICON[user.role] || LayoutDashboard; return <><Icon size={14} className="pub-label" /><span className="pub-label">{BAR_LABEL[user.role] || ENTER_LABEL[user.role]}</span><Icon size={19} className="pub-icon" /></>; })()}
+              </Link>
+            )}
             {user ? (
               // Nút tài khoản → menu: thông tin tài khoản, vào hệ thống (theo vai trò), đăng xuất
               <div ref={accountRef} style={{ position: 'relative', marginLeft: 8 }}>

@@ -96,7 +96,7 @@ export default function AdManagement() {
   return (
     <div className="fade-in">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-        <h1 className="page-title" style={{ margin: 0 }}>Quản lý quảng cáo</h1>
+        <h1 className="page-title" style={{ margin: 0 }}>Ảnh quảng cáo</h1>
         <button className="btn btn-primary" onClick={openCreate}>
           <Plus size={16} /> Thêm quảng cáo
         </button>
@@ -113,7 +113,7 @@ export default function AdManagement() {
               <img
                 src={fileUrl(`/uploads/ads/${a.image_path}`)}
                 alt={a.title}
-                style={{ width: '100%', height: 160, objectFit: 'cover' }}
+                style={{ width: '100%', aspectRatio: '3 / 1', objectFit: 'cover', display: 'block' /* đúng tỉ lệ khung ở trang chủ */ }}
               />
               {!a.active && (
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -157,7 +157,7 @@ export default function AdManagement() {
         }
       >
         <div className="form-group">
-          <label className="label">Ảnh quảng cáo {!editing && '*'}</label>
+          <label className="label">Ảnh quảng cáo {!editing && '*'} <span style={{ fontWeight: 400, color: '#86868B' }}>— nên dùng ảnh 1920×640 (tỉ lệ 3:1)</span></label>
           <div
             className="dropzone"
             onClick={() => fileRef.current?.click()}

@@ -1,22 +1,53 @@
 import {
-  LayoutDashboard, Users, BookOpen, GraduationCap, Image, School, LayoutTemplate, Bell, ClipboardCheck, ClipboardList, FileStack,
+  LayoutDashboard, Users, BookOpen, GraduationCap, Image, School, LayoutTemplate, Newspaper, CreditCard, Bell, ClipboardCheck, ClipboardList, FileStack,
   type LucideIcon,
 } from 'lucide-react';
 
 // Menu theo vai trò — dùng chung cho thanh bên (máy tính) và thanh tab dưới đáy (điện thoại).
 // short: nhãn ngắn cho thanh tab.
-export type NavItem = { to: string; icon: LucideIcon; label: string; short: string };
+// match: các đường dẫn khác cũng làm mục này sáng lên (mục gộp nhiều trang, chuyển qua lại bằng tab con)
+export type NavItem = { to: string; icon: LucideIcon; label: string; short: string; match?: string[] };
 
+// Quản trị gộp còn 5 mục: lớp học xem trong từng khóa học; đề, tin tức, quảng cáo, thông tin trang gộp vào "Trang web"
 const ADMIN: NavItem[] = [
   { to: '/admin', icon: LayoutDashboard, label: 'Tổng quan', short: 'Tổng quan' },
   { to: '/admin/registrations', icon: ClipboardCheck, label: 'Đăng ký học', short: 'Đăng ký' },
-  { to: '/admin/users', icon: Users, label: 'Quản lý tài khoản', short: 'Tài khoản' },
   { to: '/admin/courses', icon: BookOpen, label: 'Khóa học', short: 'Khóa học' },
-  { to: '/admin/classes', icon: School, label: 'Lớp học', short: 'Lớp học' },
-  { to: '/admin/exams', icon: FileStack, label: 'Đề thi', short: 'Đề thi' },
-  { to: '/admin/content', icon: LayoutTemplate, label: 'Nội dung trang', short: 'Nội dung' },
-  { to: '/admin/ads', icon: Image, label: 'Quảng cáo', short: 'Quảng cáo' },
+  { to: '/admin/exams', icon: LayoutTemplate, label: 'Trang web', short: 'Trang web', match: ['/admin/exams', '/admin/content', '/admin/news', '/admin/ads', '/admin/info', '/admin/payments'] },
+  { to: '/admin/users', icon: Users, label: 'Tài khoản', short: 'Tài khoản' },
 ];
+
+// Tab con của các mục gộp — hiện ngay dưới thanh trên cùng khi đang ở một trong các trang của nhóm
+export type NavTab = { to: string; icon: LucideIcon; label: string; short?: string; match?: string[] };
+export const ADMIN_GROUPS: NavTab[][] = [
+  [
+    { to: '/admin/exams', icon: FileStack, label: 'Đề thi' },
+    { to: '/admin/content', icon: Newspaper, label: 'Tin tức', match: ['/admin/content', '/admin/news'] },
+    { to: '/admin/ads', icon: Image, label: 'Ảnh quảng cáo', short: 'Quảng cáo' },
+    { to: '/admin/info', icon: LayoutTemplate, label: 'Thông tin trang', short: 'Thông tin' },
+    { to: '/admin/payments', icon: CreditCard, label: 'Thanh toán & VIP', short: 'Thanh toán' },
+  ],
+];
+
+const startsWithPath = (pathname: string, base: string) => pathname === base || pathname.startsWith(base + '/');
+
+// Mục / tab có đang mở không (mục tổng quan "/admin" chỉ sáng đúng trang đó)
+export function isNavActive(item: { to: string; match?: string[] }, pathname: string) {
+  if (item.match) return item.match.some((m) => startsWithPath(pathname, m));
+  return navEnd(item.to) ? pathname === item.to : startsWithPath(pathname, item.to);
+}
+
+// Nhóm tab con của trang đang mở (chỉ trang quản trị)
+export function adminGroupFor(pathname: string) {
+  return ADMIN_GROUPS.find((g) => g.some((t) => isNavActive(t, pathname))) || null;
+}
+
+// Mọi trang để tìm nhanh (Ctrl+K): mục chính + từng tab con
+export function navPagesFor(role?: string) {
+  const items: { to: string; icon: LucideIcon; label: string }[] = navItemsFor(role).filter((n) => !n.match);
+  if (role === 'admin') ADMIN_GROUPS.flat().forEach((t) => items.push(t));
+  return items;
+}
 
 const TEACHER: NavItem[] = [
   { to: '/teacher', icon: LayoutDashboard, label: 'Tổng quát', short: 'Tổng quát' },
